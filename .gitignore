@@ -1,0 +1,67 @@
+# =========================
+# Build directories
+# =========================
+build/
+_build/
+out/
+cmake-build-*/
+meson-private/
+meson-logs/
+meson-info/
+
+# =========================
+# Compiled objects & binaries
+# =========================
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+
+# =========================
+# Dependency & cache files
+# =========================
+*.d
+*.cache
+*.log
+
+# =========================
+# Editor / IDE files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# =========================
+# OS generated files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# GTK / GResource generated
+# =========================
+*.gresource
+resources.gresource.xml~
+
+# =========================
+# Coverage / debugging
+# =========================
+*.gcno
+*.gcda
+*.gcov
+
+# =========================
+# Packaging
+# =========================
+*.tar
+*.tar.gz
+*.zip
