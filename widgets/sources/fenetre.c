@@ -9,12 +9,12 @@ static void _fenetre_appliquer_css(GtkWidget *window, Fenetre *config) {
 
     if (config->background_image != NULL) {
         snprintf(css_data, sizeof(css_data),
-            "window { background-image: url('%s'); background-size: cover; }",
-            config->background_image);
+                 "window { background-image: url('%s'); background-size: cover; }",
+                 config->background_image);
     } else if (config->color_bg != NULL) {
         snprintf(css_data, sizeof(css_data),
-            "window { background-color: %s; }",
-            config->color_bg);
+                 "window { background-color: %s; }",
+                 config->color_bg);
     } else {
         return;
     }
@@ -50,7 +50,7 @@ void fenetre_initialiser(Fenetre *config) {
     config->id = 0;
 }
 
-GtkWidget* fenetre_creer(Fenetre *config) {
+GtkWidget *fenetre_creer(Fenetre *config) {
     if (!config) return NULL;
 
     // 1. Création de la fenêtre
@@ -65,25 +65,28 @@ GtkWidget* fenetre_creer(Fenetre *config) {
         gtk_window_maximize(GTK_WINDOW(config->wind));
     }
 
-    // 4. Création d'une HeaderBar personnalisée pour gérer Titre et Boutons
+    // 4. Création d'une HeaderBar personnalisée
     GtkWidget *header_bar = gtk_header_bar_new();
     gtk_header_bar_set_show_title_buttons(GTK_HEADER_BAR(header_bar), TRUE);
 
-    // --- Gestion des Boutons (Symboles) ---
-    // On construit une chaîne de layout. Ex: "minimize,maximize,close" ou "close"
-    char layout_desc[64] = "";
+    // --- CORRECTION DU LAYOUT ---
+    // Le format DOIT être "BoutonsGauche:BoutonsDroite"
+    // Pour mettre les boutons à droite, on commence par ":"
+    char layout_desc[64] = ":";
 
-    // On ajoute les boutons à gauche ou droite selon l'OS (ici style standard : boutons à droite)
-    // Note : En GTK4 strict, modifier le layout peut dépendre des settings,
-    // mais voici l'approche via GtkHeaderBar.
-
+    // On ajoute les boutons à la suite (donc à droite du ":")
     if (config->bouton_reduire) strcat(layout_desc, "minimize,");
     if (config->bouton_agrandir && config->resizable) strcat(layout_desc, "maximize,");
     if (config->bouton_fermer) strcat(layout_desc, "close");
 
-    // Astuce : En GTK4, set_decoration_layout s'applique au layout manager.
-    gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(header_bar), layout_desc);
+    // On supprime la dernière virgule inutile s'il y en a une
+    size_t len = strlen(layout_desc);
+    if (len > 1 && layout_desc[len - 1] == ',') {
+        layout_desc[len - 1] = '\0';
+    }
 
+    // Application du layout (Exemple de résultat : ":minimize,maximize,close")
+    gtk_header_bar_set_decoration_layout(GTK_HEADER_BAR(header_bar), layout_desc);
     // --- Gestion de la Position du Titre ---
     // Pour aligner le titre, on crée notre propre Label au lieu d'utiliser celui par défaut
     GtkWidget *custom_title = gtk_label_new(config->title);
