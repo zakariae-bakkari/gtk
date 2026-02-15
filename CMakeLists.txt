@@ -1,14 +1,17 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.26)
 project(gtk C)
 
-set(CMAKE_C_STANDARD 23)
+set(CMAKE_C_STANDARD 17)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
-add_executable(gtk src/main.c
-        widgets/headers/bouton.h
+add_executable(gtk
         widgets/sources/bouton.c
-        widgets/headers/Fenetre.h
-        widgets/sources/Fenetre.c
-        widgets/headers/bouton_radio.h
+        widgets/sources/fenetre.c
         widgets/sources/bouton_radio.c
         widgets/sources/bouton_checklist.c
-        widgets/headers/bouton_checklist.h)
+        src/main.c
+)
+
+target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
+target_include_directories(gtk PRIVATE widgets/headers)
