@@ -39,10 +39,10 @@ typedef struct {
     // --- Titre et Apparence ---
     char *title;
     FenetreTitreAlign titre_align; // Nouveau : Position du titre
-    char *icon_path;
+    char *icon_path; // a tester
 
     // --- Comportement ---
-    FenetreType type;
+    FenetreType type; // a tester
     bool resizable;
     bool demarrer_maximisee;  // Nouveau : Si true, prend toute la taille
 

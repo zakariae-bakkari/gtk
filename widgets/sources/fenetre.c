@@ -1,7 +1,6 @@
 #include "../headers/fenetre.h"
 #include <stdio.h>
 #include <string.h>
-
 /* Fonction interne pour le CSS */
 static void _fenetre_appliquer_css(GtkWidget *window, Fenetre *config) {
     GtkCssProvider *provider = gtk_css_provider_new();
