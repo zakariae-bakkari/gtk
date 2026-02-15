@@ -1,150 +1,352 @@
 #include <gtk/gtk.h>
 #include "../widgets/headers/fenetre.h"
+#include "../widgets/headers/bouton.h"
 #include "../widgets/headers/conteneur.h"
+#include "../widgets/headers/bouton_checklist.h"
+#include "../widgets/headers/bouton_radio.h"
+#include <stdio.h>
 
-static void activate(GtkApplication *app, gpointer user_data) {
-    // =========================================================================
-    // 1. LA FENÊTRE (Le cadre)
-    // =========================================================================
-    Fenetre ma_fenetre;
-    fenetre_initialiser(&ma_fenetre);
+/* --- Callbacks pour les evenements --- */
 
-    ma_fenetre.title = "Démonstration Complète";
-    ma_fenetre.taille.width = 800;
-    ma_fenetre.taille.height = 600;
-    ma_fenetre.color_bg = "#ecf0f1"; // Fond gris très clair (Clouds)
-    ma_fenetre.demarrer_maximisee = false;
-
-    // Boutons de la fenêtre
-    ma_fenetre.bouton_fermer = true;
-    ma_fenetre.bouton_agrandir = true;
-    ma_fenetre.bouton_reduire = true;
-
-    GtkWidget *le_widget_fenetre = fenetre_creer(&ma_fenetre);
-
-    // =========================================================================
-    // 2. CONTENEUR PRINCIPAL (Layout vertical global)
-    // =========================================================================
-    Conteneur main_layout;
-    conteneur_initialiser(&main_layout);
-
-    main_layout.orientation = CONTENEUR_VERTICAL;
-    main_layout.espacement = 30; // Espace entre les cartes
-    main_layout.align_x = ALIGNEMENT_REMPLIR;
-    main_layout.align_y = ALIGNEMENT_CENTRE; // On centre tout verticalement
-
-    // Marges globales pour ne pas coller aux bords de la fenêtre
-    main_layout.marges.haut = 20;
-    main_layout.marges.bas = 20;
-    main_layout.marges.gauche = 50;
-    main_layout.marges.droite = 50;
-
-    GtkWidget *widget_principal = conteneur_creer(&main_layout);
-
-    // =========================================================================
-    // 3. CARTE 1 : Une boite de style "Login" (Centrée, Bordure bleue)
-    // =========================================================================
-    Conteneur carte_login;
-    conteneur_initialiser(&carte_login);
-
-    carte_login.orientation = CONTENEUR_VERTICAL;
-    carte_login.espacement = 15;
-
-    // Dimensions Fixes
-    carte_login.taille.largeur = 300;
-    carte_login.taille.hauteur = -1; // Hauteur auto selon contenu
-
-    // Alignement : Centré horizontalement dans le conteneur principal
-    carte_login.align_x = ALIGNEMENT_CENTRE;
-
-    // Style visuel
-    carte_login.couleur_fond = "white";
-    carte_login.bordure_largeur = 2;
-    carte_login.bordure_couleur = "#3498db"; // Bleu
-    carte_login.bordure_rayon = 10;          // Coins arrondis
-
-    // Padding interne (pour que le texte ne touche pas la bordure)
-    carte_login.padding.haut = 20;
-    carte_login.padding.bas = 20;
-    carte_login.padding.gauche = 20;
-    carte_login.padding.droite = 20;
-
-    GtkWidget *widget_carte1 = conteneur_creer(&carte_login);
-
-    // Ajout de contenu factice dans la carte
-    GtkWidget *lbl_titre = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(lbl_titre), "<span size='x-large' weight='bold' color='#2c3e50'>Connexion</span>");
-    conteneur_ajouter(&carte_login, lbl_titre);
-
-    GtkWidget *btn_login = gtk_button_new_with_label("Se Connecter");
-    conteneur_ajouter(&carte_login, btn_login);
-
-
-    // =========================================================================
-    // 4. CARTE 2 : Une boite d'information (Large, Bordure Rouge)
-    // =========================================================================
-    Conteneur carte_info;
-    conteneur_initialiser(&carte_info);
-
-    carte_info.orientation = CONTENEUR_HORIZONTAL; // Texte à gauche, bouton à droite
-    carte_info.espacement = 20;
-
-    // Dimensions : Largeur max, hauteur fixe
-    carte_info.taille.largeur = 500;
-    carte_info.taille.hauteur = 80;
-
-    carte_info.align_x = ALIGNEMENT_CENTRE;
-
-    // Style
-    carte_info.couleur_fond = "#fab1a0"; // Saumon clair
-    carte_info.bordure_largeur = 1;
-    carte_info.bordure_couleur = "#e17055"; // Rouge foncé
-    carte_info.bordure_rayon = 5;
-
-    // Padding
-    carte_info.padding.haut = 10;
-    carte_info.padding.bas = 10;
-    carte_info.padding.gauche = 20;
-    carte_info.padding.droite = 20;
-
-    GtkWidget *widget_carte2 = conteneur_creer(&carte_info);
-
-    // Contenu
-    GtkWidget *lbl_info = gtk_label_new("Message d'alerte système !");
-    // On force l'alignement du label à gauche
-    gtk_widget_set_hexpand(lbl_info, TRUE);
-    gtk_widget_set_halign(lbl_info, GTK_ALIGN_START);
-
-    GtkWidget *btn_ok = gtk_button_new_with_label("OK");
-
-    conteneur_ajouter(&carte_info, lbl_info);
-    conteneur_ajouter(&carte_info, btn_ok);
-
-
-    // =========================================================================
-    // 5. ASSEMBLAGE FINAL
-    // =========================================================================
-
-    // Ajouter les cartes au conteneur principal
-    conteneur_ajouter(&main_layout, widget_carte1);
-    conteneur_ajouter(&main_layout, widget_carte2);
-
-    // Ajouter le conteneur principal à la fenêtre
-    gtk_window_set_child(GTK_WINDOW(le_widget_fenetre), widget_principal);
-
-    // Afficher
-    gtk_window_set_application(GTK_WINDOW(le_widget_fenetre), app);
-    gtk_window_present(GTK_WINDOW(le_widget_fenetre));
+static void on_button_clicked(GtkWidget *widget, gpointer data)
+{
+    printf("[INFO] Button clicked!\n");
 }
 
-int main(int argc, char **argv) {
-    GtkApplication *app;
-    int status;
+static void on_checkbox_toggled(GtkCheckButton *widget, gpointer data)
+{
+    const char *label = (const char *)data;
+    gboolean active = gtk_check_button_get_active(widget);
+    printf("[INFO] Checkbox '%s' : %s\n", label, active ? "CHECKED" : "UNCHECKED");
+}
 
-    app = gtk_application_new("org.ilisi.demo.detaillee", G_APPLICATION_DEFAULT_FLAGS);
+static void on_radio_toggled(GtkCheckButton *widget, gpointer data)
+{
+    const char *label = (const char *)data;
+    gboolean active = gtk_check_button_get_active(widget);
+    if (active)
+    {
+        printf("[INFO] Radio selected : '%s'\n", label);
+    }
+}
+
+static void on_submit_clicked(GtkWidget *widget, gpointer data)
+{
+    printf("\n=== FORM SUBMITTED ===\n");
+    printf("User clicked Submit button!\n");
+    printf("================================\n\n");
+}
+
+/* --- Fonction principale de creation de l'interface --- */
+
+static void activate(GtkApplication *app, gpointer user_data)
+{
+    printf("GTK4 Dashboard - Widget Demo Application\n");
+
+    /* ========== FENETRE PRINCIPALE ========== */
+    Fenetre main_window;
+    fenetre_initialiser(&main_window);
+    main_window.title = "Dashboard - GTK4 Widgets";
+    main_window.taille.width = 900;
+    main_window.taille.height = 700;
+    main_window.color_bg = "#f5f5f5";
+    main_window.icon_path = "application-x-executable-symbolic";
+
+    GtkWidget *window = fenetre_creer(&main_window);
+    gtk_window_set_application(GTK_WINDOW(window), app);
+
+    /* ========== CONTENEUR PRINCIPAL (Vertical) ========== */
+    Conteneur main_container;
+    conteneur_initialiser(&main_container);
+    main_container.orientation = CONTENEUR_VERTICAL;
+    main_container.espacement = 15;
+    main_container.marges.haut = 20;
+    main_container.marges.bas = 20;
+    main_container.marges.gauche = 20;
+    main_container.marges.droite = 20;
+    main_container.couleur_fond = "#ffffff";
+    main_container.enfants_hexpand = false;
+
+    GtkWidget *main_box = conteneur_creer(&main_container);
+    gtk_window_set_child(GTK_WINDOW(window), main_box);
+
+    /* ========== HEADER SECTION ========== */
+    Conteneur header_container;
+    conteneur_initialiser(&header_container);
+    header_container.orientation = CONTENEUR_HORIZONTAL;
+    header_container.espacement = 10;
+    header_container.couleur_fond = "#2c3e50";
+    header_container.padding.haut = 15;
+    header_container.padding.bas = 15;
+    header_container.padding.gauche = 15;
+    header_container.padding.droite = 15;
+    header_container.bordure_largeur = 2;
+    header_container.bordure_couleur = "#1a252f";
+    header_container.enfants_hexpand = false;
+
+    GtkWidget *header_box = conteneur_creer(&header_container);
+
+    GtkWidget *title_label = gtk_label_new("Configuration Panel");
+    gtk_label_set_markup(GTK_LABEL(title_label), "<span font='16' color='white' weight='bold'>Configuration Panel</span>");
+    conteneur_ajouter(&header_container, title_label);
+
+    conteneur_ajouter(&main_container, header_box);
+
+    /* ========== BUTTON SIZING SECTION ========== */
+    GtkWidget *sizing_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(sizing_label), "<span font='14' weight='bold' color='#2c3e50'>Buttons</span>");
+    gtk_label_set_xalign(GTK_LABEL(sizing_label), 0.0);
+    conteneur_ajouter(&main_container, sizing_label);
+
+    /* --- Sizing Container --- */
+    Conteneur sizing_container;
+    conteneur_initialiser(&sizing_container);
+    sizing_container.orientation = CONTENEUR_VERTICAL;
+    sizing_container.espacement = 12;
+    sizing_container.couleur_fond = "grey";
+    sizing_container.padding.haut = 15;
+    sizing_container.padding.bas = 15;
+    sizing_container.padding.gauche = 15;
+    sizing_container.padding.droite = 15;
+    sizing_container.bordure_largeur = 5;
+    sizing_container.bordure_couleur = "black";
+    sizing_container.bordure_rayon = 5;
+    sizing_container.enfants_hexpand = false; // Children stay compact
+
+    GtkWidget *sizing_box = conteneur_creer(&sizing_container);
+
+    /* --- FIXED Mode Button (Full Width) --- */
+    Bouton btn_full_width;
+    bouton_initialiser(&btn_full_width);
+    btn_full_width.id_css = "btn_full_width";
+    btn_full_width.texte = "button 1";
+    btn_full_width.taille.mode = TAILLE_FIXE;
+    btn_full_width.taille.largeur = 500;
+    btn_full_width.taille.hauteur = 50;
+    btn_full_width.style.bg_normal = "#9b59b6";
+    btn_full_width.style.bg_hover = "#8e44ad";
+    btn_full_width.style.fg_normal = "white";
+    btn_full_width.style.rayon_arrondi = 18;
+    btn_full_width.nom_icone = "document-properties-symbolic";
+    btn_full_width.on_clic = on_button_clicked;
+
+    GtkWidget *btn_full_width_widget = bouton_creer(&btn_full_width);
+    conteneur_ajouter(&sizing_container, btn_full_width_widget);
+
+    /* --- FIXED Mode Button (Square) --- */
+    Bouton btn_square;
+    bouton_initialiser(&btn_square);
+    btn_square.id_css = "btn_square";
+    btn_square.texte = "SQ";
+    btn_square.taille.mode = TAILLE_FIXE;
+    btn_square.taille.largeur = 80;
+    btn_square.taille.hauteur = 20;
+    btn_square.style.bg_normal = "#e74c3c";
+    btn_square.style.bg_hover = "#c0392b";
+    btn_square.style.fg_normal = "white";
+    btn_square.style.rayon_arrondi = 40;
+    btn_square.nom_icone = "edit-delete-symbolic";
+    btn_square.pos_icone = ICONE_SEULE;
+    btn_square.on_clic = on_button_clicked;
+
+    GtkWidget *btn_square_widget = bouton_creer(&btn_square);
+    conteneur_ajouter(&sizing_container, btn_square_widget);
+
+    conteneur_ajouter(&main_container, sizing_box);
+
+    /* ========== CHECKBOXES SECTION ========== */
+    GtkWidget *checkbox_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(checkbox_label), "<span font='14' weight='bold' color='#2c3e50'>Preferences (Checkboxes)</span>");
+    gtk_label_set_xalign(GTK_LABEL(checkbox_label), 0.0);
+    conteneur_ajouter(&main_container, checkbox_label);
+
+    /* --- Checkbox Container --- */
+    Conteneur checkbox_container;
+    conteneur_initialiser(&checkbox_container);
+    checkbox_container.orientation = CONTENEUR_VERTICAL;
+    checkbox_container.espacement = 10;
+    checkbox_container.couleur_fond = "#fef5e7";
+    checkbox_container.padding.haut = 12;
+    checkbox_container.padding.bas = 12;
+    checkbox_container.padding.gauche = 12;
+    checkbox_container.padding.droite = 12;
+    checkbox_container.bordure_largeur = 1;
+    checkbox_container.bordure_couleur = "#f9e79f";
+    checkbox_container.bordure_rayon = 5;
+    checkbox_container.enfants_hexpand = false;
+
+    GtkWidget *checkbox_box = conteneur_creer(&checkbox_container);
+
+    /* --- Checkbox 1 --- */
+    BoutonChecklist check1;
+    bouton_checklist_initialiser(&check1);
+    check1.id_css = "check_enable_notifications";
+    check1.label = "Enable Notifications";
+    check1.etat = CHECKLIST_CHECKED;
+    check1.style.couleur_texte = "#2c3e50";
+    check1.style.gras = false;
+    check1.on_toggled = on_checkbox_toggled;
+    check1.user_data = "Enable Notifications";
+
+    GtkWidget *check1_widget = bouton_checklist_creer(&check1);
+    conteneur_ajouter(&checkbox_container, check1_widget);
+
+    /* --- Checkbox 2 --- */
+    BoutonChecklist check2;
+    bouton_checklist_initialiser(&check2);
+    check2.id_css = "check_dark_mode";
+    check2.label = "Dark Mode";
+    check2.etat = CHECKLIST_UNCHECKED;
+    check2.style.couleur_texte = "#2c3e50";
+    check2.on_toggled = on_checkbox_toggled;
+    check2.user_data = "Dark Mode";
+
+    GtkWidget *check2_widget = bouton_checklist_creer(&check2);
+    conteneur_ajouter(&checkbox_container, check2_widget);
+
+    /* --- Checkbox 3 --- */
+    BoutonChecklist check3;
+    bouton_checklist_initialiser(&check3);
+    check3.id_css = "check_save_password";
+    check3.label = "Remember Password";
+    check3.etat = CHECKLIST_UNCHECKED;
+    check3.style.couleur_texte = "#2c3e50";
+    check3.on_toggled = on_checkbox_toggled;
+    check3.user_data = "Remember Password";
+
+    GtkWidget *check3_widget = bouton_checklist_creer(&check3);
+    conteneur_ajouter(&checkbox_container, check3_widget);
+
+    conteneur_ajouter(&main_container, checkbox_box);
+
+    /* ========== RADIO BUTTONS SECTION ========== */
+    GtkWidget *radio_label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(radio_label), "<span font='14' weight='bold' color='#2c3e50'>Theme Selection (Radio Buttons)</span>");
+    gtk_label_set_xalign(GTK_LABEL(radio_label), 0.0);
+    conteneur_ajouter(&main_container, radio_label);
+
+    /* --- Radio Container --- */
+    Conteneur radio_container;
+    conteneur_initialiser(&radio_container);
+    radio_container.orientation = CONTENEUR_VERTICAL;
+    radio_container.espacement = 10;
+    radio_container.couleur_fond = "#e8f8f5";
+    radio_container.padding.haut = 12;
+    radio_container.padding.bas = 12;
+    radio_container.padding.gauche = 12;
+    radio_container.padding.droite = 12;
+    radio_container.bordure_largeur = 1;
+    radio_container.bordure_couleur = "#a9dfbf";
+    radio_container.bordure_rayon = 5;
+    radio_container.enfants_hexpand = false;
+
+    GtkWidget *radio_box = conteneur_creer(&radio_container);
+
+    /* --- Radio 1 (Group Leader) --- */
+    BoutonRadio radio1;
+    bouton_radio_initialiser(&radio1);
+    radio1.id_css = "radio_light_theme";
+    radio1.label = "Light Theme";
+    radio1.est_actif = true;
+    radio1.style.couleur_texte = "#27ae60";
+    radio1.on_toggled = on_radio_toggled;
+    radio1.user_data = "Light Theme";
+
+    GtkWidget *radio1_widget = bouton_radio_creer(&radio1);
+    conteneur_ajouter(&radio_container, radio1_widget);
+
+    /* --- Radio 2 --- */
+    BoutonRadio radio2;
+    bouton_radio_initialiser(&radio2);
+    radio2.id_css = "radio_dark_theme";
+    radio2.label = "Dark Theme";
+    radio2.est_actif = false;
+    radio2.style.couleur_texte = "#27ae60";
+    radio2.group_leader = GTK_CHECK_BUTTON(radio1_widget);
+    radio2.on_toggled = on_radio_toggled;
+    radio2.user_data = "Dark Theme";
+
+    GtkWidget *radio2_widget = bouton_radio_creer(&radio2);
+    conteneur_ajouter(&radio_container, radio2_widget);
+
+    /* --- Radio 3 --- */
+    BoutonRadio radio3;
+    bouton_radio_initialiser(&radio3);
+    radio3.id_css = "radio_auto_theme";
+    radio3.label = "Auto (System)";
+    radio3.est_actif = false;
+    radio3.style.couleur_texte = "#27ae60";
+    radio3.group_leader = GTK_CHECK_BUTTON(radio1_widget);
+    radio3.on_toggled = on_radio_toggled;
+    radio3.user_data = "Auto (System)";
+
+    GtkWidget *radio3_widget = bouton_radio_creer(&radio3);
+    conteneur_ajouter(&radio_container, radio3_widget);
+
+    conteneur_ajouter(&main_container, radio_box);
+
+    /* ========== FOOTER SECTION ========== */
+    Conteneur footer_container;
+    conteneur_initialiser(&footer_container);
+    footer_container.orientation = CONTENEUR_HORIZONTAL;
+    footer_container.espacement = 10;
+    footer_container.align_x = ALIGNEMENT_FIN;
+    footer_container.marges.haut = 10;
+    footer_container.marges.bas = 0;
+    footer_container.marges.gauche = 0;
+    footer_container.marges.droite = 0;
+    footer_container.enfants_hexpand = false;
+
+    GtkWidget *footer_box = conteneur_creer(&footer_container);
+
+    /* --- Cancel Button --- */
+    Bouton btn_cancel;
+    bouton_initialiser(&btn_cancel);
+    btn_cancel.id_css = "btn_cancel";
+    btn_cancel.texte = "Cancel";
+    btn_cancel.taille.mode = TAILLE_FIXE;
+    btn_cancel.taille.largeur = 100;
+    btn_cancel.style.bg_normal = "#95a5a6";
+    btn_cancel.style.bg_hover = "#7f8c8d";
+    btn_cancel.style.fg_normal = "white";
+    btn_cancel.style.rayon_arrondi = 5;
+
+    GtkWidget *btn_cancel_widget = bouton_creer(&btn_cancel);
+    conteneur_ajouter(&footer_container, btn_cancel_widget);
+
+    /* --- Submit Button --- */
+    Bouton btn_submit;
+    bouton_initialiser(&btn_submit);
+    btn_submit.id_css = "btn_submit";
+    btn_submit.texte = "Submit";
+    btn_submit.taille.mode = TAILLE_FIXE;
+    btn_submit.taille.largeur = 100;
+    btn_submit.style.bg_normal = "#16a085";
+    btn_submit.style.bg_hover = "#138d75";
+    btn_submit.style.fg_normal = "white";
+    btn_submit.style.rayon_arrondi = 5;
+    btn_submit.nom_icone = "document-send-symbolic";
+    btn_submit.pos_icone = ICONE_DROITE;
+    btn_submit.on_clic = on_submit_clicked;
+
+    GtkWidget *btn_submit_widget = bouton_creer(&btn_submit);
+    conteneur_ajouter(&footer_container, btn_submit_widget);
+
+    conteneur_ajouter(&main_container, footer_box);
+
+    /* ========== AFFICHAGE DE LA FENETRE ========== */
+    printf("[OK] All widgets created successfully!\n");
+    printf("[OK] Window size: %dx%d pixels\n\n", main_window.taille.width, main_window.taille.height);
+
+    gtk_window_present(GTK_WINDOW(window));
+}
+
+int main(int argc, char **argv)
+{
+    GtkApplication *app = gtk_application_new("org.zcode.dashboard", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
 
+    int status = g_application_run(G_APPLICATION(app), argc, argv);
+    g_object_unref(app);
     return status;
 }
