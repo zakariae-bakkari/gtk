@@ -1,43 +1,41 @@
-#include <gtk/gtk.h>
+#include "../widgets/headers/fenetre.h" // On inclut l'interface de notre widget
 
-/* Callback when button is clicked */
-static void
-on_button_clicked(GtkButton *button, gpointer user_data)
-{
-    g_print("Button clicked!\n");
+static void activate(GtkApplication *app, gpointer user_data) {
+    Fenetre ma_fenetre;
+    fenetre_initialiser(&ma_fenetre);
+
+    // Configuration avancée
+    ma_fenetre.title = "Mon App";
+    ma_fenetre.titre_align = TITRE_ALIGN_CENTRE; // Titre à gauche
+
+    ma_fenetre.bouton_reduire = false;  // Pas de bouton réduire
+    ma_fenetre.bouton_agrandir = false;
+    ma_fenetre.bouton_fermer = true;
+
+    ma_fenetre.demarrer_maximisee = false; // Prend tout l'écran au lancement
+
+    GtkWidget *window = fenetre_creer(&ma_fenetre);
+    // 5. Rattachement à l'application (Nécessaire pour que l'app gère la fermeture)
+    gtk_window_set_application(GTK_WINDOW(window), app);
+
+    // 6. Affichage de la fenêtre (En GTK4, on utilise present() au lieu de show_all())
+    gtk_window_present(GTK_WINDOW(window));
 }
 
-int
-main(int argc, char *argv[])
-{
+int main(int argc, char **argv) {
     GtkApplication *app;
     int status;
 
-    app = gtk_application_new(
-        "com.example.gtk4",
-        G_APPLICATION_DEFAULT_FLAGS
-    );
+    // Création de l'application (identifiant unique obligatoire, ex: org.example.app)
+    app = gtk_application_new("org.ilisi.projet", G_APPLICATION_DEFAULT_FLAGS);
 
-    g_signal_connect(app, "activate", G_CALLBACK(+[](
-        GtkApplication *app,
-        gpointer user_data
-    ) {
-        GtkWidget *window;
-        GtkWidget *button;
+    // Connexion du signal "activate" à notre fonction
+    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 
-        window = gtk_application_window_new(app);
-        gtk_window_set_title(GTK_WINDOW(window), "GTK 4 Example");
-        gtk_window_set_default_size(GTK_WINDOW(window), 400, 200);
-
-        button = gtk_button_new_with_label("Click me");
-        g_signal_connect(button, "clicked",
-                         G_CALLBACK(on_button_clicked), NULL);
-
-        gtk_window_set_child(GTK_WINDOW(window), button);
-        gtk_window_present(GTK_WINDOW(window));
-    }), NULL);
-
+    // Lancement de la boucle d'événements
     status = g_application_run(G_APPLICATION(app), argc, argv);
+
+    // Nettoyage
     g_object_unref(app);
 
     return status;
