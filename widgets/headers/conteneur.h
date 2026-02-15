@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 /**
- * Énumération pour l'orientation (Vertical/Horizontal)
+ * Orientation du conteneur
  */
 typedef enum {
     CONTENEUR_VERTICAL,
@@ -13,51 +13,82 @@ typedef enum {
 } ConteneurOrientation;
 
 /**
- * Structure Conteneur
- * Représente une GtkBox avec ses propriétés
+ * Alignement du conteneur dans son parent
+ * (Correspond à GtkAlign : FILL = s'étirer, CENTER = centrer, START = début, END = fin)
+ */
+typedef enum {
+    ALIGNEMENT_REMPLIR, // Prend tout l'espace disponible (Défaut)
+    ALIGNEMENT_DEBUT,   // Calé à gauche ou en haut
+    ALIGNEMENT_FIN,     // Calé à droite ou en bas
+    ALIGNEMENT_CENTRE   // Centré
+} ConteneurAlignement;
+
+/**
+ * Structure pour les dimensions (Largeur / Hauteur)
+ * Valeur -1 = Taille automatique (par défaut)
+ */
+typedef struct {
+    int largeur;
+    int hauteur;
+} ConteneurDimensions;
+
+/**
+ * Structure pour les marges (Espace EXTÉRIEUR)
+ */
+typedef struct {
+    int haut;
+    int bas;
+    int gauche;
+    int droite;
+} ConteneurMarges;
+
+/**
+ * Structure pour le rembourrage (Padding - Espace INTÉRIEUR)
+ */
+typedef struct {
+    int haut;
+    int bas;
+    int gauche;
+    int droite;
+} ConteneurPadding;
+
+/**
+ * Structure Conteneur Complète
  */
 typedef struct {
     GtkWidget *widget;          // Le widget GTK (GtkBox)
 
-    // --- Configuration ---
+    // --- Disposition ---
     ConteneurOrientation orientation;
-    int espacement;             // Espace entre les éléments (pixels)
+    int espacement;             // Espace entre les éléments enfants
     bool homogene;              // Si true, tous les enfants ont la même taille
 
-    // --- Style & Dimensions ---
-    char *id_css;               // Pour le stylage CSS (ex: "mon_menu")
-    char *couleur_fond;         // Couleur de fond (ex: "white", "#333")
+    // --- Dimensions & Positionnement ---
+    ConteneurDimensions taille;     // Largeur et Hauteur forcées
+    ConteneurAlignement align_x;    // Alignement Horizontal
+    ConteneurAlignement align_y;    // Alignement Vertical
 
-    // --- Marges (Espace autour du conteneur) ---
-    int marge_haut;
-    int marge_bas;
-    int marge_gauche;
-    int marge_droite;
+    // --- Espacements ---
+    ConteneurMarges marges;     // Espace autour de la boite
+    ConteneurPadding padding;   // Espace à l'intérieur de la boite
+
+    // --- Style ---
+    char *id_css;               // ID CSS personnalisé
+    char *couleur_fond;         // Couleur de fond (ex: "#FFFFFF")
+
+    // --- Bordure (Détail ajouté) ---
+    int bordure_largeur;        // Épaisseur bordure (0 = aucune)
+    char *bordure_couleur;      // Couleur bordure
+    int bordure_rayon;          // Arrondi (border-radius)
 
 } Conteneur;
 
 /* -------------------------------------------------------------------------
- * Prototypes (Format: module_action)
+ * Prototypes
  * ------------------------------------------------------------------------- */
 
-/**
- * Initialise la structure avec les valeurs par défaut.
- * @param config : Pointeur vers la structure Conteneur
- */
 void conteneur_initialiser(Conteneur *config);
-
-/**
- * Crée le widget GtkBox configuré.
- * @param config : La structure Conteneur
- * @return GtkWidget* : Le widget créé
- */
 GtkWidget* conteneur_creer(Conteneur *config);
-
-/**
- * Ajoute un widget enfant dans le conteneur.
- * @param config : Le conteneur parent
- * @param enfant : Le widget à ajouter (Bouton, Label, etc.)
- */
 void conteneur_ajouter(Conteneur *config, GtkWidget *enfant);
 
 #endif // CONTENEUR_H
