@@ -11,6 +11,8 @@ add_executable(gtk
         widgets/sources/bouton_radio.c
         widgets/sources/bouton_checklist.c
         src/main.c
+        widgets/sources/conteneur.c
+        widgets/headers/conteneur.h
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
