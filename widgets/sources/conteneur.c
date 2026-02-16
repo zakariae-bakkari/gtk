@@ -161,17 +161,7 @@ void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
 
     gtk_box_append(GTK_BOX(config->widget), enfant);
 
-    // Apply hexpand/vexpand settings to the child
-    gtk_widget_set_hexpand(enfant, config->enfants_hexpand);
-    gtk_widget_set_vexpand(enfant, config->enfants_vexpand);
-
-    // Set alignment for proper distribution
-    if (config->enfants_hexpand)
-    {
-        gtk_widget_set_halign(enfant, GTK_ALIGN_FILL);
-    }
-    if (config->enfants_vexpand)
-    {
-        gtk_widget_set_valign(enfant, GTK_ALIGN_FILL);
-    }
+    // The container's enfants_hexpand/vexpand are just defaults
+    // They don't override what the child widget has already set
+    // This allows buttons and other widgets to control their own expansion
 }
