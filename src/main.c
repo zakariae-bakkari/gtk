@@ -8,30 +8,25 @@
 
 /* --- Callbacks pour les evenements --- */
 
-static void on_button_clicked(GtkWidget *widget, gpointer data)
-{
+static void on_button_clicked(GtkWidget *widget, gpointer data) {
     printf("[INFO] Button clicked!\n");
 }
 
-static void on_checkbox_toggled(GtkCheckButton *widget, gpointer data)
-{
-    const char *label = (const char *)data;
+static void on_checkbox_toggled(GtkCheckButton *widget, gpointer data) {
+    const char *label = (const char *) data;
     gboolean active = gtk_check_button_get_active(widget);
     printf("[INFO] Checkbox '%s' : %s\n", label, active ? "CHECKED" : "UNCHECKED");
 }
 
-static void on_radio_toggled(GtkCheckButton *widget, gpointer data)
-{
-    const char *label = (const char *)data;
+static void on_radio_toggled(GtkCheckButton *widget, gpointer data) {
+    const char *label = (const char *) data;
     gboolean active = gtk_check_button_get_active(widget);
-    if (active)
-    {
+    if (active) {
         printf("[INFO] Radio selected : '%s'\n", label);
     }
 }
 
-static void on_submit_clicked(GtkWidget *widget, gpointer data)
-{
+static void on_submit_clicked(GtkWidget *widget, gpointer data) {
     printf("\n=== FORM SUBMITTED ===\n");
     printf("User clicked Submit button!\n");
     printf("================================\n\n");
@@ -39,8 +34,7 @@ static void on_submit_clicked(GtkWidget *widget, gpointer data)
 
 /* --- Fonction principale de creation de l'interface --- */
 
-static void activate(GtkApplication *app, gpointer user_data)
-{
+static void activate(GtkApplication *app, gpointer user_data) {
     printf("GTK4 Dashboard - Widget Demo Application\n");
 
     /* ========== FENETRE PRINCIPALE ========== */
@@ -51,6 +45,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     main_window.taille.height = 700;
     main_window.color_bg = "#f5f5f5";
     main_window.icon_path = "application-x-executable-symbolic";
+    main_window.titre_align = TITRE_ALIGN_GAUCHE;
+    main_window.bouton_agrandir = false;
 
     GtkWidget *window = fenetre_creer(&main_window);
     gtk_window_set_application(GTK_WINDOW(window), app);
@@ -87,7 +83,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     GtkWidget *header_box = conteneur_creer(&header_container);
 
     GtkWidget *title_label = gtk_label_new("Configuration Panel");
-    gtk_label_set_markup(GTK_LABEL(title_label), "<span font='16' color='white' weight='bold'>Configuration Panel</span>");
+    gtk_label_set_markup(
+        GTK_LABEL(title_label), "<span font='16' color='white' weight='bold'>Configuration Panel</span>");
     conteneur_ajouter(&header_container, title_label);
 
     conteneur_ajouter(&main_container, header_box);
@@ -111,7 +108,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     sizing_container.bordure_largeur = 5;
     sizing_container.bordure_couleur = "black";
     sizing_container.bordure_rayon = 5;
-    sizing_container.enfants_hexpand = false; // Children stay compact
+    // Children manage their own expansion based on their TAILLE mode
 
     GtkWidget *sizing_box = conteneur_creer(&sizing_container);
 
@@ -129,9 +126,17 @@ static void activate(GtkApplication *app, gpointer user_data)
     btn_full_width.style.rayon_arrondi = 18;
     btn_full_width.nom_icone = "document-properties-symbolic";
     btn_full_width.on_clic = on_button_clicked;
-
     GtkWidget *btn_full_width_widget = bouton_creer(&btn_full_width);
-    conteneur_ajouter(&sizing_container, btn_full_width_widget);
+    Conteneur button1_container;
+    conteneur_initialiser(&button1_container);
+    button1_container.orientation = CONTENEUR_HORIZONTAL;
+    button1_container.align_x = ALIGNEMENT_FIN;
+    button1_container.taille.largeur=10;
+    button1_container.marges.gauche=100;
+    button1_container.enfants_hexpand = false; // Ensure children do not expand
+    GtkWidget *button1_box = conteneur_creer(&button1_container);
+    conteneur_ajouter(&button1_container, btn_full_width_widget);
+    conteneur_ajouter(&sizing_container, button1_box);
 
     /* --- FIXED Mode Button (Square) --- */
     Bouton btn_square;
@@ -141,22 +146,46 @@ static void activate(GtkApplication *app, gpointer user_data)
     btn_square.taille.mode = TAILLE_FIXE;
     btn_square.taille.largeur = 80;
     btn_square.taille.hauteur = 20;
-    btn_square.style.bg_normal = "#e74c3c";
-    btn_square.style.bg_hover = "#c0392b";
+    btn_square.style.bg_normal = "#EB4C4C";
+    btn_square.style.bg_hover = "#FF7070";
     btn_square.style.fg_normal = "white";
-    btn_square.style.rayon_arrondi = 40;
+    btn_square.style.rayon_arrondi = 60;
     btn_square.nom_icone = "edit-delete-symbolic";
     btn_square.pos_icone = ICONE_SEULE;
     btn_square.on_clic = on_button_clicked;
+    btn_square.tooltip = "this is a square button";
+    btn_square.style.couleur_bordure = "red";
+    btn_square.style.epaisseur_bordure = 2;
 
     GtkWidget *btn_square_widget = bouton_creer(&btn_square);
     conteneur_ajouter(&sizing_container, btn_square_widget);
+    /* --- FIXED Mode Button (Square) --- */
+    Bouton btn2;
+    bouton_initialiser(&btn2);
+    btn2.id_css = "btn2";
+    btn2.texte = "button 2";
+    btn2.taille.mode = TAILLE_AUTO;
+    btn2.style.bg_normal = "black";
+    btn2.style.bg_hover = "#333333";
+    btn2.style.fg_normal = "white";
+    btn2.style.gras=true;
+    btn2.style.rayon_arrondi = 60;
+    btn2.nom_icone = "go-up-symbolic";
+    btn2.pos_icone = ICONE_HAUT;
+    btn2.on_clic = on_button_clicked;
+    btn2.tooltip = "button";
+    btn2.style.couleur_bordure = "white";
+    btn2.style.epaisseur_bordure = 5;
+
+    GtkWidget *btn2_widget = bouton_creer(&btn2);
+    conteneur_ajouter(&sizing_container, btn2_widget);
 
     conteneur_ajouter(&main_container, sizing_box);
 
     /* ========== CHECKBOXES SECTION ========== */
     GtkWidget *checkbox_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(checkbox_label), "<span font='14' weight='bold' color='#2c3e50'>Preferences (Checkboxes)</span>");
+    gtk_label_set_markup(
+        GTK_LABEL(checkbox_label), "<span font='14' weight='bold' color='#2c3e50'>Preferences (Checkboxes)</span>");
     gtk_label_set_xalign(GTK_LABEL(checkbox_label), 0.0);
     conteneur_ajouter(&main_container, checkbox_label);
 
@@ -221,7 +250,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     /* ========== RADIO BUTTONS SECTION ========== */
     GtkWidget *radio_label = gtk_label_new(NULL);
-    gtk_label_set_markup(GTK_LABEL(radio_label), "<span font='14' weight='bold' color='#2c3e50'>Theme Selection (Radio Buttons)</span>");
+    gtk_label_set_markup(
+        GTK_LABEL(radio_label), "<span font='14' weight='bold' color='#2c3e50'>Theme Selection (Radio Buttons)</span>");
     gtk_label_set_xalign(GTK_LABEL(radio_label), 0.0);
     conteneur_ajouter(&main_container, radio_label);
 
@@ -251,6 +281,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     radio1.style.couleur_texte = "#27ae60";
     radio1.on_toggled = on_radio_toggled;
     radio1.user_data = "Light Theme";
+    radio1.style.couleur_point = "#27ae60";
 
     GtkWidget *radio1_widget = bouton_radio_creer(&radio1);
     conteneur_ajouter(&radio_container, radio1_widget);
@@ -310,6 +341,10 @@ static void activate(GtkApplication *app, gpointer user_data)
     btn_cancel.style.bg_hover = "#7f8c8d";
     btn_cancel.style.fg_normal = "white";
     btn_cancel.style.rayon_arrondi = 5;
+    btn_cancel.tooltip = "cancel the form";
+    btn_cancel.on_clic = on_button_clicked;
+    btn_cancel.style.couleur_bordure = "red";
+    btn_cancel.style.epaisseur_bordure = 4;
 
     GtkWidget *btn_cancel_widget = bouton_creer(&btn_cancel);
     conteneur_ajouter(&footer_container, btn_cancel_widget);
@@ -327,8 +362,11 @@ static void activate(GtkApplication *app, gpointer user_data)
     btn_submit.style.rayon_arrondi = 5;
     btn_submit.nom_icone = "document-send-symbolic";
     btn_submit.pos_icone = ICONE_DROITE;
+    btn_submit.tooltip = "sumit the form";
     btn_submit.on_clic = on_submit_clicked;
-
+    btn_submit.style.couleur_bordure = "blue";
+    btn_submit.style.epaisseur_bordure = 4;
+    btn_submit.curseur = CURSEUR_CROIX;
     GtkWidget *btn_submit_widget = bouton_creer(&btn_submit);
     conteneur_ajouter(&footer_container, btn_submit_widget);
 
@@ -341,8 +379,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_window_present(GTK_WINDOW(window));
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     GtkApplication *app = gtk_application_new("org.zcode.dashboard", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 
