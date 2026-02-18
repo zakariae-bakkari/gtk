@@ -509,7 +509,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampZoneTexte *czt = g_new0(ChampZoneTexte, 1);
     champ_zone_texte_initialiser(czt);
     czt->id_css = "input_bio";
-    czt->required = false;
+    czt->required = true;
     czt->max_length = 300;
     czt->wrap_word = true;
     czt->texte = "Short bio...";

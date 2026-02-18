@@ -18,7 +18,6 @@
     -   Validate CSS styling (hover, borders, tooltip)
     -   Confirm click callbacks and accessibility (mnemonics)
 -   Deliverables: Report problems + screenshots
--   Due: 2026-02-21
 -   Status: TODO
 
 ### @noureddine
@@ -29,7 +28,6 @@
     -   Check margins, padding, alignment (START/CENTER/END/FILL)
     -   Validate enfants_hexpand/vexpand behavior
 -   Deliverables: Findings in `issues.md`, propose fixes
--   Due: 2026-02-21
 -   Status: TODO
 
 ### @meriem
@@ -40,7 +38,6 @@
     -   Ensure CSS styles apply (focus, error) and callbacks fire
     -   Check accessibility (label mnemonics, tab order)
 -   Deliverables: Edge cases list + bugs logged in `issues.md`
--   Due: 2026-02-21
 -   Status: TODO
 
 ## Reporting Template
