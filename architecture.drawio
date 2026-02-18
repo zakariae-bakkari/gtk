@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="gtk4-widgets-architecture" name="GTK4 Widgets Architecture">
-        <mxGraphModel dx="573" dy="340" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1400" background="none" math="0" shadow="0">
+        <mxGraphModel dx="2012" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1600" background="none" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -78,6 +78,48 @@
                 </mxCell>
                 <mxCell id="enums-box" value="Key Enumerations&#xa;&#xa;BoutonTailleMode: TAILLE_AUTO, TAILLE_FIXE, TAILLE_FIT_CONTENT&#xa;BoutonIconePos: ICONE_GAUCHE, ICONE_DROITE, ICONE_HAUT, ICONE_BAS, ICONE_SEULE&#xa;BoutonChecklistEtat: CHECKLIST_UNCHECKED, CHECKLIST_CHECKED, CHECKLIST_INCONSISTENT&#xa;ConteneurOrientation: CONTENEUR_VERTICAL, CONTENEUR_HORIZONTAL&#xa;ConteneurAlignement: ALIGNEMENT_REMPLIR, ALIGNEMENT_DEBUT, ALIGNEMENT_FIN, ALIGNEMENT_CENTRE&#xa;FenetreTitreAlign: TITRE_ALIGN_GAUCHE, TITRE_ALIGN_CENTRE, TITRE_ALIGN_DROITE" style="shape=note;whiteSpace=wrap;html=1;rounded=1;shadow=1;strokeColor=#757575;fillColor=#fffacd;fontSize=9;align=left;" parent="1" vertex="1">
                     <mxGeometry x="50" y="800" width="850" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="inputs-title" value="Input Widgets" style="text;html=1;strokeColor=none;fillColor=none;fontSize=18;fontStyle=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="980" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-texte-class" value="ChampTexte (GtkEntry)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;startSize=26;fillColor=#e8f5e9;strokeColor=#2ecc71;" parent="1" vertex="1">
+                    <mxGeometry x="-260" y="1028" width="270" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-texte-attr" value="+ widget: GtkWidget*&lt;br&gt;+ id_css: char*&lt;br&gt;+ texte: char*&lt;br&gt;+ placeholder: char*&lt;br&gt;+ max_length: int&lt;br&gt;+ required: bool&lt;br&gt;+ regex_pattern: char*&lt;br&gt;+ read_only: bool&lt;br&gt;+ sensitive: bool&lt;br&gt;+ style: ChampTexteStyle&lt;br&gt;+ on_change/on_activate/on_invalid&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ champ_texte_initialiser()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ champ_texte_creer()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ get/set_texte()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_placeholder()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_max_length()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_read_only()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_required()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_regex()&lt;/span&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;" parent="champ-texte-class" vertex="1">
+                    <mxGeometry y="26" width="260" height="274" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-pw-class" value="ChampMotDePasse (GtkPasswordEntry)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;startSize=26;fillColor=#fdebd0;strokeColor=#e67e22;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="1020" width="560" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-pw-attr" value="+ widget: GtkWidget*&#xa;+ id_css: char*&#xa;+ placeholder: char*&#xa;+ max_length: int&#xa;+ required: bool&#xa;+ reveal_toggle: bool&#xa;+ policy: ChampPasswordPolicy&#xa;+ style: ChampMotDePasseStyle&#xa;+ on_change/on_activate/on_invalid" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;" parent="champ-pw-class" vertex="1">
+                    <mxGeometry y="26" width="280" height="274" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-pw-methods" value="+ champ_motdepasse_initialiser()&#xa;+ champ_motdepasse_creer()&#xa;+ get/set_texte()&#xa;+ set_placeholder()&#xa;+ set_max_length()&#xa;+ set_required()&#xa;+ set_reveal_toggle()&#xa;+ set_policy()" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=10;" parent="champ-pw-class" vertex="1">
+                    <mxGeometry x="280" y="26" width="280" height="274" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-nb-class" value="ChampNombre (GtkSpinButton)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;startSize=26;fillColor=#eaf2f8;strokeColor=#3498db;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="1025" width="520" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-nb-attr" value="+ widget: GtkWidget*&#xa;+ id_css: char*&#xa;+ min/max/step: double&#xa;+ digits: guint&#xa;+ wrap: gboolean&#xa;+ valeur: double&#xa;+ required: gboolean&#xa;+ style: ChampNombreStyle&#xa;+ on_change/on_invalid" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;" parent="champ-nb-class" vertex="1">
+                    <mxGeometry y="26" width="260" height="264" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-nb-methods" value="+ champ_nombre_initialiser()&#xa;+ champ_nombre_creer()&#xa;+ get/set_valeur()&#xa;+ set_bornes()&#xa;+ set_step()&#xa;+ set_digits()&#xa;+ set_wrap()" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=10;" parent="champ-nb-class" vertex="1">
+                    <mxGeometry x="260" y="26" width="260" height="264" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-select-class" value="ChampSelect (GtkDropDown)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;startSize=26;fillColor=#f5eef8;strokeColor=#8e44ad;" parent="1" vertex="1">
+                    <mxGeometry x="-30" y="1330" width="280" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-select-attr" value="+ widget: GtkWidget*&lt;br&gt;+ id_css: char*&lt;br&gt;+ model: GtkStringList*&lt;br&gt;+ selected_index: int&lt;br&gt;+ required: bool&lt;br&gt;+ enable_search: bool&lt;br&gt;+ style: ChampSelectStyle&lt;br&gt;+ on_change/on_invalid&lt;div&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ champ_select_initialiser()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ champ_select_creer()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ add_item()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ set_items()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ get/set_index()&lt;/span&gt;&lt;br style=&quot;font-size: 10px;&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-size: 10px;&quot;&gt;+ get_string()&lt;/span&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;" parent="champ-select-class" vertex="1">
+                    <mxGeometry y="26" width="280" height="274" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-ztext-class" value="ChampZoneTexte (GtkTextView)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;startSize=26;fillColor=#fbfcfc;strokeColor=#7f8c8d;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="1340" width="580" height="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-ztext-attr" value="+ widget: GtkWidget*&#xa;+ id_css: char*&#xa;+ texte: char*&#xa;+ max_length: int&#xa;+ wrap_word: bool&#xa;+ read_only: bool&#xa;+ required: bool&#xa;+ style: ChampZoneTexteStyle&#xa;+ on_change/on_invalid" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;" parent="champ-ztext-class" vertex="1">
+                    <mxGeometry y="26" width="320" height="274" as="geometry"/>
+                </mxCell>
+                <mxCell id="champ-ztext-methods" value="+ champ_zone_texte_initialiser()&#xa;+ champ_zone_texte_creer()&#xa;+ get/set_texte()&#xa;+ set_max_length()&#xa;+ set_wrap_word()&#xa;+ set_read_only()&#xa;+ set_required()" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=10;" parent="champ-ztext-class" vertex="1">
+                    <mxGeometry x="320" y="26" width="260" height="274" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
