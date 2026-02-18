@@ -10,9 +10,15 @@ add_executable(gtk
         widgets/sources/fenetre.c
         widgets/sources/bouton_radio.c
         widgets/sources/bouton_checklist.c
-        src/main.c
         widgets/sources/conteneur.c
-        widgets/headers/conteneur.h
+        # Inputs
+        widgets/sources/champ_texte.c
+        widgets/sources/champ_motdepasse.c
+        widgets/sources/champ_nombre.c
+        widgets/sources/champ_select.c
+        widgets/sources/champ_zone_texte.c
+        # App
+        src/main.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
