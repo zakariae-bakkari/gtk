@@ -4,37 +4,76 @@
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/bouton_checklist.h"
 #include "../widgets/headers/bouton_radio.h"
+#include "../widgets/headers/champ_texte.h"
+#include "../widgets/headers/champ_motdepasse.h"
+#include "../widgets/headers/champ_nombre.h"
+#include "../widgets/headers/champ_select.h"
+#include "../widgets/headers/champ_zone_texte.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */
 
-static void on_button_clicked(GtkWidget *widget, gpointer data) {
+static void on_button_clicked(GtkWidget *widget, gpointer data)
+{
     printf("[INFO] Button clicked!\n");
 }
 
-static void on_checkbox_toggled(GtkCheckButton *widget, gpointer data) {
-    const char *label = (const char *) data;
+static void on_checkbox_toggled(GtkCheckButton *widget, gpointer data)
+{
+    const char *label = (const char *)data;
     gboolean active = gtk_check_button_get_active(widget);
     printf("[INFO] Checkbox '%s' : %s\n", label, active ? "CHECKED" : "UNCHECKED");
 }
 
-static void on_radio_toggled(GtkCheckButton *widget, gpointer data) {
-    const char *label = (const char *) data;
+static void on_radio_toggled(GtkCheckButton *widget, gpointer data)
+{
+    const char *label = (const char *)data;
     gboolean active = gtk_check_button_get_active(widget);
-    if (active) {
+    if (active)
+    {
         printf("[INFO] Radio selected : '%s'\n", label);
     }
 }
 
-static void on_submit_clicked(GtkWidget *widget, gpointer data) {
+static void on_submit_clicked(GtkWidget *widget, gpointer data)
+{
     printf("\n=== FORM SUBMITTED ===\n");
     printf("User clicked Submit button!\n");
     printf("================================\n\n");
 }
 
+// Inputs callbacks
+static void on_input_text_changed(GtkEditable *editable, gpointer data)
+{
+    const char *id = (const char *)data;
+    printf("[INPUT] changed: %s -> '%s'\n", id, gtk_editable_get_text(editable));
+}
+static void on_input_text_activate(GtkEntry *entry, gpointer data)
+{
+    const char *id = (const char *)data;
+    printf("[INPUT] activate (submit): %s -> '%s'\n", id, gtk_editable_get_text(GTK_EDITABLE(entry)));
+}
+static void on_input_invalid(GtkWidget *widget, const char *message, gpointer data)
+{
+    const char *id = (const char *)data;
+    printf("[INPUT][INVALID] %s: %s\n", id, message);
+}
+static void on_select_changed(GtkDropDown *dd, gpointer data)
+{
+    (void)dd;
+    const char *id = (const char *)data;
+    printf("[SELECT] changed: %s\n", id);
+}
+static void on_number_changed(GtkSpinButton *spin, gpointer data)
+{
+    const char *id = (const char *)data;
+    printf("[NUMBER] %s -> %.2f\n", id, gtk_spin_button_get_value(spin));
+}
+
 /* --- Fonction principale de creation de l'interface --- */
 
-static void activate(GtkApplication *app, gpointer user_data) {
+static void activate(GtkApplication *app, gpointer user_data)
+{
     printf("GTK4 Dashboard - Widget Demo Application\n");
 
     /* ========== FENETRE PRINCIPALE ========== */
@@ -64,7 +103,20 @@ static void activate(GtkApplication *app, gpointer user_data) {
     main_container.enfants_hexpand = false;
 
     GtkWidget *main_box = conteneur_creer(&main_container);
-    gtk_window_set_child(GTK_WINDOW(window), main_box);
+
+    // Ensure content can expand; the scrolled window will manage overflow
+    gtk_widget_set_hexpand(main_box, TRUE);
+    gtk_widget_set_vexpand(main_box, TRUE);
+
+    // NEW: Make the page scrollable by wrapping main_box in a GtkScrolledWindow
+    GtkWidget *scroller = gtk_scrolled_window_new();
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroller), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_widget_set_hexpand(scroller, TRUE);
+    gtk_widget_set_vexpand(scroller, TRUE);
+    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroller), main_box);
+
+    // Set scroller as the window child instead of main_box directly
+    gtk_window_set_child(GTK_WINDOW(window), scroller);
 
     /* ========== HEADER SECTION ========== */
     Conteneur header_container;
@@ -131,8 +183,8 @@ static void activate(GtkApplication *app, gpointer user_data) {
     conteneur_initialiser(&button1_container);
     button1_container.orientation = CONTENEUR_HORIZONTAL;
     button1_container.align_x = ALIGNEMENT_FIN;
-    button1_container.taille.largeur=10;
-    button1_container.marges.gauche=100;
+    button1_container.taille.largeur = 10;
+    button1_container.marges.gauche = 100;
     button1_container.enfants_hexpand = false; // Ensure children do not expand
     GtkWidget *button1_box = conteneur_creer(&button1_container);
     conteneur_ajouter(&button1_container, btn_full_width_widget);
@@ -168,7 +220,7 @@ static void activate(GtkApplication *app, gpointer user_data) {
     btn2.style.bg_normal = "black";
     btn2.style.bg_hover = "#333333";
     btn2.style.fg_normal = "white";
-    btn2.style.gras=true;
+    btn2.style.gras = true;
     btn2.style.rayon_arrondi = 60;
     btn2.nom_icone = "go-up-symbolic";
     btn2.pos_icone = ICONE_HAUT;
@@ -316,6 +368,164 @@ static void activate(GtkApplication *app, gpointer user_data) {
 
     conteneur_ajouter(&main_container, radio_box);
 
+    /* ========== FORM INPUTS SECTION ========== */
+    GtkWidget *inputs_title = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(inputs_title), "<span font='14' weight='bold' color='#2c3e50'>Form Inputs</span>");
+    gtk_label_set_xalign(GTK_LABEL(inputs_title), 0.0);
+    conteneur_ajouter(&main_container, inputs_title);
+
+    Conteneur inputs_container;
+    conteneur_initialiser(&inputs_container);
+    inputs_container.orientation = CONTENEUR_VERTICAL;
+    inputs_container.espacement = 10;
+    inputs_container.couleur_fond = "#f7f9fc";
+    inputs_container.padding.haut = 12;
+    inputs_container.padding.bas = 12;
+    inputs_container.padding.gauche = 12;
+    inputs_container.padding.droite = 12;
+    inputs_container.bordure_largeur = 1;
+    inputs_container.bordure_couleur = "#dfe6e9";
+    inputs_container.bordure_rayon = 6;
+    inputs_container.enfants_hexpand = false;
+    GtkWidget *inputs_box = conteneur_creer(&inputs_container);
+
+    // --- Name (ChampTexte) ---
+    Conteneur row_name;
+    conteneur_initialiser(&row_name);
+    row_name.orientation = CONTENEUR_HORIZONTAL;
+    row_name.espacement = 8;
+    row_name.enfants_hexpand = false;
+    GtkWidget *row_name_box = conteneur_creer(&row_name);
+
+    GtkWidget *lbl_name = gtk_label_new_with_mnemonic("_Name:");
+    ChampTexte *ct_name = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(ct_name);
+    ct_name->id_css = "input_name";
+    ct_name->placeholder = "Enter your name";
+    ct_name->required = true;
+    ct_name->on_change = on_input_text_changed;
+    ct_name->on_activate = on_input_text_activate;
+    ct_name->on_invalid = on_input_invalid;
+    ct_name->user_data = "name";
+    GtkWidget *w_name = champ_texte_creer(ct_name);
+    g_signal_connect(w_name, "destroy", G_CALLBACK(g_free), ct_name);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_name), w_name);
+    conteneur_ajouter(&row_name, lbl_name);
+    conteneur_ajouter(&row_name, w_name);
+    conteneur_ajouter(&inputs_container, row_name_box);
+
+    // --- Password (ChampMotDePasse) ---
+    Conteneur row_pwd;
+    conteneur_initialiser(&row_pwd);
+    row_pwd.orientation = CONTENEUR_HORIZONTAL;
+    row_pwd.espacement = 8;
+    row_pwd.enfants_hexpand = false;
+    GtkWidget *row_pwd_box = conteneur_creer(&row_pwd);
+
+    GtkWidget *lbl_pwd = gtk_label_new_with_mnemonic("_Password:");
+    ChampMotDePasse *cpw = g_new0(ChampMotDePasse, 1);
+    champ_motdepasse_initialiser(cpw);
+    cpw->id_css = "input_pwd";
+    cpw->placeholder = "Enter a strong password";
+    cpw->required = true;
+    cpw->policy.min_len = 8;
+    cpw->policy.require_digit = true;
+    cpw->policy.require_upper = true;
+    cpw->policy.require_symbol = true;
+    cpw->on_change = on_input_text_changed;
+    cpw->on_activate = on_input_text_activate;
+    cpw->on_invalid = on_input_invalid;
+    cpw->user_data = "password";
+    GtkWidget *w_pwd = champ_motdepasse_creer(cpw);
+    g_signal_connect(w_pwd, "destroy", G_CALLBACK(g_free), cpw);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_pwd), w_pwd);
+    conteneur_ajouter(&row_pwd, lbl_pwd);
+    conteneur_ajouter(&row_pwd, w_pwd);
+    conteneur_ajouter(&inputs_container, row_pwd_box);
+
+    // --- Age (ChampNombre) ---
+    Conteneur row_age;
+    conteneur_initialiser(&row_age);
+    row_age.orientation = CONTENEUR_HORIZONTAL;
+    row_age.espacement = 8;
+    row_age.enfants_hexpand = false;
+    GtkWidget *row_age_box = conteneur_creer(&row_age);
+
+    GtkWidget *lbl_age = gtk_label_new_with_mnemonic("_Age:");
+    ChampNombre *cnb = g_new0(ChampNombre, 1);
+    champ_nombre_initialiser(cnb);
+    cnb->id_css = "input_age";
+    cnb->min = 0;
+    cnb->max = 120;
+    cnb->step = 1;
+    cnb->digits = 0;
+    cnb->valeur = 18;
+    cnb->on_change = on_number_changed;
+    cnb->user_data = "age";
+    GtkWidget *w_age = champ_nombre_creer(cnb);
+    g_signal_connect(w_age, "destroy", G_CALLBACK(g_free), cnb);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_age), w_age);
+    conteneur_ajouter(&row_age, lbl_age);
+    conteneur_ajouter(&row_age, w_age);
+    conteneur_ajouter(&inputs_container, row_age_box);
+
+    // --- Country (ChampSelect) ---
+    Conteneur row_country;
+    conteneur_initialiser(&row_country);
+    row_country.orientation = CONTENEUR_HORIZONTAL;
+    row_country.espacement = 8;
+    row_country.enfants_hexpand = false;
+    GtkWidget *row_country_box = conteneur_creer(&row_country);
+
+    GtkWidget *lbl_country = gtk_label_new_with_mnemonic("_Country:");
+    ChampSelect *csel = g_new0(ChampSelect, 1);
+    champ_select_initialiser(csel);
+    csel->id_css = "input_country";
+    csel->required = true;
+    csel->on_change = on_select_changed;
+    csel->on_invalid = on_input_invalid;
+    csel->user_data = "country";
+    champ_select_add_item(csel, "Morocco");
+    champ_select_add_item(csel, "France");
+    champ_select_add_item(csel, "USA");
+    champ_select_add_item(csel, "Japan");
+    csel->selected_index = 0;
+    GtkWidget *w_country = champ_select_creer(csel);
+    g_signal_connect(w_country, "destroy", G_CALLBACK(g_free), csel);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_country), w_country);
+    conteneur_ajouter(&row_country, lbl_country);
+    conteneur_ajouter(&row_country, w_country);
+    conteneur_ajouter(&inputs_container, row_country_box);
+
+    // --- Bio (ChampZoneTexte) ---
+    Conteneur row_bio;
+    conteneur_initialiser(&row_bio);
+    row_bio.orientation = CONTENEUR_HORIZONTAL;
+    row_bio.espacement = 8;
+    row_bio.enfants_hexpand = false;
+    GtkWidget *row_bio_box = conteneur_creer(&row_bio);
+
+    GtkWidget *lbl_bio = gtk_label_new_with_mnemonic("_Bio:");
+    ChampZoneTexte *czt = g_new0(ChampZoneTexte, 1);
+    champ_zone_texte_initialiser(czt);
+    czt->id_css = "input_bio";
+    czt->required = false;
+    czt->max_length = 300;
+    czt->wrap_word = true;
+    czt->texte = "Short bio...";
+    czt->on_change = NULL;
+    czt->on_invalid = on_input_invalid;
+    czt->user_data = "bio";
+    GtkWidget *w_bio = champ_zone_texte_creer(czt);
+    g_signal_connect(w_bio, "destroy", G_CALLBACK(g_free), czt);
+    gtk_widget_set_size_request(w_bio, 300, 90);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_bio), w_bio);
+    conteneur_ajouter(&row_bio, lbl_bio);
+    conteneur_ajouter(&row_bio, w_bio);
+    conteneur_ajouter(&inputs_container, row_bio_box);
+
+    conteneur_ajouter(&main_container, inputs_box);
+
     /* ========== FOOTER SECTION ========== */
     Conteneur footer_container;
     conteneur_initialiser(&footer_container);
@@ -379,7 +589,8 @@ static void activate(GtkApplication *app, gpointer user_data) {
     gtk_window_present(GTK_WINDOW(window));
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     GtkApplication *app = gtk_application_new("org.zcode.dashboard", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 
