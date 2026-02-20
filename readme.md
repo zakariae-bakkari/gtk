@@ -34,6 +34,6 @@
 ---
 
 ## 📜 Rules
-- Follow `CONTRIBUTING.md`
+- Follow the [CONTRIBUTING.md](/CONTRIBUTING.md)
 - One widget per `.c/.h` file
 - Respect commit message convention
