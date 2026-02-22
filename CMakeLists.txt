@@ -18,7 +18,8 @@ add_executable(gtk
         widgets/sources/champ_select.c
         widgets/sources/champ_zone_texte.c
         # App
-        src/main.c
+#        src/main.c
+         src/test_champ_text.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)

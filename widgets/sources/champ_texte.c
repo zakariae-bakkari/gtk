@@ -104,6 +104,7 @@ static gboolean champ_texte_validate_now(ChampTexte *cfg)
 static void on_changed_forward(GtkEditable *editable, gpointer user_data)
 {
    ChampTexte *cfg = (ChampTexte *)user_data;
+   if (!cfg) return; // Safety check
    champ_texte_validate_now(cfg);
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
@@ -112,6 +113,7 @@ static void on_changed_forward(GtkEditable *editable, gpointer user_data)
 static void on_activate_forward(GtkEntry *entry, gpointer user_data)
 {
    ChampTexte *cfg = (ChampTexte *)user_data;
+   if (!cfg) return; // Safety check
    champ_texte_validate_now(cfg);
    if (cfg->on_activate)
       cfg->on_activate(entry, cfg->user_data);
@@ -149,30 +151,43 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    if (!cfg)
       return NULL;
 
-   cfg->widget = gtk_entry_new();
-   gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_texte");
+   // Copier la configuration pour la stocker avec le widget
+   ChampTexte *cfg_copy = g_new0(ChampTexte, 1);
+   memcpy(cfg_copy, cfg, sizeof(ChampTexte));
 
-   if (cfg->texte)
-      gtk_editable_set_text(GTK_EDITABLE(cfg->widget), cfg->texte);
-   if (cfg->placeholder)
-      gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), cfg->placeholder);
-   if (cfg->max_length > 0)
-      gtk_entry_set_max_length(GTK_ENTRY(cfg->widget), cfg->max_length);
+   cfg_copy->widget = gtk_entry_new();
+   gtk_widget_set_name(cfg_copy->widget, cfg_copy->id_css ? cfg_copy->id_css : "champ_texte");
 
-   gtk_editable_set_editable(GTK_EDITABLE(cfg->widget), !cfg->read_only);
-   gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
+   if (cfg_copy->texte)
+      gtk_editable_set_text(GTK_EDITABLE(cfg_copy->widget), cfg_copy->texte);
+   if (cfg_copy->placeholder)
+      gtk_entry_set_placeholder_text(GTK_ENTRY(cfg_copy->widget), cfg_copy->placeholder);
+   if (cfg_copy->max_length > 0)
+      gtk_entry_set_max_length(GTK_ENTRY(cfg_copy->widget), cfg_copy->max_length);
+
+   gtk_editable_set_editable(GTK_EDITABLE(cfg_copy->widget), !cfg_copy->read_only);
+   gtk_widget_set_sensitive(cfg_copy->widget, cfg_copy->sensitive);
+
+   // Associer la copie de la configuration au widget
+   g_object_set_data(G_OBJECT(cfg_copy->widget), "champ_texte_cfg", cfg_copy);
 
    // Signals
-   g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_changed_forward), cfg);
-   g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_activate_forward), cfg);
+   g_signal_connect(cfg_copy->widget, "changed", G_CALLBACK(on_changed_forward), cfg_copy);
+   g_signal_connect(cfg_copy->widget, "activate", G_CALLBACK(on_activate_forward), cfg_copy);
+   // Libérer la mémoire de la copie lors de la destruction du widget
+   g_signal_connect(cfg_copy->widget, "destroy", G_CALLBACK(g_free), cfg_copy);
 
    // Apply CSS styling
-   champ_texte_apply_css(cfg);
+   champ_texte_apply_css(cfg_copy);
 
    // Initial validation state
-   champ_texte_validate_now(cfg);
+   champ_texte_validate_now(cfg_copy);
 
-   return cfg->widget;
+   // Important: Mettre à jour le pointeur du widget dans la config d'origine
+   // pour que l'appelant puisse y accéder s'il en a besoin.
+   cfg->widget = cfg_copy->widget;
+
+   return cfg_copy->widget;
 }
 
 const char *champ_texte_get_texte(ChampTexte *cfg)
