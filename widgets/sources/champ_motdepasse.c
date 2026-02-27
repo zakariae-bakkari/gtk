@@ -27,9 +27,6 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             "  border-radius: %dpx;\n"
             "  padding: 6px 10px;\n"
             "}\n"
-            "entry#%s:focus, passwordentry#%s:focus {\n"
-            "  background-color: %s;\n"
-            "}\n"
             "entry.error, passwordentry.error {\n"
             "  border: 1px solid #e74c3c;\n"
             "}\n",
@@ -38,8 +35,7 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
             cfg->style.rayon_arrondi,
-            cfg->id_css, cfg->id_css,
-            cfg->style.bg_focus ? cfg->style.bg_focus : (cfg->style.bg_normal ? cfg->style.bg_normal : "white"));
+            cfg->id_css, cfg->id_css);
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -54,7 +50,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
    // verify que cfg est valide et que le widget existe
    if (!cfg || !cfg->widget)
       return false;
-   
+
    // Get the current text and its length
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    size_t n = txt ? strlen(txt) : 0;
@@ -158,13 +154,13 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 static void on_pw_changed(GtkEditable *editable, gpointer user_data)
 {
    ChampMotDePasse *cfg = (ChampMotDePasse *)user_data;
-   
+
    // Enforce max_length by truncating if necessary
    if (cfg->max_length > 0)
    {
       const char *txt = gtk_editable_get_text(editable);
       size_t n = txt ? strlen(txt) : 0;
-      
+
       if (n > (size_t)cfg->max_length)
       {
          // Truncate the text to max_length
@@ -175,8 +171,8 @@ static void on_pw_changed(GtkEditable *editable, gpointer user_data)
          g_free(truncated);
       }
    }
-   
-   champ_pw_validate(cfg);// validate on every change to update error state
+
+   champ_pw_validate(cfg); // validate on every change to update error state
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
 }
@@ -208,7 +204,6 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->sensitive = true;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.epaisseur_bordure = 1;
    cfg->style.couleur_bordure = "#bdc3c7";
