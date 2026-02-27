@@ -1,4 +1,3 @@
-#include <gtk/gtk.h>
 #include "../widgets/headers/fenetre.h"
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/champ_motdepasse.h"
