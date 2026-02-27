@@ -51,8 +51,9 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
 
 static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 {
+   // verify que cfg est valide et que le widget existe
    if (!cfg || !cfg->widget)
-      return TRUE;
+      return false;
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    size_t n = txt ? strlen(txt) : 0;
 
