@@ -2,6 +2,7 @@
 #include "../widgets/headers/fenetre.h"
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/champ_motdepasse.h"
+#include "../widgets/headers/champ_nombre.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */
@@ -16,6 +17,13 @@ static void on_input_text_activate(GtkEntry *entry, gpointer data)
 {
     const char *id = (const char *)data;
     printf("[INPUT] activate (submit): %s -> '%s'\n", id, gtk_editable_get_text(GTK_EDITABLE(entry)));
+}
+
+static void on_input_number_changed(GtkSpinButton *spin, gpointer data)
+{
+    const char *id = (const char *)data;
+    double value = gtk_spin_button_get_value(spin);
+    printf("[INPUT] number changed: %s -> %.2f\n", id, value);
 }
 
 static void on_input_invalid(GtkWidget *widget, const char *message, gpointer data)
@@ -35,7 +43,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     fenetre_initialiser(&main_window);
     main_window.title = "Password Input Test";
     main_window.taille.width = 400;
-    main_window.taille.height = 200;
+    main_window.taille.height = 300;
     main_window.color_bg = "#f5f5f5";
     main_window.icon_path = "application-x-executable-symbolic";
     main_window.titre_align = TITRE_ALIGN_GAUCHE;
@@ -94,8 +102,40 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&main_container, lbl_pwd);
     conteneur_ajouter(&main_container, w_pwd);
 
+    /* ========== NUMBER INPUT (ChampNombre) ========== */
+    GtkWidget *lbl_num = gtk_label_new_with_mnemonic("_Number:");
+
+    ChampNombre *cn = g_new0(ChampNombre, 1);
+    champ_nombre_initialiser(cn);
+
+    // All attributes
+    cn->id_css = "input_number";
+    cn->min = 0;
+    cn->max = 20;
+    cn->step = 1;
+    cn->digits = 0;
+    cn->wrap = true;
+    cn->valeur = 10;
+    cn->required = true;
+    cn->style.epaisseur_bordure = 2;
+    cn->style.couleur_bordure = "green";
+    cn->style.rayon_arrondi = 50;
+    cn->style.gras = true;
+    cn->style.italique = false;
+    cn->style.taille_texte_px = 14;
+    cn->on_change = on_input_number_changed;
+    cn->on_invalid = on_input_invalid;
+    cn->user_data = "number";
+
+    GtkWidget *w_num = champ_nombre_creer(cn);
+    g_signal_connect(w_num, "destroy", G_CALLBACK(g_free), cn);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_num), w_num);
+
+    conteneur_ajouter(&main_container, lbl_num);
+    conteneur_ajouter(&main_container, w_num);
+
     /* ========== AFFICHAGE DE LA FENETRE ========== */
-    printf("[OK] Password input created successfully!\n");
+    printf("[OK] Password and number inputs created successfully!\n");
     printf("[OK] Window size: %dx%d pixels\n\n", main_window.taille.width, main_window.taille.height);
 
     gtk_window_present(GTK_WINDOW(window));
