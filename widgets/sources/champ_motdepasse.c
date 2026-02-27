@@ -56,6 +56,15 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    size_t n = txt ? strlen(txt) : 0;
 
+   // Check max_length first
+   if (cfg->max_length > 0 && n > (size_t)cfg->max_length)
+   {
+      gtk_widget_add_css_class(cfg->widget, "error");
+      if (cfg->on_invalid)
+         cfg->on_invalid(cfg->widget, "password exceeds maximum length", cfg->user_data);
+      return FALSE;
+   }
+
    if (cfg->required && n == 0)
    {
       gtk_widget_add_css_class(cfg->widget, "error");
@@ -139,6 +148,23 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 static void on_pw_changed(GtkEditable *editable, gpointer user_data)
 {
    ChampMotDePasse *cfg = (ChampMotDePasse *)user_data;
+   
+   // Enforce max_length by truncating if necessary
+   if (cfg->max_length > 0)
+   {
+      const char *txt = gtk_editable_get_text(editable);
+      size_t n = txt ? strlen(txt) : 0;
+      
+      if (n > (size_t)cfg->max_length)
+      {
+         char *truncated = g_strndup(txt, cfg->max_length);
+         g_signal_handlers_block_by_func(editable, on_pw_changed, user_data);
+         gtk_editable_set_text(editable, truncated);
+         g_signal_handlers_unblock_by_func(editable, on_pw_changed, user_data);
+         g_free(truncated);
+      }
+   }
+   
    champ_pw_validate(cfg);
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
@@ -190,8 +216,6 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
 
    if (cfg->placeholder)
       g_object_set(cfg->widget, "placeholder-text", cfg->placeholder, NULL);
-   if (cfg->max_length > 0)
-      g_object_set(cfg->widget, "max-length", cfg->max_length, NULL);
 
    gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), cfg->reveal_toggle);
    gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
@@ -230,7 +254,7 @@ void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len)
 {
    if (!cfg || !cfg->widget)
       return;
-   g_object_set(cfg->widget, "max-length", max_len, NULL);
+   cfg->max_length = max_len;
 }
 
 void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required)
