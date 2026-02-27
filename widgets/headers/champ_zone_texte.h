@@ -7,7 +7,6 @@
 typedef struct
 {
    char *bg_normal;
-   char *bg_focus;
    char *fg_normal;
    int epaisseur_bordure;
    char *couleur_bordure;

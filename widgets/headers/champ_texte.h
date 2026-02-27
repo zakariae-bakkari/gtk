@@ -8,7 +8,6 @@
 typedef struct
 {
    char *bg_normal;
-   char *bg_focus;
    char *fg_normal;
    char *placeholder_color;
    int epaisseur_bordure;

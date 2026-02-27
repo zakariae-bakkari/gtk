@@ -28,9 +28,6 @@ static void champ_texte_apply_css(ChampTexte *cfg)
             "  border-radius: %dpx;\n"
             "  padding: 6px 10px;\n"
             "}\n"
-            "entry#%s:focus {\n"
-            "  background-color: %s;\n"
-            "}\n"
             "entry#%s text {\n"
             "  color: %s;\n"
             "  font-weight: %s;\n"
@@ -43,8 +40,6 @@ static void champ_texte_apply_css(ChampTexte *cfg)
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
             cfg->style.rayon_arrondi,
-            cfg->id_css,
-            cfg->style.bg_focus ? cfg->style.bg_focus : (cfg->style.bg_normal ? cfg->style.bg_normal : "white"),
             cfg->id_css,
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             cfg->style.gras ? "bold" : "normal");
@@ -104,7 +99,8 @@ static gboolean champ_texte_validate_now(ChampTexte *cfg)
 static void on_changed_forward(GtkEditable *editable, gpointer user_data)
 {
    ChampTexte *cfg = (ChampTexte *)user_data;
-   if (!cfg) return; // Safety check
+   if (!cfg)
+      return; // Safety check
    champ_texte_validate_now(cfg);
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
@@ -113,7 +109,8 @@ static void on_changed_forward(GtkEditable *editable, gpointer user_data)
 static void on_activate_forward(GtkEntry *entry, gpointer user_data)
 {
    ChampTexte *cfg = (ChampTexte *)user_data;
-   if (!cfg) return; // Safety check
+   if (!cfg)
+      return; // Safety check
    champ_texte_validate_now(cfg);
    if (cfg->on_activate)
       cfg->on_activate(entry, cfg->user_data);
@@ -135,7 +132,6 @@ void champ_texte_initialiser(ChampTexte *cfg)
    cfg->sensitive = true;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.placeholder_color = "#95a5a6";
    cfg->style.epaisseur_bordure = 1;

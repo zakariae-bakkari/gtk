@@ -25,17 +25,12 @@ static void champ_select_apply_css(ChampSelect *cfg)
             "%s"
             "  border-radius: %dpx;\n"
             "  padding: 4px 8px;\n"
-            "}\n"
-            "dropdown#%s:focus {\n"
-            "  background-color: %s;\n"
             "}\n",
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
-            cfg->style.rayon_arrondi,
-            cfg->id_css,
-            cfg->style.bg_focus ? cfg->style.bg_focus : (cfg->style.bg_normal ? cfg->style.bg_normal : "white"));
+            cfg->style.rayon_arrondi);
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -87,7 +82,6 @@ void champ_select_initialiser(ChampSelect *cfg)
    cfg->enable_search = false;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.epaisseur_bordure = 1;
    cfg->style.couleur_bordure = "#bdc3c7";

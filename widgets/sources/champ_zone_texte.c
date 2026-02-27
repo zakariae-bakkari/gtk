@@ -107,7 +107,6 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    cfg->required = false;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.epaisseur_bordure = 1;
    cfg->style.couleur_bordure = "#bdc3c7";
