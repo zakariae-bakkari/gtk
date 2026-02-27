@@ -54,6 +54,8 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
    // verify que cfg est valide et que le widget existe
    if (!cfg || !cfg->widget)
       return false;
+   
+   // Get the current text and its length
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    size_t n = txt ? strlen(txt) : 0;
 
@@ -66,6 +68,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       return FALSE;
    }
 
+   // Then check required
    if (cfg->required && n == 0)
    {
       gtk_widget_add_css_class(cfg->widget, "error");
@@ -74,8 +77,10 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       return FALSE;
    }
 
+   // If not empty, check policy constraints
    if (n > 0)
    {
+      // Check minimum length
       if (cfg->policy.min_len > 0 && n < (size_t)cfg->policy.min_len)
       {
          gtk_widget_add_css_class(cfg->widget, "error");
@@ -83,6 +88,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             cfg->on_invalid(cfg->widget, "password too short", cfg->user_data);
          return FALSE;
       }
+      // Check digit requirement
       if (cfg->policy.require_digit)
       {
          bool ok = false;
@@ -94,6 +100,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
                break;
             }
          }
+         // if digit not found
          if (!ok)
          {
             gtk_widget_add_css_class(cfg->widget, "error");
@@ -102,6 +109,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             return FALSE;
          }
       }
+      // Check uppercase requirement
       if (cfg->policy.require_upper)
       {
          bool ok = false;
@@ -121,6 +129,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             return FALSE;
          }
       }
+      // Check symbol requirement
       if (cfg->policy.require_symbol)
       {
          bool ok = false;
@@ -158,6 +167,7 @@ static void on_pw_changed(GtkEditable *editable, gpointer user_data)
       
       if (n > (size_t)cfg->max_length)
       {
+         // Truncate the text to max_length
          char *truncated = g_strndup(txt, cfg->max_length);
          g_signal_handlers_block_by_func(editable, on_pw_changed, user_data);
          gtk_editable_set_text(editable, truncated);
@@ -166,11 +176,12 @@ static void on_pw_changed(GtkEditable *editable, gpointer user_data)
       }
    }
    
-   champ_pw_validate(cfg);
+   champ_pw_validate(cfg);// validate on every change to update error state
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
 }
 
+// when user presses Enter
 static void on_pw_activate(GtkEntry *entry, gpointer user_data)
 {
    ChampMotDePasse *cfg = (ChampMotDePasse *)user_data;
