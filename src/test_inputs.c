@@ -90,29 +90,29 @@ static void activate(GtkApplication *app, gpointer user_data)
     GtkWidget *lbl_pwd = gtk_label_new_with_mnemonic("_Password:");
 
     ChampMotDePasse *cpw = g_new0(ChampMotDePasse, 1);
-    champ_motdepasse_initialiser(cpw);
-
+    champ_motdepasse_initialiser(cpw);// placeholder = "ana .... "
+    cpw->placeholder="entrer password";
     // All attributes
-    cpw->id_css = "input_pwd";
-    cpw->placeholder = "Enter a strong password";
-    cpw->max_length = 5;
-    cpw->required = true;
-    cpw->policy.min_len = 1;
-    cpw->policy.require_digit = false;
-    cpw->policy.require_upper = false;
-    cpw->policy.require_symbol = false;
-    cpw->reveal_toggle = true;
-    cpw->sensitive = true;
-    cpw->style.epaisseur_bordure = 2;
-    cpw->style.couleur_bordure = "blue";
-    cpw->style.rayon_arrondi = 50;
-    cpw->style.gras = true;
-    cpw->style.italique = false;
-    cpw->style.taille_texte_px = 14;
-    cpw->on_change = on_input_text_changed;
-    cpw->on_activate = on_input_text_activate;
-    cpw->on_invalid = on_input_invalid;
-    cpw->user_data = "password";
+    // cpw->id_css = "input_pwd";
+    // cpw->placeholder = "Enter a strong password";
+    // cpw->max_length = 5;
+    // cpw->required = true;
+    // cpw->policy.min_len = 1;
+    // cpw->policy.require_digit = false;
+    // cpw->policy.require_upper = false;
+    // cpw->policy.require_symbol = false;
+    // cpw->reveal_toggle = true;
+    // cpw->sensitive = true;
+    // cpw->style.epaisseur_bordure = 2;
+    // cpw->style.couleur_bordure = "blue";
+    // cpw->style.rayon_arrondi = 50;
+    // cpw->style.gras = true;
+    // cpw->style.italique = false;
+    // cpw->style.taille_texte_px = 14;
+    // cpw->on_change = on_input_text_changed;
+    // cpw->on_activate = on_input_text_activate;
+    // cpw->on_invalid = on_input_invalid;
+    // cpw->user_data = "password";
 
     GtkWidget *w_pwd = champ_motdepasse_creer(cpw);
     g_signal_connect(w_pwd, "destroy", G_CALLBACK(g_free), cpw);
@@ -125,7 +125,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     GtkWidget *lbl_num = gtk_label_new_with_mnemonic("_Number:");
 
     ChampNombre *cn = g_new0(ChampNombre, 1);
-    champ_nombre_initialiser(cn);
+    champ_nombre_initialiser(cn);// des valeur par default
 
     // All attributes
     cn->id_css = "input_number";
