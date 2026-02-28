@@ -25,12 +25,19 @@ static void champ_nombre_apply_css(ChampNombre *cfg)
             "%s"
             "  border-radius: %dpx;\n"
             "  padding: 2px 6px;\n"
+            "}\n"
+            "spinbutton.error {\n"
+            "  border: %dpx solid %s;\n"
+            "  background: %s;\n"
             "}\n",
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
-            cfg->style.rayon_arrondi);
+            cfg->style.rayon_arrondi,
+            cfg->style.epaisseur_bordure > 0 ? cfg->style.epaisseur_bordure : 1,
+            cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
+            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2");
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -40,16 +47,52 @@ static void champ_nombre_apply_css(ChampNombre *cfg)
    g_object_unref(provider);
 }
 
+static gboolean champ_nombre_validate(ChampNombre *cfg)
+{
+   if (!cfg || !cfg->widget)
+      return FALSE;
+
+   double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(cfg->widget));
+
+   // Check if value is within bounds (this should already be enforced by GtkSpinButton)
+   if (val < cfg->min || val > cfg->max)
+   {
+      gtk_widget_add_css_class(cfg->widget, "error");
+      if (cfg->on_invalid)
+         cfg->on_invalid(cfg->widget, "value out of range", cfg->user_data);
+      return FALSE;
+   }
+
+   // For numeric fields, we could add more validation rules here if needed
+   // For now, GtkSpinButton already handles most validation
+
+   gtk_widget_remove_css_class(cfg->widget, "error");
+   return TRUE;
+}
+
 static void on_spin_value_changed(GtkSpinButton *spin, gpointer user_data)
 {
    ChampNombre *cfg = (ChampNombre *)user_data;
    double v = gtk_spin_button_get_value(spin);
+
+   // Ensure value stays within bounds
    if (v < cfg->min)
       gtk_spin_button_set_value(spin, cfg->min);
    else if (v > cfg->max)
       gtk_spin_button_set_value(spin, cfg->max);
+
+   champ_nombre_validate(cfg);
+
    if (cfg->on_change)
-      cfg->on_change(spin, cfg->user_data);
+      cfg->on_change(GTK_EDITABLE(spin), cfg->user_data);
+}
+
+static void on_spin_activate(GtkEntry *entry, gpointer user_data)
+{
+   ChampNombre *cfg = (ChampNombre *)user_data;
+   champ_nombre_validate(cfg);
+   if (cfg->on_activate)
+      cfg->on_activate(entry, cfg->user_data);
 }
 
 void champ_nombre_initialiser(ChampNombre *cfg)
@@ -66,14 +109,15 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    cfg->valeur = 0.0;
    cfg->required = FALSE;
 
-   cfg->style.bg_normal = "white";
-   cfg->style.fg_normal = "#2c3e50";
-   cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = "#bdc3c7";
+   // Initialize style using common function
+   widget_style_init(&cfg->style);
+   // Override defaults for number field
+   cfg->style.bg_normal = g_strdup("white");
+   cfg->style.fg_normal = g_strdup("#2c3e50");
+   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
+   cfg->style.couleur_bordure_error = g_strdup("#e74c3c");
+   cfg->style.bg_error = g_strdup("#fff1f2");
    cfg->style.rayon_arrondi = 4;
-   cfg->style.gras = FALSE;
-   cfg->style.italique = FALSE;
-   cfg->style.taille_texte_px = 0;
 }
 
 GtkWidget *champ_nombre_creer(ChampNombre *cfg)
@@ -88,8 +132,10 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_nombre");
 
    g_signal_connect(cfg->widget, "value-changed", G_CALLBACK(on_spin_value_changed), cfg);
+   g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_spin_activate), cfg);
 
    champ_nombre_apply_css(cfg);
+   champ_nombre_validate(cfg);
 
    return cfg->widget;
 }
@@ -141,4 +187,28 @@ void champ_nombre_set_wrap(ChampNombre *cfg, gboolean wrap)
       return;
    cfg->wrap = wrap;
    gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), wrap);
+}
+
+void champ_nombre_set_callbacks(ChampNombre *cfg, WidgetOnChange on_change, WidgetOnActivate on_activate, WidgetOnInvalid on_invalid, gpointer user_data)
+{
+   if (!cfg)
+      return;
+   cfg->on_change = on_change;
+   cfg->on_activate = on_activate;
+   cfg->on_invalid = on_invalid;
+   cfg->user_data = user_data;
+}
+
+void champ_nombre_set_style(ChampNombre *cfg, const WidgetStyle *style)
+{
+   if (!cfg || !style)
+      return;
+   widget_style_copy(&cfg->style, style);
+}
+
+void champ_nombre_apply_style(ChampNombre *cfg)
+{
+   if (!cfg)
+      return;
+   champ_nombre_apply_css(cfg);
 }
