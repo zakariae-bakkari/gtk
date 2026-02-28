@@ -22,7 +22,7 @@ typedef struct
     GtkWidget *error_label; // message d'erreur sous le champ
 
     // Classe CSS appliquée à entry
-    char *css_class;
+    char *id_css;
 
     // Contraintes & contenu
     int max_length;    // 0 = illimité

@@ -231,7 +231,7 @@ void champtexte_initialiser(ChampTexte *cfg)
     memset(cfg, 0, sizeof(ChampTexte));
 
     // Default CSS class
-    cfg->css_class = NULL; // Will be set in champtexte_creer
+    cfg->id_css = NULL; // Will be set in champtexte_creer
 
     // Default constraints & content
     cfg->max_length = 0;
@@ -278,9 +278,9 @@ GtkWidget *champtexte_creer(ChampTexte *cfg)
     gtk_box_append(GTK_BOX(cfg->root), cfg->error_label);
 
     // Set CSS class
-    const char *css_class = cfg->css_class ? cfg->css_class : "champtexte";
-    safe_set_str(&cfg->css_class, css_class);
-    gtk_widget_add_css_class(cfg->entry, cfg->css_class);
+    const char *css_class = cfg->id_css ? cfg->id_css : "champtexte";
+    safe_set_str(&cfg->id_css, css_class);
+    gtk_widget_add_css_class(cfg->entry, cfg->id_css);
 
     // Apply initial settings
     if (cfg->placeholder)
