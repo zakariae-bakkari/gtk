@@ -61,7 +61,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte email_cfg;
     champtexte_initialiser(&email_cfg);
-    email_cfg.css_class = g_strdup("ct-email");
+    email_cfg.id_css = g_strdup("ct-email");
     email_cfg.required = TRUE;
     email_cfg.placeholder = g_strdup("ex: abc@gmail.com");
 
@@ -100,7 +100,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte cin_cfg;
     champtexte_initialiser(&cin_cfg);
-    cin_cfg.css_class = g_strdup("ct-cin");
+    cin_cfg.id_css = g_strdup("ct-cin");
     cin_cfg.placeholder = g_strdup("8 chiffres (ex: 12345678)");
     cin_cfg.max_length = 8;
     cin_cfg.required = TRUE;
@@ -139,7 +139,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte initial_cfg;
     champtexte_initialiser(&initial_cfg);
-    initial_cfg.css_class = g_strdup("ct-initial");
+    initial_cfg.id_css = g_strdup("ct-initial");
     initial_cfg.texte = g_strdup("Texte initial");
     initial_cfg.placeholder = g_strdup("placeholder (visible seulement si vide)");
     initial_cfg.required = FALSE;
@@ -172,7 +172,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte disabled_cfg;
     champtexte_initialiser(&disabled_cfg);
-    disabled_cfg.css_class = g_strdup("ct-disabled");
+    disabled_cfg.id_css = g_strdup("ct-disabled");
     disabled_cfg.texte = g_strdup("Je suis désactivé");
     disabled_cfg.placeholder = g_strdup("Disabled");
     disabled_cfg.sensitive = FALSE;
@@ -205,7 +205,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte forced_cfg;
     champtexte_initialiser(&forced_cfg);
-    forced_cfg.css_class = g_strdup("ct-forced");
+    forced_cfg.id_css = g_strdup("ct-forced");
     forced_cfg.placeholder = g_strdup("Ce champ est forcé en erreur au démarrage");
     forced_cfg.required = FALSE;
 

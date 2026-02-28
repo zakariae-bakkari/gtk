@@ -29,7 +29,7 @@ static gboolean is_empty_trim(const char *s)
 // - label erreur en rouge
 static char *build_css_minimal(ChampTexte *ct)
 {
-    const char *cls = (ct->css_class && ct->css_class[0]) ? ct->css_class : "champtexte";
+    const char *cls = (ct->id_css && ct->id_css[0]) ? ct->id_css : "champtexte";
 
     const char *bg = ct->style.bg_normal ? ct->style.bg_normal : "#ffffff";
     const char *fg = ct->style.fg_normal ? ct->style.fg_normal : "#111111";
@@ -339,8 +339,8 @@ ChampTexte *champtexte_new(const char *css_class)
     gtk_box_append(GTK_BOX(ct->root), ct->error_label);
 
     // css_class
-    safe_set_str(&ct->css_class, (css_class && css_class[0]) ? css_class : "champtexte");
-    gtk_widget_add_css_class(ct->entry, ct->css_class);
+    safe_set_str(&ct->id_css, (css_class && css_class[0]) ? css_class : "champtexte");
+    gtk_widget_add_css_class(ct->entry, ct->id_css);
 
     // defaults
     ct->max_length = 0;
@@ -365,7 +365,7 @@ void champtexte_free(ChampTexte *ct)
 
     // Attention: widgets sont détruits par GTK via la hiérarchie UI.
     // Ici on libère seulement ce qu'on a alloué nous-même.
-    g_free(ct->css_class);
+    g_free(ct->id_css);
 
     g_free(ct->texte);
     g_free(ct->placeholder);

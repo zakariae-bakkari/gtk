@@ -407,7 +407,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_name->on_activate = on_input_text_activate;
     ct_name->on_invalid = on_input_invalid;
     ct_name->user_data = "name";
-    GtkWidget *w_name = champ_texte_creer(ct_name);
+    GtkWidget *w_name = champtexte_creer(ct_name);
     g_signal_connect(w_name, "destroy", G_CALLBACK(g_free), ct_name);
     gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_name), w_name);
     conteneur_ajouter(&row_name, lbl_name);
