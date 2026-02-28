@@ -7,7 +7,6 @@
 typedef struct
 {
    char *bg_normal;
-   char *bg_focus;
    char *fg_normal;
    int epaisseur_bordure;
    char *couleur_bordure;
@@ -29,7 +28,7 @@ typedef struct
    char *texte;    // valeur initiale
    int max_length; // 0 = illimité
    bool wrap_word; // true = GTK_WRAP_WORD, false = GTK_WRAP_CHAR
-   bool read_only; // non éditable
+   bool sensitive; // actif/inactif
    bool required;  // non vide requis
 
    // Style
@@ -48,7 +47,7 @@ char *champ_zone_texte_get_texte(ChampZoneTexte *cfg);
 void champ_zone_texte_set_texte(ChampZoneTexte *cfg, const char *texte);
 void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len);
 void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, bool wrap_word);
-void champ_zone_texte_set_read_only(ChampZoneTexte *cfg, bool ro);
+void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, bool sensitive);
 void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required);
 
 #endif // CHAMP_ZONE_TEXTE_H

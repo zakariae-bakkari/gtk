@@ -1,7 +1,3 @@
-//
-// Created by admin on 14-Feb-26.
-//
-
 #include "../headers/bouton_checklist.h"
 #include <stdio.h>
 #include <string.h>

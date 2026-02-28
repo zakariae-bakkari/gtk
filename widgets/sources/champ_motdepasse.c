@@ -27,9 +27,6 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             "  border-radius: %dpx;\n"
             "  padding: 6px 10px;\n"
             "}\n"
-            "entry#%s:focus, passwordentry#%s:focus {\n"
-            "  background-color: %s;\n"
-            "}\n"
             "entry.error, passwordentry.error {\n"
             "  border: 1px solid #e74c3c;\n"
             "}\n",
@@ -38,8 +35,7 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
             cfg->style.rayon_arrondi,
-            cfg->id_css, cfg->id_css,
-            cfg->style.bg_focus ? cfg->style.bg_focus : (cfg->style.bg_normal ? cfg->style.bg_normal : "white"));
+            cfg->id_css, cfg->id_css);
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -51,11 +47,24 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
 
 static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 {
+   // verify que cfg est valide et que le widget existe
    if (!cfg || !cfg->widget)
-      return TRUE;
+      return false;
+
+   // Get the current text and its length
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    size_t n = txt ? strlen(txt) : 0;
 
+   // Check max_length first
+   if (cfg->max_length > 0 && n > (size_t)cfg->max_length)
+   {
+      gtk_widget_add_css_class(cfg->widget, "error");
+      if (cfg->on_invalid)
+         cfg->on_invalid(cfg->widget, "password exceeds maximum length", cfg->user_data);
+      return FALSE;
+   }
+
+   // Then check required
    if (cfg->required && n == 0)
    {
       gtk_widget_add_css_class(cfg->widget, "error");
@@ -64,8 +73,10 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       return FALSE;
    }
 
+   // If not empty, check policy constraints
    if (n > 0)
    {
+      // Check minimum length
       if (cfg->policy.min_len > 0 && n < (size_t)cfg->policy.min_len)
       {
          gtk_widget_add_css_class(cfg->widget, "error");
@@ -73,6 +84,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             cfg->on_invalid(cfg->widget, "password too short", cfg->user_data);
          return FALSE;
       }
+      // Check digit requirement
       if (cfg->policy.require_digit)
       {
          bool ok = false;
@@ -84,6 +96,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
                break;
             }
          }
+         // if digit not found
          if (!ok)
          {
             gtk_widget_add_css_class(cfg->widget, "error");
@@ -92,6 +105,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             return FALSE;
          }
       }
+      // Check uppercase requirement
       if (cfg->policy.require_upper)
       {
          bool ok = false;
@@ -111,6 +125,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
             return FALSE;
          }
       }
+      // Check symbol requirement
       if (cfg->policy.require_symbol)
       {
          bool ok = false;
@@ -139,11 +154,30 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 static void on_pw_changed(GtkEditable *editable, gpointer user_data)
 {
    ChampMotDePasse *cfg = (ChampMotDePasse *)user_data;
-   champ_pw_validate(cfg);
+
+   // Enforce max_length by truncating if necessary
+   if (cfg->max_length > 0)
+   {
+      const char *txt = gtk_editable_get_text(editable);
+      size_t n = txt ? strlen(txt) : 0;
+
+      if (n > (size_t)cfg->max_length)
+      {
+         // Truncate the text to max_length
+         char *truncated = g_strndup(txt, cfg->max_length);
+         g_signal_handlers_block_by_func(editable, on_pw_changed, user_data);
+         gtk_editable_set_text(editable, truncated);
+         g_signal_handlers_unblock_by_func(editable, on_pw_changed, user_data);
+         g_free(truncated);
+      }
+   }
+
+   champ_pw_validate(cfg); // validate on every change to update error state
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
 }
 
+// when user presses Enter
 static void on_pw_activate(GtkEntry *entry, gpointer user_data)
 {
    ChampMotDePasse *cfg = (ChampMotDePasse *)user_data;
@@ -170,7 +204,6 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->sensitive = true;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.epaisseur_bordure = 1;
    cfg->style.couleur_bordure = "#bdc3c7";
@@ -190,8 +223,6 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
 
    if (cfg->placeholder)
       g_object_set(cfg->widget, "placeholder-text", cfg->placeholder, NULL);
-   if (cfg->max_length > 0)
-      g_object_set(cfg->widget, "max-length", cfg->max_length, NULL);
 
    gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), cfg->reveal_toggle);
    gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
@@ -230,7 +261,7 @@ void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len)
 {
    if (!cfg || !cfg->widget)
       return;
-   g_object_set(cfg->widget, "max-length", max_len, NULL);
+   cfg->max_length = max_len;
 }
 
 void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required)

@@ -25,17 +25,12 @@ static void champ_nombre_apply_css(ChampNombre *cfg)
             "%s"
             "  border-radius: %dpx;\n"
             "  padding: 2px 6px;\n"
-            "}\n"
-            "spinbutton#%s:focus {\n"
-            "  background-color: %s;\n"
             "}\n",
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
-            cfg->style.rayon_arrondi,
-            cfg->id_css,
-            cfg->style.bg_focus ? cfg->style.bg_focus : (cfg->style.bg_normal ? cfg->style.bg_normal : "white"));
+            cfg->style.rayon_arrondi);
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -72,7 +67,6 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    cfg->required = FALSE;
 
    cfg->style.bg_normal = "white";
-   cfg->style.bg_focus = "#f7f9fc";
    cfg->style.fg_normal = "#2c3e50";
    cfg->style.epaisseur_bordure = 1;
    cfg->style.couleur_bordure = "#bdc3c7";
