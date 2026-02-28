@@ -103,7 +103,7 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    cfg->texte = NULL;
    cfg->max_length = 0;
    cfg->wrap_word = true;
-   cfg->read_only = false;
+   cfg->sensitive = true;
    cfg->required = false;
 
    cfg->style.bg_normal = "white";
@@ -129,7 +129,7 @@ GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
       gtk_text_buffer_set_text(buf, cfg->texte, -1);
 
    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(cfg->widget), cfg->wrap_word ? GTK_WRAP_WORD : GTK_WRAP_CHAR);
-   gtk_text_view_set_editable(GTK_TEXT_VIEW(cfg->widget), !cfg->read_only);
+   gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
 
    g_signal_connect(buf, "changed", G_CALLBACK(on_textbuffer_changed), cfg);
 
@@ -175,12 +175,12 @@ void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, bool wrap_word)
    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(cfg->widget), wrap_word ? GTK_WRAP_WORD : GTK_WRAP_CHAR);
 }
 
-void champ_zone_texte_set_read_only(ChampZoneTexte *cfg, bool ro)
+void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, bool sensitive)
 {
    if (!cfg || !cfg->widget)
       return;
-   cfg->read_only = ro;
-   gtk_text_view_set_editable(GTK_TEXT_VIEW(cfg->widget), !ro);
+   cfg->sensitive = sensitive;
+   gtk_widget_set_sensitive(cfg->widget, sensitive);
 }
 
 void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required)

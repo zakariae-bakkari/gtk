@@ -3,6 +3,7 @@
 #include "../widgets/headers/champ_motdepasse.h"
 #include "../widgets/headers/champ_nombre.h"
 #include "../widgets/headers/champ_select.h"
+#include "../widgets/headers/champ_zone_texte.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */
@@ -24,6 +25,16 @@ static void on_input_number_changed(GtkSpinButton *spin, gpointer data)
     const char *id = (const char *)data;
     double value = gtk_spin_button_get_value(spin);
     printf("[INPUT] number changed: %s -> %.2f\n", id, value);
+}
+
+static void on_zone_texte_changed(GtkTextBuffer *buffer, gpointer data)
+{
+    const char *id = (const char *)data;
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    char *texte = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+    printf("[ZONE_TEXTE] changed: %s -> '%s'\n", id, texte);
+    g_free(texte);
 }
 
 static void on_input_invalid(GtkWidget *widget, const char *message, gpointer data)
@@ -51,7 +62,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     fenetre_initialiser(&main_window);
     main_window.title = "Password Input Test";
     main_window.taille.width = 400;
-    main_window.taille.height = 300;
+    main_window.taille.height = 600;
     main_window.color_bg = "#f5f5f5";
     main_window.icon_path = "application-x-executable-symbolic";
     main_window.titre_align = TITRE_ALIGN_GAUCHE;
@@ -161,6 +172,34 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     conteneur_ajouter(&main_container, lbl_select);
     conteneur_ajouter(&main_container, w_select);
+
+    /* ========== ZONE TEXTE (ChampZoneTexte) ========== */
+    GtkWidget *lbl_zone = gtk_label_new_with_mnemonic("_Comments:");
+
+    ChampZoneTexte *czt = g_new0(ChampZoneTexte, 1);
+    champ_zone_texte_initialiser(czt);
+    czt->id_css = "input_zone_texte";
+    czt->max_length = 200;
+    czt->wrap_word = true;
+    czt->sensitive = true;
+    czt->required = false;
+    czt->style.epaisseur_bordure = 2;
+    czt->style.couleur_bordure = "purple";
+    czt->style.rayon_arrondi = 5;
+    czt->style.gras = false;
+    czt->style.italique = false;
+    czt->style.taille_texte_px = 12;
+    czt->on_change = on_zone_texte_changed;
+    czt->on_invalid = on_input_invalid;
+    czt->user_data = "zone_texte";
+
+    GtkWidget *w_zone = champ_zone_texte_creer(czt);
+    g_signal_connect(w_zone, "destroy", G_CALLBACK(g_free), czt);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_zone), w_zone);
+
+    conteneur_ajouter(&main_container, lbl_zone);
+    conteneur_ajouter(&main_container, w_zone);
+
     /* ========== AFFICHAGE DE LA FENETRE ========== */
     printf("[OK] Password and number inputs created successfully!\n");
     printf("[OK] Window size: %dx%d pixels\n\n", main_window.taille.width, main_window.taille.height);
