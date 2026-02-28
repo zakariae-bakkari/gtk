@@ -3,21 +3,9 @@
 
 #include <gtk/gtk.h>
 #include <stdbool.h>
-
-typedef struct
-{
-   char *bg_normal;
-   char *fg_normal;
-   int epaisseur_bordure;
-   char *couleur_bordure;
-   int rayon_arrondi;
-   bool gras;
-   bool italique;
-   int taille_texte_px; // 0 = défaut
-} ChampZoneTexteStyle;
+#include "common.h"
 
 typedef void (*ChampZoneOnChange)(GtkTextBuffer *buffer, gpointer user_data);
-typedef void (*ChampOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
 
 typedef struct
 {
@@ -31,12 +19,12 @@ typedef struct
    bool sensitive; // actif/inactif
    bool required;  // non vide requis
 
-   // Style
-   ChampZoneTexteStyle style;
+   // Style (utilise la structure commune)
+   WidgetStyle style;
 
    // Événements
    ChampZoneOnChange on_change;
-   ChampOnInvalid on_invalid;
+   WidgetOnInvalid on_invalid;
    gpointer user_data;
 } ChampZoneTexte;
 

@@ -29,6 +29,10 @@ static void champ_zt_apply_css(ChampZoneTexte *cfg)
             "textview#%s text {\n"
             "  color: %s;\n"
             "  font-weight: %s;\n"
+            "}\n"
+            "textview.error {\n"
+            "  border: 1px solid %s;\n"
+            "  background: %s;\n"
             "}\n",
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
@@ -37,7 +41,9 @@ static void champ_zt_apply_css(ChampZoneTexte *cfg)
             cfg->style.rayon_arrondi,
             cfg->id_css,
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
-            cfg->style.gras ? "bold" : "normal");
+            cfg->style.gras ? "bold" : "normal",
+            cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
+            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2");
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -106,14 +112,13 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    cfg->sensitive = true;
    cfg->required = false;
 
-   cfg->style.bg_normal = "white";
-   cfg->style.fg_normal = "#2c3e50";
-   cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = "#bdc3c7";
+   // Initialize style using common function
+   widget_style_init(&cfg->style);
+   // Override defaults for text area
+   cfg->style.bg_normal = g_strdup("white");
+   cfg->style.fg_normal = g_strdup("#2c3e50");
+   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
    cfg->style.rayon_arrondi = 4;
-   cfg->style.gras = false;
-   cfg->style.italique = false;
-   cfg->style.taille_texte_px = 0;
 }
 
 GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
