@@ -2,6 +2,7 @@
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/champ_motdepasse.h"
 #include "../widgets/headers/champ_nombre.h"
+#include "../widgets/headers/champ_select.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */
@@ -31,6 +32,14 @@ static void on_input_invalid(GtkWidget *widget, const char *message, gpointer da
     printf("[INPUT][INVALID] %s: %s\n", id, message);
 }
 
+static void on_select_changed(GtkDropDown *dd, gpointer data)
+{
+    const char *id = (const char *)data;
+    GtkStringList *model = GTK_STRING_LIST(gtk_drop_down_get_model(dd));
+    guint selected = gtk_drop_down_get_selected(dd);
+    const char *selected_item = gtk_string_list_get_string(model, selected);
+    printf("[SELECT] changed: %s -> '%s'\n", id, selected_item);
+}
 /* --- Fonction principale de creation de l'interface --- */
 
 static void activate(GtkApplication *app, gpointer user_data)
@@ -133,6 +142,25 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&main_container, lbl_num);
     conteneur_ajouter(&main_container, w_num);
 
+    /* ========== Select ========== */
+    GtkWidget *lbl_select = gtk_label_new_with_mnemonic("_Select:");
+    ChampSelect *csel = g_new0(ChampSelect, 1);
+    champ_select_initialiser(csel);
+    csel->id_css = "input_select";
+    csel->required = true;
+    csel->user_data = "select";
+    champ_select_add_item(csel, "Option 1");
+    champ_select_add_item(csel, "Option 2");
+    champ_select_add_item(csel, "Option 3");
+    csel->selected_index = 0;
+    csel->on_change = on_select_changed;
+
+    GtkWidget *w_select = champ_select_creer(csel);
+    g_signal_connect(w_select, "destroy", G_CALLBACK(g_free), csel);
+    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_select), w_select);
+
+    conteneur_ajouter(&main_container, lbl_select);
+    conteneur_ajouter(&main_container, w_select);
     /* ========== AFFICHAGE DE LA FENETRE ========== */
     printf("[OK] Password and number inputs created successfully!\n");
     printf("[OK] Window size: %dx%d pixels\n\n", main_window.taille.width, main_window.taille.height);
