@@ -9,13 +9,27 @@ static void champ_select_apply_css(ChampSelect *cfg)
    GtkCssProvider *provider = gtk_css_provider_new();
    char css[2048];
    char border_css[128] = "";
+   char text_css[256] = "";
 
-   if (cfg->style.epaisseur_bordure > 0)
+   // Construction du CSS pour les bordures
+   if (cfg->style.epaisseur_bordure > 0 && cfg->style.couleur_bordure)
    {
       snprintf(border_css, sizeof(border_css),
                "  border: %dpx solid %s;\n",
                cfg->style.epaisseur_bordure,
-               cfg->style.couleur_bordure ? cfg->style.couleur_bordure : "transparent");
+               cfg->style.couleur_bordure);
+   }
+
+   // Construction du CSS pour le texte
+   if (cfg->style.taille_texte_px > 0 || cfg->style.gras || cfg->style.italique)
+   {
+      snprintf(text_css, sizeof(text_css),
+               "  font-size: %dpx;\n"
+               "  font-weight: %s;\n"
+               "  font-style: %s;\n",
+               cfg->style.taille_texte_px > 0 ? cfg->style.taille_texte_px : 14,
+               cfg->style.gras ? "bold" : "normal",
+               cfg->style.italique ? "italic" : "normal");
    }
 
    snprintf(css, sizeof(css),
@@ -23,14 +37,23 @@ static void champ_select_apply_css(ChampSelect *cfg)
             "  background-color: %s;\n"
             "  color: %s;\n"
             "%s"
+            "%s"
             "  border-radius: %dpx;\n"
             "  padding: 4px 8px;\n"
+            "}\n"
+            "dropdown#%s:invalid {\n"
+            "  border-color: %s;\n"
+            "  background-color: %s;\n"
             "}\n",
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
-            cfg->style.rayon_arrondi);
+            text_css,
+            cfg->style.rayon_arrondi,
+            cfg->id_css,
+            cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
+            cfg->style.bg_error ? cfg->style.bg_error : "#fdf2f2");
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -81,14 +104,8 @@ void champ_select_initialiser(ChampSelect *cfg)
    cfg->required = false;
    cfg->enable_search = false;
 
-   cfg->style.bg_normal = "white";
-   cfg->style.fg_normal = "#2c3e50";
-   cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = "#bdc3c7";
-   cfg->style.rayon_arrondi = 4;
-   cfg->style.gras = false;
-   cfg->style.italique = false;
-   cfg->style.taille_texte_px = 0;
+   // Utilisation de la fonction commune pour initialiser le style
+   widget_style_init(&cfg->style);
 }
 
 GtkWidget *champ_select_creer(ChampSelect *cfg)

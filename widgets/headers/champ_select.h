@@ -3,21 +3,10 @@
 
 #include <gtk/gtk.h>
 #include <stdbool.h>
-
-typedef struct
-{
-   char *bg_normal;
-   char *fg_normal;
-   int epaisseur_bordure;
-   char *couleur_bordure;
-   int rayon_arrondi;
-   bool gras;
-   bool italique;
-   int taille_texte_px; // 0 = défaut
-} ChampSelectStyle;
+#include "common.h"
 
 typedef void (*ChampSelectOnChange)(GtkDropDown *dd, gpointer user_data);
-typedef void (*ChampOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
+typedef void (*WidgetOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
 
 typedef struct
 {
@@ -32,12 +21,12 @@ typedef struct
    bool required;      // sélection obligatoire
    bool enable_search; // futur (avec factory)
 
-   // Style
-   ChampSelectStyle style;
+   // Style (utilise la structure commune)
+   WidgetStyle style;
 
    // Événements
    ChampSelectOnChange on_change;
-   ChampOnInvalid on_invalid;
+   WidgetOnInvalid on_invalid;
    gpointer user_data;
 } ChampSelect;
 

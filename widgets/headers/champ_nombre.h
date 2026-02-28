@@ -3,21 +3,7 @@
 
 #include <gtk/gtk.h>
 #include <stdbool.h>
-
-typedef struct
-{
-   char *bg_normal;
-   char *fg_normal;
-   int epaisseur_bordure;
-   char *couleur_bordure;
-   int rayon_arrondi;
-   bool gras;
-   bool italique;
-   int taille_texte_px; // 0 = défaut
-} ChampNombreStyle;
-
-typedef void (*ChampNombreOnChange)(GtkSpinButton *spin, gpointer user_data);
-typedef void (*ChampOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
+#include "common.h"
 
 typedef struct
 {
@@ -35,12 +21,13 @@ typedef struct
    // Contraintes
    gboolean required; // si true, peut imposer min<=val<=max (déjà assuré)
 
-   // Style
-   ChampNombreStyle style;
+   // Style (utilise la structure commune)
+   WidgetStyle style;
 
    // Événements
-   ChampNombreOnChange on_change;
-   ChampOnInvalid on_invalid;
+   WidgetOnChange on_change;
+   WidgetOnActivate on_activate;
+   WidgetOnInvalid on_invalid;
    gpointer user_data;
 } ChampNombre;
 
@@ -53,5 +40,12 @@ void champ_nombre_set_bornes(ChampNombre *cfg, double min, double max);
 void champ_nombre_set_step(ChampNombre *cfg, double step);
 void champ_nombre_set_digits(ChampNombre *cfg, guint digits);
 void champ_nombre_set_wrap(ChampNombre *cfg, gboolean wrap);
+
+// Style functions
+void champ_nombre_set_style(ChampNombre *cfg, const WidgetStyle *style);
+void champ_nombre_apply_style(ChampNombre *cfg);
+
+// Callback functions
+void champ_nombre_set_callbacks(ChampNombre *cfg, WidgetOnChange on_change, WidgetOnActivate on_activate, WidgetOnInvalid on_invalid, gpointer user_data);
 
 #endif // CHAMP_NOMBRE_H
