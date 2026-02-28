@@ -3,18 +3,7 @@
 
 #include <gtk/gtk.h>
 #include <stdbool.h>
-
-typedef struct
-{
-   char *bg_normal;
-   char *fg_normal;
-   int epaisseur_bordure;
-   char *couleur_bordure;
-   int rayon_arrondi;
-   bool gras;
-   bool italique;
-   int taille_texte_px; // 0 = défaut
-} ChampMotDePasseStyle;
+#include "common.h"
 
 typedef struct
 {
@@ -23,10 +12,6 @@ typedef struct
    bool require_upper;
    bool require_symbol;
 } ChampPasswordPolicy;
-
-typedef void (*ChampOnChange)(GtkEditable *editable, gpointer user_data);
-typedef void (*ChampOnActivate)(GtkEntry *entry, gpointer user_data);
-typedef void (*ChampOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
 
 typedef struct
 {
@@ -43,13 +28,13 @@ typedef struct
    bool reveal_toggle; // afficher/masquer bouton
    bool sensitive;     // actif/inactif
 
-   // Style
-   ChampMotDePasseStyle style;
+   // Style (utilise la structure commune)
+   WidgetStyle style;
 
    // Événements
-   ChampOnChange on_change;
-   ChampOnActivate on_activate;
-   ChampOnInvalid on_invalid;
+   WidgetOnChange on_change;
+   WidgetOnActivate on_activate;
+   WidgetOnInvalid on_invalid;
    gpointer user_data;
 } ChampMotDePasse;
 

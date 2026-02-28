@@ -28,14 +28,16 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             "  padding: 6px 10px;\n"
             "}\n"
             "entry.error, passwordentry.error {\n"
-            "  border: 1px solid #e74c3c;\n"
+            "  border: 1px solid %s;\n"
+            "  background: %s;\n"
             "}\n",
             cfg->id_css, cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
             cfg->style.rayon_arrondi,
-            cfg->id_css, cfg->id_css);
+            cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
+            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2");
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
@@ -203,14 +205,13 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->reveal_toggle = true;
    cfg->sensitive = true;
 
-   cfg->style.bg_normal = "white";
-   cfg->style.fg_normal = "#2c3e50";
-   cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = "#bdc3c7";
+   // Initialize style using common function
+   widget_style_init(&cfg->style);
+   // Override defaults for password field
+   cfg->style.bg_normal = g_strdup("white");
+   cfg->style.fg_normal = g_strdup("#2c3e50");
+   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
    cfg->style.rayon_arrondi = 4;
-   cfg->style.gras = false;
-   cfg->style.italique = false;
-   cfg->style.taille_texte_px = 0;
 }
 
 GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
@@ -218,7 +219,7 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    if (!cfg)
       return NULL;
 
-   cfg->widget = gtk_password_entry_new();
+   cfg->widget = gtk_password_entry_new(); // cree un GtkPasswordEntry
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_pwd");
 
    if (cfg->placeholder)
@@ -230,8 +231,8 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_pw_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_pw_activate), cfg);
 
-   champ_pw_apply_css(cfg);
-   champ_pw_validate(cfg);
+   champ_pw_apply_css(cfg); // Appliquer le style CSS
+   champ_pw_validate(cfg);  // Valider le champ pour afficher l'état initial
 
    return cfg->widget;
 }
