@@ -399,7 +399,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     GtkWidget *lbl_name = gtk_label_new_with_mnemonic("_Name:");
     ChampTexte *ct_name = g_new0(ChampTexte, 1);
-    champ_texte_initialiser(ct_name);
+    champtexte_initialiser(ct_name);
     ct_name->id_css = "input_name";
     ct_name->placeholder = "Enter your name";
     ct_name->required = true;
