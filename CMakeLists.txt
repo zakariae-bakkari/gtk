@@ -23,8 +23,9 @@ add_executable(gtk
 #        src/main.c
 #         src/test_champ_text.c
 #        src/test.c
-        src/test_inputs.c
+#        src/test_inputs.c
 #        src/test_callbacks.c
+        src/example_scroll_design.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
