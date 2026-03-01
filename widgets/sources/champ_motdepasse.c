@@ -2,6 +2,39 @@
 #include <string.h>
 #include <ctype.h>
 
+// ====================== HELPERS ERREUR ======================
+
+/**
+ * Affiche le label d'erreur avec le message donné et passe l'entry en état error.
+ */
+static void champ_motdepasse_show_error(ChampMotDePasse *cfg, const char *message)
+{
+   gtk_widget_add_css_class(cfg->widget, "error");
+
+   if (cfg->show_error_label)
+   {
+      gtk_label_set_text(GTK_LABEL(cfg->label_erreur), message);
+      gtk_widget_set_visible(cfg->label_erreur, TRUE);
+   }
+
+   if (cfg->on_invalid)
+      cfg->on_invalid(cfg->widget, message, cfg->user_data);
+}
+
+/**
+ * Masque le label d'erreur et retire la classe CSS error de l'entry.
+ */
+static void champ_motdepasse_clear_error(ChampMotDePasse *cfg)
+{
+   gtk_widget_remove_css_class(cfg->widget, "error");
+
+   if (cfg->show_error_label)
+   {
+      gtk_label_set_text(GTK_LABEL(cfg->label_erreur), "");
+      gtk_widget_set_visible(cfg->label_erreur, FALSE);
+   }
+}
+
 static void champ_pw_apply_css(ChampMotDePasse *cfg)
 {
    if (!cfg || !cfg->widget || !cfg->id_css)
@@ -19,6 +52,10 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
                cfg->style.couleur_bordure ? cfg->style.couleur_bordure : "transparent");
    }
 
+   /* Style du label d'erreur */
+   int err_size = cfg->erreur_taille_px > 0 ? cfg->erreur_taille_px : 11;
+   const char *err_color = cfg->erreur_couleur ? cfg->erreur_couleur : "#e74c3c";
+
    snprintf(css, sizeof(css),
             "entry#%s, passwordentry#%s {\n"
             "  background-color: %s;\n"
@@ -30,6 +67,12 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             "entry.error, passwordentry.error {\n"
             "  border: 1px solid %s;\n"
             "  background: %s;\n"
+            "}\n"
+            "label#%s_erreur {\n"
+            "  color: %s;\n"
+            "  font-size: %dpx;\n"
+            "  margin-top: 2px;\n"
+            "  margin-left: 2px;\n"
             "}\n",
             cfg->id_css, cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
@@ -37,13 +80,28 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
             border_css,
             cfg->style.rayon_arrondi,
             cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
-            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2");
+            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2",
+            cfg->id_css,
+            err_color,
+            err_size);
 
    gtk_css_provider_load_from_string(provider, css);
+
+   /* Appliquer sur l'entry */
    gtk_style_context_add_provider(
        gtk_widget_get_style_context(cfg->widget),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+   /* Appliquer sur le label d'erreur */
+   if (cfg->label_erreur)
+   {
+      gtk_style_context_add_provider(
+          gtk_widget_get_style_context(cfg->label_erreur),
+          GTK_STYLE_PROVIDER(provider),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
+   }
+
    g_object_unref(provider);
 }
 
@@ -59,18 +117,14 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
    // Check required
    if (cfg->required && strlen(txt) == 0)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
-      if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "Password required", cfg->user_data);
+      champ_motdepasse_show_error(cfg, "Password required");
       return FALSE;
    }
 
    // Check minimum length
    if (cfg->policy.min_len > 0 && (int)strlen(txt) < cfg->policy.min_len)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
-      if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "Password too short", cfg->user_data);
+      champ_motdepasse_show_error(cfg, "Password too short");
       return FALSE;
    }
 
@@ -88,9 +142,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       }
       if (!ok)
       {
-         gtk_widget_add_css_class(cfg->widget, "error");
-         if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "Password must contain a digit", cfg->user_data);
+         champ_motdepasse_show_error(cfg, "Password must contain a digit");
          return FALSE;
       }
    }
@@ -109,9 +161,7 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       }
       if (!ok)
       {
-         gtk_widget_add_css_class(cfg->widget, "error");
-         if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "Password must contain uppercase letter", cfg->user_data);
+         champ_motdepasse_show_error(cfg, "Password must contain uppercase letter");
          return FALSE;
       }
    }
@@ -131,15 +181,13 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
       }
       if (!ok)
       {
-         gtk_widget_add_css_class(cfg->widget, "error");
-         if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "Password must contain a symbol", cfg->user_data);
+         champ_motdepasse_show_error(cfg, "Password must contain a symbol");
          return FALSE;
       }
    }
 
    // All checks passed
-   gtk_widget_remove_css_class(cfg->widget, "error");
+   champ_motdepasse_clear_error(cfg);
    return TRUE;
 }
 
@@ -198,6 +246,10 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->size.width = 0;  // 0 = full width (100%)
    cfg->size.height = 0; // 0 = auto size
 
+   cfg->show_error_label = TRUE; // Afficher le label d'erreur par défaut
+   cfg->erreur_couleur = NULL;   // Utilise #e74c3c par défaut
+   cfg->erreur_taille_px = 0;    // Utilise 11px par défaut
+
    // Initialize style using common function
    widget_style_init(&cfg->style);
    // Override defaults for password field
@@ -212,7 +264,13 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    if (!cfg)
       return NULL;
 
-   cfg->widget = gtk_password_entry_new(); // cree un GtkPasswordEntry
+   /* --- Container vertical --- */
+   cfg->container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+   gtk_widget_set_hexpand(cfg->container, cfg->size.width == 0 ? TRUE : FALSE);
+   gtk_widget_set_halign(cfg->container, cfg->size.width == 0 ? GTK_ALIGN_FILL : GTK_ALIGN_START);
+
+   /* --- GtkPasswordEntry --- */
+   cfg->widget = gtk_password_entry_new();
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_pwd");
 
    if (cfg->placeholder)
@@ -232,28 +290,44 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    // Control widget expansion behavior
    if (cfg->size.width > 0)
    {
-      // Fixed width - don't expand
       gtk_widget_set_hexpand(cfg->widget, FALSE);
       gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
    }
    else
    {
-      // width = 0 means full width - expand to fill container
       gtk_widget_set_hexpand(cfg->widget, TRUE);
       gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
    }
 
-   // Password entries typically don't need vertical expansion
    gtk_widget_set_vexpand(cfg->widget, FALSE);
    gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
+   /* --- Label d'erreur --- */
+   cfg->label_erreur = gtk_label_new("");
+
+   /* ID CSS = "<id_css>_erreur" pour le ciblage CSS */
+   char lbl_id[256];
+   snprintf(lbl_id, sizeof(lbl_id), "%s_erreur", cfg->id_css ? cfg->id_css : "champ_pwd");
+   gtk_widget_set_name(cfg->label_erreur, lbl_id);
+
+   gtk_label_set_xalign(GTK_LABEL(cfg->label_erreur), 0.0f); // Aligné à gauche
+   gtk_label_set_wrap(GTK_LABEL(cfg->label_erreur), TRUE);
+   gtk_widget_set_hexpand(cfg->label_erreur, TRUE);
+   gtk_widget_set_visible(cfg->label_erreur, FALSE); // Caché par défaut
+
+   /* --- Assemblage --- */
+   gtk_box_append(GTK_BOX(cfg->container), cfg->widget);
+   gtk_box_append(GTK_BOX(cfg->container), cfg->label_erreur);
+
+   /* --- Signaux --- */
    g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_pw_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_pw_activate), cfg);
 
-   champ_pw_apply_css(cfg); // Appliquer le style CSS
-   champ_pw_validate(cfg);  // Valider le champ pour afficher l'état initial
+   /* --- CSS & validation initiale --- */
+   champ_pw_apply_css(cfg);
+   champ_pw_validate(cfg);
 
-   return cfg->widget;
+   return cfg->container;
 }
 
 const char *champ_motdepasse_get_texte(ChampMotDePasse *cfg)
