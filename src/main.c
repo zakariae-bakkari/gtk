@@ -389,60 +389,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     inputs_container.enfants_hexpand = false;
     GtkWidget *inputs_box = conteneur_creer(&inputs_container);
 
-    // --- Name (ChampTexte) ---
-    Conteneur row_name;
-    conteneur_initialiser(&row_name);
-    row_name.orientation = CONTENEUR_HORIZONTAL;
-    row_name.espacement = 8;
-    row_name.enfants_hexpand = false;
-    GtkWidget *row_name_box = conteneur_creer(&row_name);
-
-    GtkWidget *lbl_name = gtk_label_new_with_mnemonic("_Name:");
-    ChampTexte *ct_name = g_new0(ChampTexte, 1);
-    champtexte_initialiser(ct_name);
-    ct_name->id_css = "input_name";
-    ct_name->placeholder = "Enter your name";
-    ct_name->required = true;
-    ct_name->on_change = on_input_text_changed;
-    ct_name->on_activate = on_input_text_activate;
-    ct_name->on_invalid = on_input_invalid;
-    ct_name->user_data = "name";
-    GtkWidget *w_name = champtexte_creer(ct_name);
-    g_signal_connect(w_name, "destroy", G_CALLBACK(g_free), ct_name);
-    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_name), w_name);
-    conteneur_ajouter(&row_name, lbl_name);
-    conteneur_ajouter(&row_name, w_name);
-    conteneur_ajouter(&inputs_container, row_name_box);
-
-    // --- Password (ChampMotDePasse) ---
-    Conteneur row_pwd;
-    conteneur_initialiser(&row_pwd);
-    row_pwd.orientation = CONTENEUR_HORIZONTAL;
-    row_pwd.espacement = 8;
-    row_pwd.enfants_hexpand = false;
-    GtkWidget *row_pwd_box = conteneur_creer(&row_pwd);
-
-    GtkWidget *lbl_pwd = gtk_label_new_with_mnemonic("_Password:");
-    ChampMotDePasse *cpw = g_new0(ChampMotDePasse, 1);
-    champ_motdepasse_initialiser(cpw);
-    cpw->id_css = "input_pwd";
-    cpw->placeholder = "Enter a strong password";
-    cpw->required = true;
-    cpw->policy.min_len = 8;
-    cpw->policy.require_digit = true;
-    cpw->policy.require_upper = true;
-    cpw->policy.require_symbol = true;
-    cpw->on_change = on_input_text_changed;
-    cpw->on_activate = on_input_text_activate;
-    cpw->on_invalid = on_input_invalid;
-    cpw->user_data = "password";
-    GtkWidget *w_pwd = champ_motdepasse_creer(cpw);
-    g_signal_connect(w_pwd, "destroy", G_CALLBACK(g_free), cpw);
-    gtk_label_set_mnemonic_widget(GTK_LABEL(lbl_pwd), w_pwd);
-    conteneur_ajouter(&row_pwd, lbl_pwd);
-    conteneur_ajouter(&row_pwd, w_pwd);
-    conteneur_ajouter(&inputs_container, row_pwd_box);
-
     // --- Age (ChampNombre) ---
     Conteneur row_age;
     conteneur_initialiser(&row_age);
@@ -460,7 +406,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     cnb->step = 1;
     cnb->digits = 0;
     cnb->valeur = 18;
-    cnb->on_change = on_number_changed;
     cnb->user_data = "age";
     GtkWidget *w_age = champ_nombre_creer(cnb);
     g_signal_connect(w_age, "destroy", G_CALLBACK(g_free), cnb);

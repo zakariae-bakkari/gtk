@@ -19,6 +19,10 @@ typedef struct
    bool sensitive; // actif/inactif
    bool required;  // non vide requis
 
+   // Taille du widget
+   int width;  // largeur en pixels (0 = 100% largeur)
+   int height; // hauteur en pixels (0 = auto)
+
    // Style (utilise la structure commune)
    WidgetStyle style;
 
@@ -37,5 +41,7 @@ void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len);
 void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, bool wrap_word);
 void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, bool sensitive);
 void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required);
+void champ_zone_texte_set_size(ChampZoneTexte *cfg, int width, int height);
+void champ_zone_texte_free(ChampZoneTexte *cfg);
 
 #endif // CHAMP_ZONE_TEXTE_H

@@ -111,6 +111,8 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    cfg->wrap_word = true;
    cfg->sensitive = true;
    cfg->required = false;
+   cfg->width = 0;  // 0 = full width (100%)
+   cfg->height = 0; // 0 = auto size
 
    // Initialize style using common function
    widget_style_init(&cfg->style);
@@ -128,6 +130,32 @@ GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
 
    cfg->widget = gtk_text_view_new();
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_zone_texte");
+
+   // Set size if specified
+   if (cfg->width > 0 || cfg->height > 0)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  cfg->width > 0 ? cfg->width : -1,
+                                  cfg->height > 0 ? cfg->height : -1);
+   }
+
+   // Control widget expansion behavior
+   if (cfg->width > 0)
+   {
+      // Fixed width - don't expand
+      gtk_widget_set_hexpand(cfg->widget, FALSE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+   }
+   else
+   {
+      // width = 0 means full width - expand to fill container
+      gtk_widget_set_hexpand(cfg->widget, TRUE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+   }
+
+   // Always allow vertical expansion for text areas
+   gtk_widget_set_vexpand(cfg->widget, FALSE);
+   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
    GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(cfg->widget));
    if (cfg->texte)
@@ -195,4 +223,33 @@ void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required)
    cfg->required = required;
    if (cfg->widget)
       champ_zt_validate_now(cfg);
+}
+
+void champ_zone_texte_set_size(ChampZoneTexte *cfg, int width, int height)
+{
+   if (!cfg)
+      return;
+   cfg->width = width;
+   cfg->height = height;
+   if (cfg->widget)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  width > 0 ? width : -1,
+                                  height > 0 ? height : -1);
+   }
+}
+
+void champ_zone_texte_free(ChampZoneTexte *cfg)
+{
+   if (!cfg)
+      return;
+
+   // Free the initial text if it was allocated
+   g_free(cfg->texte);
+
+   // Free the style structure
+   widget_style_free(&cfg->style);
+
+   // Clear the structure
+   memset(cfg, 0, sizeof(ChampZoneTexte));
 }
