@@ -12,6 +12,7 @@ add_executable(gtk
         widgets/sources/bouton_checklist.c
         widgets/sources/conteneur.c
         widgets/sources/common.c
+        widgets/sources/texte.c
 
         # Inputs
         widgets/sources/champ_texte.c
@@ -25,7 +26,10 @@ add_executable(gtk
 #        src/test.c
 #        src/test_inputs.c
 #        src/test_callbacks.c
-        src/example_scroll_design.c
+#        src/example_scroll_design.c
+#        src/example_background_images.c
+#        src/test_buttons.c
+        src/test_texte.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
