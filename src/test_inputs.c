@@ -113,8 +113,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_motdepasse_initialiser(pwd1);
     pwd1->id_css = "input_password_fixed";
     pwd1->placeholder = "Enter password...";
-    pwd1->width = 250; // Fixed width
-    pwd1->height = 0;  // Auto height
+    pwd1->size.width = 250; // Fixed width
+    pwd1->size.height = 0;  // Auto height
     pwd1->required = true;
     pwd1->max_length = 5;
     pwd1->policy.min_len = 6;
@@ -141,8 +141,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_motdepasse_initialiser(pwd2);
     pwd2->id_css = "input_password_full";
     pwd2->placeholder = "Confirm your password...";
-    pwd2->width = 0;   // Full width (100%)
-    pwd2->height = 40; // Custom height
+    pwd2->size.width = 0;   // Full width (100%)
+    pwd2->size.height = 40; // Custom height
     pwd2->required = true;
     pwd2->style.epaisseur_bordure = 1;
     pwd2->style.couleur_bordure = g_strdup("#3498db");
@@ -169,8 +169,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     age->step = 1;
     age->digits = 0;
     age->valeur = 25;
-    age->width = 120; // Small fixed width
-    age->height = 35; // Custom height
+    age->size.width = 120; // Small fixed width
+    age->size.height = 35; // Custom height
     age->required = true;
     age->style.epaisseur_bordure = 2;
     age->style.couleur_bordure = g_strdup("#2ecc71");
@@ -197,8 +197,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     salary->step = 100;
     salary->digits = 2;
     salary->valeur = 50000.00;
-    salary->width = 200; // Medium width
-    salary->height = 0;  // Auto height
+    salary->size.width = 200; // Medium width
+    salary->size.height = 0;  // Auto height
     salary->style.epaisseur_bordure = 1;
     salary->style.couleur_bordure = g_strdup("#f39c12");
     salary->style.rayon_arrondi = 4;
@@ -218,8 +218,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampSelect *country = g_new0(ChampSelect, 1);
     champ_select_initialiser(country);
     country->id_css = "input_country";
-    country->width = 180; // Fixed width
-    country->height = 0;  // Auto height
+    country->size.width = 180; // Fixed width
+    country->size.height = 0;  // Auto height
     country->required = true;
     country->style.epaisseur_bordure = 2;
     country->style.couleur_bordure = g_strdup("#9b59b6");
@@ -250,8 +250,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampSelect *language = g_new0(ChampSelect, 1);
     champ_select_initialiser(language);
     language->id_css = "input_language";
-    language->width = 0;   // Full width (100%)
-    language->height = 45; // Custom height
+    language->size.width = 0;   // Full width (100%)
+    language->size.height = 45; // Custom height
     language->required = false;
     language->style.epaisseur_bordure = 1;
     language->style.couleur_bordure = g_strdup("#34495e");
@@ -284,10 +284,10 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt->id_css = "input_zone_texte";
     czt->max_length = 200;
     // Option 1: Fixed width (300px exact)
-    // czt->width = 300;
+    // czt->size.width = 300;
     // Option 2: Full width (100% of container)
-    czt->width = 0; // 0 = 100% width
-    czt->height = 90;
+    czt->size.width = 0; // 0 = 100% width
+    czt->size.height = 90;
     czt->wrap_word = true;
     czt->sensitive = true;
     czt->required = false;
@@ -319,8 +319,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt2->id_css = "input_bio";
     czt2->required = true;
     czt2->max_length = 300;
-    czt2->width = 100;
-    czt2->height = 90; // Set height using the new attribute
+    czt2->size.width = 100;
+    czt2->size.height = 90; // Set height using the new attribute
     czt2->wrap_word = true;
     czt2->on_change = NULL;
     czt2->on_invalid = on_input_invalid;

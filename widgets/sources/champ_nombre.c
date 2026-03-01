@@ -108,8 +108,8 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    cfg->wrap = FALSE;
    cfg->valeur = 0.0;
    cfg->required = FALSE;
-   cfg->width = 0;  // 0 = full width (100%)
-   cfg->height = 0; // 0 = auto size
+   cfg->size.width = 0;  // 0 = full width (100%)
+   cfg->size.height = 0; // 0 = auto size
 
    // Initialize style using common function
    widget_style_init(&cfg->style);

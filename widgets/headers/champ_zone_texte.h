@@ -19,8 +19,7 @@ typedef struct
    gboolean required;  // non vide requis
 
    // Taille du widget
-   int width;  // largeur en pixels (0 = 100% largeur)
-   int height; // hauteur en pixels (0 = auto)
+   WidgetSize size;
 
    // Style (utilise la structure commune)
    WidgetStyle style;

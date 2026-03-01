@@ -34,6 +34,16 @@ typedef struct
    char *bg_error;              // couleur de fond en cas d'erreur
 } WidgetStyle;
 
+/**
+ * Structure de taille commune pour tous les widgets
+ * width et height en pixels (0 = auto/100% selon le contexte)
+ */
+typedef struct
+{
+   int width;  // largeur en pixels (0 = 100% largeur)
+   int height; // hauteur en pixels (0 = auto)
+} WidgetSize;
+
 // ====================== CALLBACKS COMMUNES ======================
 
 /**
