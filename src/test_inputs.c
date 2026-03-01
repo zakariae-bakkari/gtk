@@ -64,11 +64,17 @@ static void activate(GtkApplication *app, gpointer user_data)
     fenetre_initialiser(&main_window);
     main_window.title = "Input Components Size Test";
     main_window.taille.width = 500;
-    main_window.taille.height = 800;
+    main_window.taille.height = 600; // Smaller height to trigger scrolling
+
     main_window.color_bg = "#f5f5f5";
-    main_window.icon_path = "application-x-executable-symbolic";
+    main_window.icon_path = "";
     main_window.titre_align = TITRE_ALIGN_GAUCHE;
     main_window.bouton_agrandir = false;
+
+    // Enable window scrolling - this will make the entire window content scrollable
+    fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);  // Use WidgetScrollMode enum
+    fenetre_set_scroll_content_size(&main_window, -1, 800); // Content can be 800px tall
+    fenetre_set_scroll_overlay(&main_window, true);         // Modern overlay scrollbars
 
     GtkWidget *window = fenetre_creer(&main_window);
     gtk_window_set_application(GTK_WINDOW(window), app);
@@ -85,13 +91,20 @@ static void activate(GtkApplication *app, gpointer user_data)
     main_container.couleur_fond = "#ffffff";
     main_container.enfants_hexpand = false;
 
-    // Make the container scrollable vertically
-    conteneur_set_scrollable(&main_container, SCROLL_VERTICAL);
-    conteneur_set_scroll_size(&main_container, -1, 600); // Set max height to 600px
-    conteneur_set_scroll_overlay(&main_container, true); // Modern overlay scrollbars
+    // Note: We're using window scrolling instead of container scrolling
+    // So we don't need to make the container scrollable anymore
 
     GtkWidget *main_box = conteneur_creer(&main_container);
-    gtk_window_set_child(GTK_WINDOW(window), main_box);
+
+    // Add the main container to the window's scrollable area if scrolling is enabled
+    if (main_window.scroll_mode != SCROLL_NONE && main_window.scroll_widget)
+    {
+        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(main_window.scroll_widget), main_box);
+    }
+    else
+    {
+        gtk_window_set_child(GTK_WINDOW(window), main_box);
+    }
 
     /* ========== PASSWORD INPUT - Fixed Width ========== */
     GtkWidget *lbl_pwd1 = gtk_label_new_with_mnemonic("_Password (250px width):");

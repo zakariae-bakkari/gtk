@@ -241,7 +241,7 @@ void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
 }
 
 // Scrolling configuration helper functions
-void conteneur_set_scrollable(Conteneur *config, ConteneurScroll mode)
+void conteneur_set_scrollable(Conteneur *config, WidgetScrollMode mode)
 {
     if (!config)
         return;

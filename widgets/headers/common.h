@@ -75,6 +75,17 @@ typedef enum
    WIDGET_ALIGN_FILL
 } WidgetAlignment;
 
+/**
+ * Mode de défilement pour les conteneurs et fenêtres
+ */
+typedef enum
+{
+   SCROLL_NONE,       // Pas de défilement
+   SCROLL_HORIZONTAL, // Défilement horizontal uniquement
+   SCROLL_VERTICAL,   // Défilement vertical uniquement
+   SCROLL_BOTH        // Défilement horizontal et vertical
+} WidgetScrollMode;
+
 // ====================== FONCTIONS UTILITAIRES ======================
 
 /**
