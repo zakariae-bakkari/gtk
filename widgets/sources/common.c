@@ -17,8 +17,8 @@ void widget_style_init(WidgetStyle *style)
    style->epaisseur_bordure = 1;
    style->couleur_bordure = NULL;
    style->rayon_arrondi = 8;
-   style->gras = false;
-   style->italique = false;
+   style->gras = FALSE;
+   style->italique = FALSE;
    style->taille_texte_px = 0;
    style->couleur_bordure_error = NULL;
    style->bg_error = NULL;

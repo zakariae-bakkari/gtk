@@ -2,15 +2,14 @@
 #define CHAMP_MOTDEPASSE_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 #include "common.h"
 
 typedef struct
 {
    int min_len;
-   bool require_digit;
-   bool require_upper;
-   bool require_symbol;
+   gboolean require_digit;
+   gboolean require_upper;
+   gboolean require_symbol;
 } ChampPasswordPolicy;
 
 typedef struct
@@ -21,12 +20,12 @@ typedef struct
    // Contenu / contraintes
    char *placeholder;
    int max_length; // 0 = illimité
-   bool required;
+   gboolean required;
    ChampPasswordPolicy policy;
 
    // Comportement
-   bool reveal_toggle; // afficher/masquer bouton
-   bool sensitive;     // actif/inactif
+   gboolean reveal_toggle; // afficher/masquer bouton
+   gboolean sensitive;     // actif/inactif
 
    // Taille du widget
    int width;  // largeur en pixels (0 = 100% largeur)
@@ -49,8 +48,8 @@ const char *champ_motdepasse_get_texte(ChampMotDePasse *cfg);
 void champ_motdepasse_set_texte(ChampMotDePasse *cfg, const char *texte);
 void champ_motdepasse_set_placeholder(ChampMotDePasse *cfg, const char *ph);
 void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len);
-void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required);
-void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, bool reveal);
+void champ_motdepasse_set_required(ChampMotDePasse *cfg, gboolean required);
+void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, gboolean reveal);
 void champ_motdepasse_set_policy(ChampMotDePasse *cfg, ChampPasswordPolicy policy);
 void champ_motdepasse_set_size(ChampMotDePasse *cfg, int width, int height);
 void champ_motdepasse_free(ChampMotDePasse *cfg);

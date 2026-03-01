@@ -233,7 +233,7 @@ void fenetre_set_scroll_content_size(Fenetre *config, int min_width, int min_hei
     config->content_min_height = min_height;
 }
 
-void fenetre_set_scroll_overlay(Fenetre *config, bool overlay)
+void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay)
 {
     if (!config)
         return;

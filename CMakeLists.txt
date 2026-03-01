@@ -24,12 +24,11 @@ add_executable(gtk
 #        src/main.c
 #         src/test_champ_text.c
 #        src/test.c
-#        src/test_inputs.c
+       src/test_inputs.c
 #        src/test_callbacks.c
 #        src/example_scroll_design.c
-#        src/example_background_images.c
 #        src/test_buttons.c
-        src/test_texte.c
+        # src/test_texte.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)

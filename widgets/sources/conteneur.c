@@ -256,7 +256,7 @@ void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height)
     config->scroll_min_height = min_height;
 }
 
-void conteneur_set_scroll_overlay(Conteneur *config, bool overlay)
+void conteneur_set_scroll_overlay(Conteneur *config, gboolean overlay)
 {
     if (!config)
         return;

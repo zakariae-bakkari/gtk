@@ -2,7 +2,6 @@
 #define COMMON_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 
 /*
  * common.h : structures et définitions partagées entre tous les widgets
@@ -26,8 +25,8 @@ typedef struct
    int epaisseur_bordure; // épaisseur bordure (0 = défaut)
    char *couleur_bordure; // couleur de la bordure
    int rayon_arrondi;     // rayon des coins arrondis
-   bool gras;             // texte en gras
-   bool italique;         // texte en italique
+   gboolean gras;         // texte en gras
+   gboolean italique;     // texte en italique
    int taille_texte_px;   // taille du texte en pixels (0 = défaut)
 
    // États d'erreur (optionnels)

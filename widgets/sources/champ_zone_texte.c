@@ -200,27 +200,40 @@ void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len)
       champ_zt_validate_now(cfg);
 }
 
-void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, bool wrap_word)
-{
-   if (!cfg || !cfg->widget)
-      return;
-   cfg->wrap_word = wrap_word;
-   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(cfg->widget), wrap_word ? GTK_WRAP_WORD : GTK_WRAP_CHAR);
-}
-
-void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, bool sensitive)
-{
-   if (!cfg || !cfg->widget)
-      return;
-   cfg->sensitive = sensitive;
-   gtk_widget_set_sensitive(cfg->widget, sensitive);
-}
-
-void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required)
+void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, gboolean wrap_word)
 {
    if (!cfg)
       return;
+
+   cfg->wrap_word = wrap_word;
+
+   if (cfg->widget)
+   {
+      gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(cfg->widget),
+                                  wrap_word ? GTK_WRAP_WORD : GTK_WRAP_NONE);
+   }
+}
+
+void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, gboolean sensitive)
+{
+   if (!cfg)
+      return;
+
+   cfg->sensitive = sensitive;
+
+   if (cfg->widget)
+   {
+      gtk_widget_set_sensitive(cfg->widget, sensitive);
+   }
+}
+
+void champ_zone_texte_set_required(ChampZoneTexte *cfg, gboolean required)
+{
+   if (!cfg)
+      return;
+
    cfg->required = required;
+
    if (cfg->widget)
       champ_zt_validate_now(cfg);
 }

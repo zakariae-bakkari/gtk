@@ -413,7 +413,7 @@ void texte_set_alignement(Texte *config, TexteAlignement alignement)
    }
 }
 
-void texte_set_police(Texte *config, const char *famille, int taille, bool gras, bool italique)
+void texte_set_police(Texte *config, const char *famille, int taille, gboolean gras, gboolean italique)
 {
    if (!config)
       return;
@@ -443,7 +443,7 @@ void texte_set_couleurs(Texte *config, const char *couleur_texte, const char *co
    }
 }
 
-void texte_set_wrap(Texte *config, bool wrap, int width)
+void texte_set_wrap(Texte *config, gboolean wrap, int width)
 {
    if (!config)
       return;
@@ -461,7 +461,7 @@ void texte_set_wrap(Texte *config, bool wrap, int width)
    }
 }
 
-void texte_set_selectable(Texte *config, bool selectable)
+void texte_set_selectable(Texte *config, gboolean selectable)
 {
    if (!config)
       return;
