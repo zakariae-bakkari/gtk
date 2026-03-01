@@ -2,6 +2,31 @@
 #include <string.h>
 #include <ctype.h>
 
+// ====================== HELPERS ERREUR ======================
+
+/**
+ * Affiche le label d'erreur avec le message donné et passe l'entry en état error.
+ */
+static void champ_texte_show_error(ChampTexte *cfg, const char *message)
+{
+   gtk_widget_add_css_class(cfg->widget, "error");
+   gtk_label_set_text(GTK_LABEL(cfg->label_erreur), message);
+   gtk_widget_set_visible(cfg->label_erreur, TRUE);
+
+   if (cfg->on_invalid)
+      cfg->on_invalid(cfg->widget, message, cfg->user_data);
+}
+
+/**
+ * Masque le label d'erreur et retire la classe CSS error de l'entry.
+ */
+static void champ_texte_clear_error(ChampTexte *cfg)
+{
+   gtk_widget_remove_css_class(cfg->widget, "error");
+   gtk_label_set_text(GTK_LABEL(cfg->label_erreur), "");
+   gtk_widget_set_visible(cfg->label_erreur, FALSE);
+}
+
 // ====================== CSS ======================
 
 static void champ_texte_apply_css(ChampTexte *cfg)
@@ -12,6 +37,7 @@ static void champ_texte_apply_css(ChampTexte *cfg)
    GtkCssProvider *provider = gtk_css_provider_new();
    char css[2048];
    char border_css[128] = "";
+   char font_css[256] = "";
 
    if (cfg->style.epaisseur_bordure > 0)
    {
@@ -21,28 +47,27 @@ static void champ_texte_apply_css(ChampTexte *cfg)
                cfg->style.couleur_bordure ? cfg->style.couleur_bordure : "transparent");
    }
 
-   char font_css[128] = "";
    if (cfg->style.gras || cfg->style.italique || cfg->style.taille_texte_px > 0)
    {
+      char size_buf[64] = "";
+      if (cfg->style.taille_texte_px > 0)
+         snprintf(size_buf, sizeof(size_buf), "  font-size: %dpx;\n", cfg->style.taille_texte_px);
+
       snprintf(font_css, sizeof(font_css),
                "  font-weight: %s;\n"
                "  font-style: %s;\n"
                "%s",
                cfg->style.gras ? "bold" : "normal",
                cfg->style.italique ? "italic" : "normal",
-               cfg->style.taille_texte_px > 0
-                  ? (char[64]){ [0]=0, [1]=0 } /* placeholder, see below */
-                  : "");
-      if (cfg->style.taille_texte_px > 0)
-      {
-         char size_buf[64];
-         snprintf(size_buf, sizeof(size_buf),
-                  "  font-size: %dpx;\n", cfg->style.taille_texte_px);
-         strncat(font_css, size_buf, sizeof(font_css) - strlen(font_css) - 1);
-      }
+               size_buf);
    }
 
+   /* Style du label d'erreur */
+   int err_size = cfg->erreur_taille_px > 0 ? cfg->erreur_taille_px : 11;
+   const char *err_color = cfg->erreur_couleur ? cfg->erreur_couleur : "#e74c3c";
+
    snprintf(css, sizeof(css),
+            /* --- Entry normal --- */
             "entry#%s {\n"
             "  background-color: %s;\n"
             "  color: %s;\n"
@@ -51,25 +76,48 @@ static void champ_texte_apply_css(ChampTexte *cfg)
             "  padding: 6px 10px;\n"
             "%s"
             "}\n"
+            /* --- Entry en erreur --- */
             "entry#%s.error {\n"
             "  border: 1px solid %s;\n"
             "  background: %s;\n"
+            "}\n"
+            /* --- Label d'erreur --- */
+            "label#%s_erreur {\n"
+            "  color: %s;\n"
+            "  font-size: %dpx;\n"
+            "  margin-top: 2px;\n"
+            "  margin-left: 2px;\n"
             "}\n",
+            /* entry normal */
             cfg->id_css,
             cfg->style.bg_normal ? cfg->style.bg_normal : "white",
             cfg->style.fg_normal ? cfg->style.fg_normal : "#2c3e50",
             border_css,
             cfg->style.rayon_arrondi,
             font_css,
+            /* entry error */
             cfg->id_css,
             cfg->style.couleur_bordure_error ? cfg->style.couleur_bordure_error : "#e74c3c",
-            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2");
+            cfg->style.bg_error ? cfg->style.bg_error : "#fff1f2",
+            /* label erreur */
+            cfg->id_css,
+            err_color,
+            err_size);
 
    gtk_css_provider_load_from_string(provider, css);
+
+   /* Appliquer sur l'entry */
    gtk_style_context_add_provider(
        gtk_widget_get_style_context(cfg->widget),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+   /* Appliquer sur le label d'erreur */
+   gtk_style_context_add_provider(
+       gtk_widget_get_style_context(cfg->label_erreur),
+       GTK_STYLE_PROVIDER(provider),
+       GTK_STYLE_PROVIDER_PRIORITY_USER);
+
    g_object_unref(provider);
 }
 
@@ -77,7 +125,7 @@ static void champ_texte_apply_css(ChampTexte *cfg)
 
 static gboolean champ_texte_validate_internal(ChampTexte *cfg)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg || !cfg->widget || !cfg->label_erreur)
       return TRUE;
 
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
@@ -86,112 +134,100 @@ static gboolean champ_texte_validate_internal(ChampTexte *cfg)
 
    size_t len = strlen(txt);
 
-   // Vérification : champ requis
+   /* Champ requis */
    if (cfg->required && len == 0)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
-      if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "Ce champ est obligatoire", cfg->user_data);
+      champ_texte_show_error(cfg, "Ce champ est obligatoire");
       return FALSE;
    }
 
-   // Si le champ est vide et non requis, pas d'autres vérifications
+   /* Champ vide + non requis → OK, pas d'autre vérification */
    if (len == 0)
    {
-      gtk_widget_remove_css_class(cfg->widget, "error");
+      champ_texte_clear_error(cfg);
       return TRUE;
    }
 
-   // Vérification : longueur minimale
+   /* Longueur minimale */
    if (cfg->policy.min_len > 0 && (int)len < cfg->policy.min_len)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
-      if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "Texte trop court", cfg->user_data);
+      char msg[128];
+      snprintf(msg, sizeof(msg), "Minimum %d caractères requis", cfg->policy.min_len);
+      champ_texte_show_error(cfg, msg);
       return FALSE;
    }
 
-   // Vérification : longueur maximale (politique)
+   /* Longueur maximale (politique) */
    if (cfg->policy.max_len > 0 && (int)len > cfg->policy.max_len)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
-      if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "Texte trop long", cfg->user_data);
+      char msg[128];
+      snprintf(msg, sizeof(msg), "Maximum %d caractères autorisés", cfg->policy.max_len);
+      champ_texte_show_error(cfg, msg);
       return FALSE;
    }
 
-   // Vérification : pas d'espaces
+   /* Pas d'espaces */
    if (cfg->policy.no_whitespace)
    {
       for (size_t i = 0; i < len; i++)
       {
          if (isspace((unsigned char)txt[i]))
          {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "Les espaces ne sont pas autorisés", cfg->user_data);
+            champ_texte_show_error(cfg, "Les espaces ne sont pas autorisés");
             return FALSE;
          }
       }
    }
 
-   // Vérification : pas de chiffres
+   /* Pas de chiffres */
    if (cfg->policy.no_digits)
    {
       for (size_t i = 0; i < len; i++)
       {
          if (isdigit((unsigned char)txt[i]))
          {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "Les chiffres ne sont pas autorisés", cfg->user_data);
+            champ_texte_show_error(cfg, "Les chiffres ne sont pas autorisés");
             return FALSE;
          }
       }
    }
 
-   // Vérification : uniquement des chiffres
+   /* Uniquement des chiffres */
    if (cfg->policy.only_digits)
    {
       for (size_t i = 0; i < len; i++)
       {
          if (!isdigit((unsigned char)txt[i]))
          {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "Uniquement des chiffres sont autorisés", cfg->user_data);
+            champ_texte_show_error(cfg, "Uniquement des chiffres sont autorisés");
             return FALSE;
          }
       }
    }
 
-   // Vérification : type e-mail (validation basique)
+   /* Validation e-mail */
    if (cfg->type == CHAMP_TEXTE_TYPE_EMAIL)
    {
       const char *at = strchr(txt, '@');
       if (!at || at == txt || *(at + 1) == '\0' || !strchr(at + 1, '.'))
       {
-         gtk_widget_add_css_class(cfg->widget, "error");
-         if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "Adresse e-mail invalide", cfg->user_data);
+         champ_texte_show_error(cfg, "Adresse e-mail invalide");
          return FALSE;
       }
    }
 
-   // Vérification : type URL (validation basique)
+   /* Validation URL */
    if (cfg->type == CHAMP_TEXTE_TYPE_URL)
    {
       if (strncmp(txt, "http://", 7) != 0 && strncmp(txt, "https://", 8) != 0)
       {
-         gtk_widget_add_css_class(cfg->widget, "error");
-         if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "URL invalide (doit commencer par http:// ou https://)", cfg->user_data);
+         champ_texte_show_error(cfg, "L'URL doit commencer par http:// ou https://");
          return FALSE;
       }
    }
 
-   // Toutes les vérifications passées
-   gtk_widget_remove_css_class(cfg->widget, "error");
+   /* Tout est valide */
+   champ_texte_clear_error(cfg);
    return TRUE;
 }
 
@@ -201,7 +237,7 @@ static void on_texte_changed(GtkEditable *editable, gpointer user_data)
 {
    ChampTexte *cfg = (ChampTexte *)user_data;
 
-   // Appliquer la limite max_length par troncature si nécessaire
+   /* Troncature max_length */
    if (cfg->max_length > 0)
    {
       const char *txt = gtk_editable_get_text(editable);
@@ -218,7 +254,7 @@ static void on_texte_changed(GtkEditable *editable, gpointer user_data)
       }
    }
 
-   champ_texte_validate_internal(cfg); // Mettre à jour l'état d'erreur en temps réel
+   champ_texte_validate_internal(cfg);
    if (cfg->on_change)
       cfg->on_change(editable, cfg->user_data);
 }
@@ -257,30 +293,46 @@ void champ_texte_initialiser(ChampTexte *cfg)
    cfg->icon_primary = NULL;
    cfg->icon_secondary = NULL;
 
-   cfg->size.width = 0;  // 0 = largeur complète (100%)
-   cfg->size.height = 0; // 0 = hauteur automatique
+   cfg->size.width = 0;
+   cfg->size.height = 0;
 
-   // Initialiser le style via la fonction commune
+   cfg->erreur_couleur = NULL; // Utilise #e74c3c par défaut
+   cfg->erreur_taille_px = 0;  // Utilise 11px par défaut
+
    widget_style_init(&cfg->style);
-   // Surcharger les valeurs par défaut pour le champ texte
    cfg->style.bg_normal = g_strdup("white");
    cfg->style.fg_normal = g_strdup("#2c3e50");
    cfg->style.couleur_bordure = g_strdup("#bdc3c7");
    cfg->style.rayon_arrondi = 4;
 }
 
+/**
+ * Crée le widget et retourne cfg->container (GtkBox vertical).
+ * C'est ce container qu'il faut ajouter au widget parent, pas cfg->widget.
+ *
+ * Structure interne du container :
+ *   GtkBox (vertical, spacing=0)
+ *   ├── GtkEntry   (cfg->widget)
+ *   └── GtkLabel   (cfg->label_erreur, caché par défaut)
+ */
 GtkWidget *champ_texte_creer(ChampTexte *cfg)
 {
    if (!cfg)
       return NULL;
 
-   cfg->widget = gtk_entry_new(); // Crée un GtkEntry standard
+   /* --- Container vertical --- */
+   cfg->container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+   gtk_widget_set_hexpand(cfg->container, cfg->size.width == 0 ? TRUE : FALSE);
+   gtk_widget_set_halign(cfg->container, cfg->size.width == 0 ? GTK_ALIGN_FILL : GTK_ALIGN_START);
+
+   /* --- GtkEntry --- */
+   cfg->widget = gtk_entry_new();
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_texte");
 
    if (cfg->placeholder)
       gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), cfg->placeholder);
 
-   // Appliquer le type via le purpose de l'entrée
+   /* Type / purpose clavier */
    switch (cfg->type)
    {
    case CHAMP_TEXTE_TYPE_EMAIL:
@@ -289,36 +341,28 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    case CHAMP_TEXTE_TYPE_URL:
       gtk_entry_set_input_purpose(GTK_ENTRY(cfg->widget), GTK_INPUT_PURPOSE_URL);
       break;
-   case CHAMP_TEXTE_TYPE_SEARCH:
-      gtk_entry_set_input_purpose(GTK_ENTRY(cfg->widget), GTK_INPUT_PURPOSE_FREE_FORM);
-      break;
    default:
       gtk_entry_set_input_purpose(GTK_ENTRY(cfg->widget), GTK_INPUT_PURPOSE_FREE_FORM);
       break;
    }
 
-   // Icônes optionnelles
+   /* Icônes */
    if (cfg->icon_primary)
       gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                        GTK_ENTRY_ICON_PRIMARY,
-                                        cfg->icon_primary);
+                                        GTK_ENTRY_ICON_PRIMARY, cfg->icon_primary);
    if (cfg->icon_secondary)
       gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                        GTK_ENTRY_ICON_SECONDARY,
-                                        cfg->icon_secondary);
+                                        GTK_ENTRY_ICON_SECONDARY, cfg->icon_secondary);
 
    gtk_editable_set_editable(GTK_EDITABLE(cfg->widget), cfg->editable);
    gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
 
-   // Appliquer la taille si spécifiée
+   /* Taille de l'entry */
    if (cfg->size.width > 0 || cfg->size.height > 0)
-   {
       gtk_widget_set_size_request(cfg->widget,
                                   cfg->size.width > 0 ? cfg->size.width : -1,
                                   cfg->size.height > 0 ? cfg->size.height : -1);
-   }
 
-   // Comportement d'expansion
    if (cfg->size.width > 0)
    {
       gtk_widget_set_hexpand(cfg->widget, FALSE);
@@ -326,7 +370,6 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    }
    else
    {
-      // width = 0 → largeur complète
       gtk_widget_set_hexpand(cfg->widget, TRUE);
       gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
    }
@@ -334,14 +377,32 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    gtk_widget_set_vexpand(cfg->widget, FALSE);
    gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
-   // Connecter les signaux
+   /* --- Label d'erreur --- */
+   cfg->label_erreur = gtk_label_new("");
+
+   /* ID CSS = "<id_css>_erreur" pour le ciblage CSS */
+   char lbl_id[256];
+   snprintf(lbl_id, sizeof(lbl_id), "%s_erreur", cfg->id_css ? cfg->id_css : "champ_texte");
+   gtk_widget_set_name(cfg->label_erreur, lbl_id);
+
+   gtk_label_set_xalign(GTK_LABEL(cfg->label_erreur), 0.0f); // Aligné à gauche
+   gtk_label_set_wrap(GTK_LABEL(cfg->label_erreur), TRUE);
+   gtk_widget_set_hexpand(cfg->label_erreur, TRUE);
+   gtk_widget_set_visible(cfg->label_erreur, FALSE); // Caché par défaut
+
+   /* --- Assemblage --- */
+   gtk_box_append(GTK_BOX(cfg->container), cfg->widget);
+   gtk_box_append(GTK_BOX(cfg->container), cfg->label_erreur);
+
+   /* --- Signaux --- */
    g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_texte_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_texte_activate), cfg);
 
-   champ_texte_apply_css(cfg);          // Appliquer le style CSS
-   champ_texte_validate_internal(cfg);  // Valider pour afficher l'état initial
+   /* --- CSS & validation initiale --- */
+   champ_texte_apply_css(cfg);
+   champ_texte_validate_internal(cfg);
 
-   return cfg->widget;
+   return cfg->container;
 }
 
 const char *champ_texte_get_texte(ChampTexte *cfg)
@@ -360,10 +421,9 @@ void champ_texte_set_texte(ChampTexte *cfg, const char *texte)
 
 void champ_texte_set_placeholder(ChampTexte *cfg, const char *ph)
 {
-   if (!cfg)
+   if (!cfg || !cfg->widget)
       return;
-   if (cfg->widget)
-      gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), ph);
+   gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), ph);
 }
 
 void champ_texte_set_max_length(ChampTexte *cfg, int max_len)
@@ -438,30 +498,29 @@ void champ_texte_set_size(ChampTexte *cfg, int width, int height)
       {
          gtk_widget_set_hexpand(cfg->widget, FALSE);
          gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+         gtk_widget_set_hexpand(cfg->container, FALSE);
+         gtk_widget_set_halign(cfg->container, GTK_ALIGN_START);
       }
       else
       {
          gtk_widget_set_hexpand(cfg->widget, TRUE);
          gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+         gtk_widget_set_hexpand(cfg->container, TRUE);
+         gtk_widget_set_halign(cfg->container, GTK_ALIGN_FILL);
       }
    }
 }
 
 void champ_texte_set_icons(ChampTexte *cfg, const char *icon_primary, const char *icon_secondary)
 {
-   if (!cfg)
+   if (!cfg || !cfg->widget)
       return;
    cfg->icon_primary = icon_primary;
    cfg->icon_secondary = icon_secondary;
-   if (cfg->widget)
-   {
-      gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                        GTK_ENTRY_ICON_PRIMARY,
-                                        icon_primary);
-      gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                        GTK_ENTRY_ICON_SECONDARY,
-                                        icon_secondary);
-   }
+   gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
+                                     GTK_ENTRY_ICON_PRIMARY, icon_primary);
+   gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
+                                     GTK_ENTRY_ICON_SECONDARY, icon_secondary);
 }
 
 gboolean champ_texte_valider(ChampTexte *cfg)
@@ -478,6 +537,11 @@ void champ_texte_free(ChampTexte *cfg)
    {
       g_free(cfg->placeholder);
       cfg->placeholder = NULL;
+   }
+   if (cfg->erreur_couleur)
+   {
+      g_free(cfg->erreur_couleur);
+      cfg->erreur_couleur = NULL;
    }
 
    widget_style_free(&cfg->style);
