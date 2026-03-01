@@ -124,7 +124,7 @@ void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader)
    config->group_leader = group_leader;
 }
 
-void bouton_radio_set_actif(BoutonRadio *config, bool actif)
+void bouton_radio_set_actif(BoutonRadio *config, gboolean actif)
 {
    if (!config || !config->widget)
       return;
@@ -133,10 +133,10 @@ void bouton_radio_set_actif(BoutonRadio *config, bool actif)
    config->est_actif = actif;
 }
 
-bool bouton_radio_est_actif(BoutonRadio *config)
+gboolean bouton_radio_est_actif(BoutonRadio *config)
 {
    if (!config || !config->widget)
-      return false;
+      return FALSE;
 
    return gtk_check_button_get_active(GTK_CHECK_BUTTON(config->widget));
 }

@@ -49,106 +49,96 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
 
 static gboolean champ_pw_validate(ChampMotDePasse *cfg)
 {
-   // verify que cfg est valide et que le widget existe
    if (!cfg || !cfg->widget)
-      return false;
+      return TRUE;
 
-   // Get the current text and its length
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
-   size_t n = txt ? strlen(txt) : 0;
+   if (!txt)
+      txt = "";
 
-   // Check max_length first
-   if (cfg->max_length > 0 && n > (size_t)cfg->max_length)
+   // Check required
+   if (cfg->required && strlen(txt) == 0)
    {
       gtk_widget_add_css_class(cfg->widget, "error");
       if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "password exceeds maximum length", cfg->user_data);
+         cfg->on_invalid(cfg->widget, "Password required", cfg->user_data);
       return FALSE;
    }
 
-   // Then check required
-   if (cfg->required && n == 0)
+   // Check minimum length
+   if (cfg->policy.min_len > 0 && (int)strlen(txt) < cfg->policy.min_len)
    {
       gtk_widget_add_css_class(cfg->widget, "error");
       if (cfg->on_invalid)
-         cfg->on_invalid(cfg->widget, "password is required", cfg->user_data);
+         cfg->on_invalid(cfg->widget, "Password too short", cfg->user_data);
       return FALSE;
    }
 
-   // If not empty, check policy constraints
-   if (n > 0)
+   // Check digit requirement
+   if (cfg->policy.require_digit)
    {
-      // Check minimum length
-      if (cfg->policy.min_len > 0 && n < (size_t)cfg->policy.min_len)
+      gboolean ok = FALSE;
+      for (int i = 0; txt[i]; i++)
+      {
+         if (txt[i] >= '0' && txt[i] <= '9')
+         {
+            ok = TRUE;
+            break;
+         }
+      }
+      if (!ok)
       {
          gtk_widget_add_css_class(cfg->widget, "error");
          if (cfg->on_invalid)
-            cfg->on_invalid(cfg->widget, "password too short", cfg->user_data);
+            cfg->on_invalid(cfg->widget, "Password must contain a digit", cfg->user_data);
          return FALSE;
-      }
-      // Check digit requirement
-      if (cfg->policy.require_digit)
-      {
-         bool ok = false;
-         for (size_t i = 0; i < n; i++)
-         {
-            if (isdigit((unsigned char)txt[i]))
-            {
-               ok = true;
-               break;
-            }
-         }
-         // if digit not found
-         if (!ok)
-         {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "must contain digit", cfg->user_data);
-            return FALSE;
-         }
-      }
-      // Check uppercase requirement
-      if (cfg->policy.require_upper)
-      {
-         bool ok = false;
-         for (size_t i = 0; i < n; i++)
-         {
-            if (isupper((unsigned char)txt[i]))
-            {
-               ok = true;
-               break;
-            }
-         }
-         if (!ok)
-         {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "must contain uppercase", cfg->user_data);
-            return FALSE;
-         }
-      }
-      // Check symbol requirement
-      if (cfg->policy.require_symbol)
-      {
-         bool ok = false;
-         for (size_t i = 0; i < n; i++)
-         {
-            if (!isalnum((unsigned char)txt[i]))
-            {
-               ok = true;
-               break;
-            }
-         }
-         if (!ok)
-         {
-            gtk_widget_add_css_class(cfg->widget, "error");
-            if (cfg->on_invalid)
-               cfg->on_invalid(cfg->widget, "must contain symbol", cfg->user_data);
-            return FALSE;
-         }
       }
    }
 
+   // Check uppercase requirement
+   if (cfg->policy.require_upper)
+   {
+      gboolean ok = FALSE;
+      for (int i = 0; txt[i]; i++)
+      {
+         if (txt[i] >= 'A' && txt[i] <= 'Z')
+         {
+            ok = TRUE;
+            break;
+         }
+      }
+      if (!ok)
+      {
+         gtk_widget_add_css_class(cfg->widget, "error");
+         if (cfg->on_invalid)
+            cfg->on_invalid(cfg->widget, "Password must contain uppercase letter", cfg->user_data);
+         return FALSE;
+      }
+   }
+
+   // Check symbol requirement
+   if (cfg->policy.require_symbol)
+   {
+      gboolean ok = FALSE;
+      for (int i = 0; txt[i]; i++)
+      {
+         char c = txt[i];
+         if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9'))
+         {
+            ok = TRUE;
+            break;
+         }
+      }
+      if (!ok)
+      {
+         gtk_widget_add_css_class(cfg->widget, "error");
+         if (cfg->on_invalid)
+            cfg->on_invalid(cfg->widget, "Password must contain a symbol", cfg->user_data);
+         return FALSE;
+      }
+   }
+
+   // All checks passed
    gtk_widget_remove_css_class(cfg->widget, "error");
    return TRUE;
 }
@@ -196,14 +186,14 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->id_css = "champ_pwd";
    cfg->placeholder = NULL;
    cfg->max_length = 0;
-   cfg->required = false;
+   cfg->required = FALSE;
    cfg->policy.min_len = 0;
-   cfg->policy.require_digit = false;
-   cfg->policy.require_upper = false;
-   cfg->policy.require_symbol = false;
+   cfg->policy.require_digit = FALSE;
+   cfg->policy.require_upper = FALSE;
+   cfg->policy.require_symbol = FALSE;
 
-   cfg->reveal_toggle = true;
-   cfg->sensitive = true;
+   cfg->reveal_toggle = TRUE;
+   cfg->sensitive = TRUE;
    cfg->width = 0;  // 0 = full width (100%)
    cfg->height = 0; // 0 = auto size
 
@@ -293,7 +283,7 @@ void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len)
    cfg->max_length = max_len;
 }
 
-void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required)
+void champ_motdepasse_set_required(ChampMotDePasse *cfg, gboolean required)
 {
    if (!cfg)
       return;
@@ -302,7 +292,7 @@ void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required)
       champ_pw_validate(cfg);
 }
 
-void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, bool reveal)
+void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, gboolean reveal)
 {
    if (!cfg || !cfg->widget)
       return;

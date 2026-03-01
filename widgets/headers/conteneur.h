@@ -2,7 +2,6 @@
 #define CONTENEUR_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 #include "common.h" // Include common.h to access WidgetScrollMode
 
 /**
@@ -68,8 +67,8 @@ typedef struct
 
     // --- Disposition ---
     ConteneurOrientation orientation;
-    int espacement; // Espace entre les éléments enfants
-    bool homogene;  // Si true, tous les enfants ont la même taille
+    int espacement;    // Espace entre les éléments enfants
+    gboolean homogene; // Si true, tous les enfants ont la même taille
 
     // --- Dimensions & Positionnement ---
     ConteneurDimensions taille;  // Largeur et Hauteur forcées
@@ -77,8 +76,8 @@ typedef struct
     ConteneurAlignement align_y; // Alignement Vertical
 
     // --- Expansion des enfants ---
-    bool enfants_hexpand; // Si true, les enfants s'étendent horizontalement
-    bool enfants_vexpand; // Si true, les enfants s'étendent verticalement
+    gboolean enfants_hexpand; // Si true, les enfants s'étendent horizontalement
+    gboolean enfants_vexpand; // Si true, les enfants s'étendent verticalement
 
     // --- Espacements ---
     ConteneurMarges marges;   // Espace autour de la boite
@@ -97,7 +96,7 @@ typedef struct
     WidgetScrollMode scroll_mode; // Mode de défilement (utilise l'enum partagé)
     int scroll_min_width;         // Largeur minimale pour la zone défilable (0 = auto)
     int scroll_min_height;        // Hauteur minimale pour la zone défilable (0 = auto)
-    bool scroll_overlay;          // Utiliser des barres de défilement superposées (true = moderne, false = classique)
+    gboolean scroll_overlay;      // Utiliser des barres de défilement superposées (true = moderne, false = classique)
 
 } Conteneur;
 
@@ -112,6 +111,6 @@ void conteneur_ajouter(Conteneur *config, GtkWidget *enfant);
 // Scrolling configuration helpers
 void conteneur_set_scrollable(Conteneur *config, WidgetScrollMode mode);
 void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height);
-void conteneur_set_scroll_overlay(Conteneur *config, bool overlay);
+void conteneur_set_scroll_overlay(Conteneur *config, gboolean overlay);
 
 #endif // CONTENEUR_H

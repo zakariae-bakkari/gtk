@@ -2,7 +2,6 @@
 #define CHAMP_SELECT_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 #include "common.h"
 
 typedef void (*ChampSelectOnChange)(GtkDropDown *dd, gpointer user_data);
@@ -17,9 +16,9 @@ typedef struct
    GtkStringList *model; // liste de chaînes
 
    // État & contraintes
-   int selected_index; // -1 = none
-   bool required;      // sélection obligatoire
-   bool enable_search; // futur (avec factory)
+   int selected_index;     // -1 = none
+   gboolean required;      // sélection obligatoire
+   gboolean enable_search; // futur (avec factory)
 
    // Taille du widget
    int width;  // largeur en pixels (0 = 100% largeur)

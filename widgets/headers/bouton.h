@@ -2,7 +2,6 @@
 #define BOUTON_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 
 // --- MACROS DE COULEURS PAR DÉFAUT ---
 #define COULEUR_DEFAUT_FOND "#e0e0e0"
@@ -86,8 +85,8 @@ typedef struct
     char *couleur_bordure;
 
     // Police
-    bool gras;
-    bool italique;
+    gboolean gras;
+    gboolean italique;
     int taille_texte_px; // 0 = défaut
 } BoutonStyle;
 
@@ -116,8 +115,8 @@ typedef struct
     BoutonCurseur curseur;
 
     // --- Comportement ---
-    bool est_actif; // Sensible aux clics (Sensitive)
-    char *tooltip;  // Texte d'infobulle au survol
+    gboolean est_actif; // Sensible aux clics (Sensitive)
+    char *tooltip;      // Texte d'infobulle au survol
 
     // --- Événements ---
     BoutonAction on_clic; // Fonction à appeler au clic

@@ -6,7 +6,6 @@
 #define GTK_BUTTON_RADIO_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 
 /**
  * Énumération pour la position du label par rapport au bouton radio
@@ -26,7 +25,7 @@ typedef struct
    char *couleur_texte_hover; // Couleur au survol
    char *couleur_point;       // Couleur du point du radio
    int taille_texte_px;       // Taille de la police (0 = défaut)
-   bool gras;                 // Texte en gras
+   gboolean gras;             // Texte en gras
 } BoutonRadioStyle;
 
 /**
@@ -50,8 +49,8 @@ typedef struct
    BoutonRadioLabelPos pos_label; // Position du label
 
    // --- État ---
-   bool est_actif; // Si true, ce bouton est sélectionné à la création
-   bool sensible;  // Sensible aux clics (Sensitive)
+   gboolean est_actif; // Si true, ce bouton est sélectionné à la création
+   gboolean sensible;  // Sensible aux clics (Sensitive)
 
    // --- Apparence ---
    BoutonRadioStyle style;
@@ -96,13 +95,13 @@ void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader);
  * @param config : Pointeur sur la structure BoutonRadio
  * @param actif : true pour sélectionner, false pour désélectionner
  */
-void bouton_radio_set_actif(BoutonRadio *config, bool actif);
+void bouton_radio_set_actif(BoutonRadio *config, gboolean actif);
 
 /**
  * Récupère l'état du bouton radio
  * @param config : Pointeur sur la structure BoutonRadio
  * @return : true si sélectionné, false sinon
  */
-bool bouton_radio_est_actif(BoutonRadio *config);
+gboolean bouton_radio_est_actif(BoutonRadio *config);
 
 #endif // GTK_BUTTON_RADIO_H

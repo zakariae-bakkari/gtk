@@ -2,7 +2,6 @@
 #define TEXTE_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 #include "common.h"
 
 /**
@@ -71,9 +70,9 @@ typedef struct
    GtkWidget *widget; // Le widget GTK (GtkLabel)
 
    // --- Contenu ---
-   char *texte;        // Le texte à afficher
-   char *texte_markup; // Texte avec markup Pango (optionnel)
-   bool use_markup;    // Utiliser le markup Pango
+   char *texte;         // Le texte à afficher
+   char *texte_markup;  // Texte avec markup Pango (optionnel)
+   gboolean use_markup; // Utiliser le markup Pango
 
    // --- Type et style ---
    TexteType type;             // Type de heading
@@ -83,8 +82,8 @@ typedef struct
    // --- Propriétés de police ---
    char *famille_police; // Famille de police (ex: "Arial", "Times")
    int taille_police;    // Taille de police en points (0 = défaut)
-   bool gras;            // Texte en gras
-   bool italique;        // Texte en italique
+   gboolean gras;        // Texte en gras
+   gboolean italique;    // Texte en italique
 
    // --- Couleurs ---
    char *couleur_texte; // Couleur du texte
@@ -97,10 +96,10 @@ typedef struct
    WidgetAlignment align_widget_y; // Alignement du widget verticalement
 
    // --- Comportement ---
-   bool selectable; // Le texte peut être sélectionné
-   bool wrap;       // Retour à la ligne automatique
-   int wrap_width;  // Largeur pour le retour à la ligne (-1 = auto)
-   bool ellipsize;  // Utiliser des ellipses (...)
+   gboolean selectable; // Le texte peut être sélectionné
+   gboolean wrap;       // Retour à la ligne automatique
+   int wrap_width;      // Largeur pour le retour à la ligne (-1 = auto)
+   gboolean ellipsize;  // Utiliser des ellipses (...)
 
    // --- Style personnalisé ---
    WidgetStyle style; // Style commun
@@ -150,7 +149,7 @@ void texte_set_alignement(Texte *config, TexteAlignement alignement);
 /**
  * Configure la police
  */
-void texte_set_police(Texte *config, const char *famille, int taille, bool gras, bool italique);
+void texte_set_police(Texte *config, const char *famille, int taille, gboolean gras, gboolean italique);
 
 /**
  * Configure les couleurs
@@ -160,11 +159,11 @@ void texte_set_couleurs(Texte *config, const char *couleur_texte, const char *co
 /**
  * Active/désactive le retour à la ligne
  */
-void texte_set_wrap(Texte *config, bool wrap, int width);
+void texte_set_wrap(Texte *config, gboolean wrap, int width);
 
 /**
  * Configure la sélectabilité du texte
  */
-void texte_set_selectable(Texte *config, bool selectable);
+void texte_set_selectable(Texte *config, gboolean selectable);
 
 #endif // TEXTE_H

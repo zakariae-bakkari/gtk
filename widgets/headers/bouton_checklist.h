@@ -6,7 +6,6 @@
 #define GTK_BOUTON_CHECKLIST_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 
 /**
  * Énumération pour l'état de la case à cocher
@@ -35,7 +34,7 @@ typedef struct
    char *couleur_texte;       // Couleur du label
    char *couleur_texte_hover; // Couleur au survol
    int taille_texte_px;       // Taille de la police (0 = défaut)
-   bool gras;                 // Texte en gras
+   gboolean gras;             // Texte en gras
 } BoutonChecklistStyle;
 
 /**
@@ -63,8 +62,8 @@ typedef struct
    char *tooltip; // Texte d'infobulle
 
    // --- Comportement ---
-   bool est_actif;    // Sensible aux clics (Sensitive)
-   bool inconsistent; // Si true, affiche l'état indéterminé
+   gboolean est_actif;    // Sensible aux clics (Sensitive)
+   gboolean inconsistent; // Si true, affiche l'état indéterminé
 
    // --- Événements ---
    BoutonChecklistAction on_toggled; // Fonction à appeler au changement d'état

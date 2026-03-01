@@ -2,7 +2,6 @@
 #define FENETRE_H
 
 #include <gtk/gtk.h>
-#include <stdbool.h>
 #include "conteneur.h" // Include conteneur to access ConteneurScroll enum
 #include "common.h"    // Include common to access WidgetScrollMode enum
 
@@ -51,17 +50,17 @@ typedef struct
 
     // --- Comportement ---
     FenetreType type; // a tester
-    bool resizable;
-    bool demarrer_maximisee; // Nouveau : Si true, prend toute la taille
+    gboolean resizable;
+    gboolean demarrer_maximisee; // Nouveau : Si true, prend toute la taille
 
     // --- Contrôles de la fenêtre (Symboles) ---
-    bool bouton_fermer;   // Nouveau
-    bool bouton_agrandir; // Nouveau
-    bool bouton_reduire;  // Nouveau
+    gboolean bouton_fermer;   // Nouveau
+    gboolean bouton_agrandir; // Nouveau
+    gboolean bouton_reduire;  // Nouveau
 
     // --- Défilement du contenu principal ---
     WidgetScrollMode scroll_mode; // Mode de défilement (utilise l'enum partagé)
-    bool scroll_overlay;          // Barres de défilement superposées
+    gboolean scroll_overlay;      // Barres de défilement superposées
     int content_min_width;        // Largeur minimale du contenu (0 = auto)
     int content_min_height;       // Hauteur minimale du contenu (0 = auto)
 
@@ -80,7 +79,7 @@ GtkWidget *fenetre_creer(Fenetre *config);
 // Window scrolling configuration helpers
 void fenetre_set_scrollable(Fenetre *config, WidgetScrollMode mode);
 void fenetre_set_scroll_content_size(Fenetre *config, int min_width, int min_height);
-void fenetre_set_scroll_overlay(Fenetre *config, bool overlay);
+void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay);
 GtkWidget *fenetre_get_content_container(Fenetre *config);
 
 #endif // FENETRE_H
