@@ -26,6 +26,17 @@ typedef enum
 } ConteneurAlignement;
 
 /**
+ * Mode de défilement du conteneur
+ */
+typedef enum
+{
+    SCROLL_NONE,       // Pas de défilement
+    SCROLL_HORIZONTAL, // Défilement horizontal uniquement
+    SCROLL_VERTICAL,   // Défilement vertical uniquement
+    SCROLL_BOTH        // Défilement horizontal et vertical
+} ConteneurScroll;
+
+/**
  * Structure pour les dimensions (Largeur / Hauteur)
  * Valeur -1 = Taille automatique (par défaut)
  */
@@ -62,7 +73,8 @@ typedef struct
  */
 typedef struct
 {
-    GtkWidget *widget; // Le widget GTK (GtkBox)
+    GtkWidget *widget;        // Le widget GTK (GtkBox)
+    GtkWidget *scroll_widget; // GtkScrolledWindow (si défilable)
 
     // --- Disposition ---
     ConteneurOrientation orientation;
@@ -91,6 +103,12 @@ typedef struct
     char *bordure_couleur; // Couleur bordure
     int bordure_rayon;     // Arrondi (border-radius)
 
+    // --- Défilement ---
+    ConteneurScroll scroll_mode; // Comportement de défilement
+    int scroll_min_width;        // Largeur minimale pour la zone défilable (0 = auto)
+    int scroll_min_height;       // Hauteur minimale pour la zone défilable (0 = auto)
+    bool scroll_overlay;         // Utiliser des barres de défilement superposées (true = moderne, false = classique)
+
 } Conteneur;
 
 /* -------------------------------------------------------------------------
@@ -100,5 +118,10 @@ typedef struct
 void conteneur_initialiser(Conteneur *config);
 GtkWidget *conteneur_creer(Conteneur *config);
 void conteneur_ajouter(Conteneur *config, GtkWidget *enfant);
+
+// Scrolling configuration helpers
+void conteneur_set_scrollable(Conteneur *config, ConteneurScroll mode);
+void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height);
+void conteneur_set_scroll_overlay(Conteneur *config, bool overlay);
 
 #endif // CONTENEUR_H

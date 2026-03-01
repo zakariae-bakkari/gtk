@@ -85,6 +85,11 @@ static void activate(GtkApplication *app, gpointer user_data)
     main_container.couleur_fond = "#ffffff";
     main_container.enfants_hexpand = false;
 
+    // Make the container scrollable vertically
+    conteneur_set_scrollable(&main_container, SCROLL_VERTICAL);
+    conteneur_set_scroll_size(&main_container, -1, 600); // Set max height to 600px
+    conteneur_set_scroll_overlay(&main_container, true); // Modern overlay scrollbars
+
     GtkWidget *main_box = conteneur_creer(&main_container);
     gtk_window_set_child(GTK_WINDOW(window), main_box);
 

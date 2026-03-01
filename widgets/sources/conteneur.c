@@ -79,6 +79,7 @@ void conteneur_initialiser(Conteneur *config)
         return;
 
     config->widget = NULL;
+    config->scroll_widget = NULL;
     config->orientation = CONTENEUR_VERTICAL;
     config->espacement = 0;
     config->homogene = false;
@@ -113,6 +114,12 @@ void conteneur_initialiser(Conteneur *config)
     config->bordure_largeur = 0;
     config->bordure_couleur = "black";
     config->bordure_rayon = 0;
+
+    // Scrolling defaults
+    config->scroll_mode = SCROLL_NONE;
+    config->scroll_min_width = 0;
+    config->scroll_min_height = 0;
+    config->scroll_overlay = true;
 }
 
 GtkWidget *conteneur_creer(Conteneur *config)
@@ -122,36 +129,103 @@ GtkWidget *conteneur_creer(Conteneur *config)
 
     GtkOrientation or = (config->orientation == CONTENEUR_VERTICAL) ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL;
 
-    // 1. Création
+    // 1. Création du conteneur principal (GtkBox)
     config->widget = gtk_box_new(or, config->espacement);
 
-    // 2. Propriétés de base
+    // 2. Propriétés de base du conteneur
     gtk_box_set_homogeneous(GTK_BOX(config->widget), config->homogene);
 
-    // 3. Dimensions (taille forcée)
-    // -1 signifie "laisser GTK décider", sinon on impose la taille
-    gtk_widget_set_size_request(config->widget, config->taille.largeur, config->taille.hauteur);
+    // 3. Configuration du scrolling si nécessaire
+    GtkWidget *top_widget = config->widget; // Widget à retourner
 
-    // 4. Alignement
-    gtk_widget_set_halign(config->widget, _convertir_align(config->align_x));
-    gtk_widget_set_valign(config->widget, _convertir_align(config->align_y));
-
-    // 5. Marges Extérieures
-    gtk_widget_set_margin_top(config->widget, config->marges.haut);
-    gtk_widget_set_margin_bottom(config->widget, config->marges.bas);
-    gtk_widget_set_margin_start(config->widget, config->marges.gauche);
-    gtk_widget_set_margin_end(config->widget, config->marges.droite);
-
-    // 6. ID pour CSS
-    if (config->id_css)
+    if (config->scroll_mode != SCROLL_NONE)
     {
-        gtk_widget_set_name(config->widget, config->id_css);
+        // Créer un GtkScrolledWindow
+        config->scroll_widget = gtk_scrolled_window_new();
+
+        // Configurer les politiques de défilement
+        GtkPolicyType h_policy = GTK_POLICY_NEVER;
+        GtkPolicyType v_policy = GTK_POLICY_NEVER;
+
+        switch (config->scroll_mode)
+        {
+        case SCROLL_HORIZONTAL:
+            h_policy = GTK_POLICY_AUTOMATIC;
+            break;
+        case SCROLL_VERTICAL:
+            v_policy = GTK_POLICY_AUTOMATIC;
+            break;
+        case SCROLL_BOTH:
+            h_policy = GTK_POLICY_AUTOMATIC;
+            v_policy = GTK_POLICY_AUTOMATIC;
+            break;
+        case SCROLL_NONE:
+        default:
+            break;
+        }
+
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(config->scroll_widget),
+                                       h_policy, v_policy);
+
+        // Configurer les barres de défilement overlay
+        gtk_scrolled_window_set_overlay_scrolling(GTK_SCROLLED_WINDOW(config->scroll_widget),
+                                                  config->scroll_overlay);
+
+        // Définir la taille minimale de la zone de défilement si spécifiée
+        if (config->scroll_min_width > 0 || config->scroll_min_height > 0)
+        {
+            gtk_widget_set_size_request(config->scroll_widget,
+                                        config->scroll_min_width > 0 ? config->scroll_min_width : -1,
+                                        config->scroll_min_height > 0 ? config->scroll_min_height : -1);
+        }
+
+        // Ajouter le conteneur dans la zone de défilement
+        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(config->scroll_widget), config->widget);
+
+        // Le widget à retourner devient la ScrolledWindow
+        top_widget = config->scroll_widget;
+
+        // Appliquer les propriétés de dimension et alignement au widget scrollable
+        if (config->taille.largeur != -1 || config->taille.hauteur != -1)
+        {
+            gtk_widget_set_size_request(top_widget, config->taille.largeur, config->taille.hauteur);
+        }
+
+        gtk_widget_set_halign(top_widget, _convertir_align(config->align_x));
+        gtk_widget_set_valign(top_widget, _convertir_align(config->align_y));
+
+        gtk_widget_set_margin_top(top_widget, config->marges.haut);
+        gtk_widget_set_margin_bottom(top_widget, config->marges.bas);
+        gtk_widget_set_margin_start(top_widget, config->marges.gauche);
+        gtk_widget_set_margin_end(top_widget, config->marges.droite);
+
+        if (config->id_css)
+        {
+            gtk_widget_set_name(top_widget, config->id_css);
+        }
+    }
+    else
+    {
+        // Pas de scrolling - configuration normale
+        gtk_widget_set_size_request(config->widget, config->taille.largeur, config->taille.hauteur);
+        gtk_widget_set_halign(config->widget, _convertir_align(config->align_x));
+        gtk_widget_set_valign(config->widget, _convertir_align(config->align_y));
+
+        gtk_widget_set_margin_top(config->widget, config->marges.haut);
+        gtk_widget_set_margin_bottom(config->widget, config->marges.bas);
+        gtk_widget_set_margin_start(config->widget, config->marges.gauche);
+        gtk_widget_set_margin_end(config->widget, config->marges.droite);
+
+        if (config->id_css)
+        {
+            gtk_widget_set_name(config->widget, config->id_css);
+        }
     }
 
-    // 7. Style Complet (Couleur, Bordure, Padding/Rembourrage)
+    // Style CSS (appliqué au conteneur principal, pas à la scrolled window)
     _conteneur_appliquer_css(config->widget, config);
 
-    return config->widget;
+    return top_widget;
 }
 
 void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
@@ -164,4 +238,27 @@ void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
     // The container's enfants_hexpand/vexpand are just defaults
     // They don't override what the child widget has already set
     // This allows buttons and other widgets to control their own expansion
+}
+
+// Scrolling configuration helper functions
+void conteneur_set_scrollable(Conteneur *config, ConteneurScroll mode)
+{
+    if (!config)
+        return;
+    config->scroll_mode = mode;
+}
+
+void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height)
+{
+    if (!config)
+        return;
+    config->scroll_min_width = min_width;
+    config->scroll_min_height = min_height;
+}
+
+void conteneur_set_scroll_overlay(Conteneur *config, bool overlay)
+{
+    if (!config)
+        return;
+    config->scroll_overlay = overlay;
 }
