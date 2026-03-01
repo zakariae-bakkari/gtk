@@ -103,8 +103,8 @@ void champ_select_initialiser(ChampSelect *cfg)
    cfg->selected_index = -1;
    cfg->required = false;
    cfg->enable_search = false;
-   cfg->width = 0;  // 0 = full width (100%)
-   cfg->height = 0; // 0 = auto size
+   cfg->size.width = 0;  // 0 = full width (100%)
+   cfg->size.height = 0; // 0 = auto size
 
    // Utilisation de la fonction commune pour initialiser le style
    widget_style_init(&cfg->style);
@@ -124,15 +124,15 @@ GtkWidget *champ_select_creer(ChampSelect *cfg)
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_select");
 
    // Set size if specified
-   if (cfg->width > 0 || cfg->height > 0)
+   if (cfg->size.width > 0 || cfg->size.height > 0)
    {
       gtk_widget_set_size_request(cfg->widget,
-                                  cfg->width > 0 ? cfg->width : -1,
-                                  cfg->height > 0 ? cfg->height : -1);
+                                  cfg->size.width > 0 ? cfg->size.width : -1,
+                                  cfg->size.height > 0 ? cfg->size.height : -1);
    }
 
    // Control widget expansion behavior
-   if (cfg->width > 0)
+   if (cfg->size.width > 0)
    {
       // Fixed width - don't expand
       gtk_widget_set_hexpand(cfg->widget, FALSE);
@@ -215,8 +215,8 @@ void champ_select_set_size(ChampSelect *cfg, int width, int height)
 {
    if (!cfg)
       return;
-   cfg->width = width;
-   cfg->height = height;
+   cfg->size.width = width;
+   cfg->size.height = height;
    if (cfg->widget)
    {
       gtk_widget_set_size_request(cfg->widget,

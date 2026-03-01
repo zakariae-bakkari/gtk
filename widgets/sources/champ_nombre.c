@@ -134,15 +134,15 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_nombre");
 
    // Set size if specified
-   if (cfg->width > 0 || cfg->height > 0)
+   if (cfg->size.width > 0 || cfg->size.height > 0)
    {
       gtk_widget_set_size_request(cfg->widget,
-                                  cfg->width > 0 ? cfg->width : -1,
-                                  cfg->height > 0 ? cfg->height : -1);
+                                  cfg->size.width > 0 ? cfg->size.width : -1,
+                                  cfg->size.height > 0 ? cfg->size.height : -1);
    }
 
    // Control widget expansion behavior
-   if (cfg->width > 0)
+   if (cfg->size.width > 0)
    {
       // Fixed width - don't expand
       gtk_widget_set_hexpand(cfg->widget, FALSE);
@@ -245,8 +245,8 @@ void champ_nombre_set_size(ChampNombre *cfg, int width, int height)
 {
    if (!cfg)
       return;
-   cfg->width = width;
-   cfg->height = height;
+   cfg->size.width = width;
+   cfg->size.height = height;
    if (cfg->widget)
    {
       gtk_widget_set_size_request(cfg->widget,
