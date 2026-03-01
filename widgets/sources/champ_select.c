@@ -103,6 +103,8 @@ void champ_select_initialiser(ChampSelect *cfg)
    cfg->selected_index = -1;
    cfg->required = false;
    cfg->enable_search = false;
+   cfg->width = 0;  // 0 = full width (100%)
+   cfg->height = 0; // 0 = auto size
 
    // Utilisation de la fonction commune pour initialiser le style
    widget_style_init(&cfg->style);
@@ -120,6 +122,32 @@ GtkWidget *champ_select_creer(ChampSelect *cfg)
 
    cfg->widget = gtk_drop_down_new(G_LIST_MODEL(cfg->model), NULL);
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_select");
+
+   // Set size if specified
+   if (cfg->width > 0 || cfg->height > 0)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  cfg->width > 0 ? cfg->width : -1,
+                                  cfg->height > 0 ? cfg->height : -1);
+   }
+
+   // Control widget expansion behavior
+   if (cfg->width > 0)
+   {
+      // Fixed width - don't expand
+      gtk_widget_set_hexpand(cfg->widget, FALSE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+   }
+   else
+   {
+      // width = 0 means full width - expand to fill container
+      gtk_widget_set_hexpand(cfg->widget, TRUE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+   }
+
+   // Vertical expansion - dropdowns typically don't need to expand vertically
+   gtk_widget_set_vexpand(cfg->widget, FALSE);
+   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
    if (cfg->selected_index >= 0)
       gtk_drop_down_set_selected(GTK_DROP_DOWN(cfg->widget), (guint)cfg->selected_index);
@@ -181,4 +209,49 @@ const char *champ_select_get_string(ChampSelect *cfg)
    if (sel == GTK_INVALID_LIST_POSITION)
       return NULL;
    return gtk_string_list_get_string(cfg->model, sel);
+}
+
+void champ_select_set_size(ChampSelect *cfg, int width, int height)
+{
+   if (!cfg)
+      return;
+   cfg->width = width;
+   cfg->height = height;
+   if (cfg->widget)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  width > 0 ? width : -1,
+                                  height > 0 ? height : -1);
+
+      // Update expansion behavior
+      if (width > 0)
+      {
+         gtk_widget_set_hexpand(cfg->widget, FALSE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      }
+      else
+      {
+         gtk_widget_set_hexpand(cfg->widget, TRUE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      }
+   }
+}
+
+void champ_select_free(ChampSelect *cfg)
+{
+   if (!cfg)
+      return;
+
+   // Free the model if it exists
+   if (cfg->model)
+   {
+      g_object_unref(cfg->model);
+      cfg->model = NULL;
+   }
+
+   // Free the style structure
+   widget_style_free(&cfg->style);
+
+   // Clear the structure
+   memset(cfg, 0, sizeof(ChampSelect));
 }

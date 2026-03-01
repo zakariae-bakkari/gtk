@@ -204,6 +204,8 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
 
    cfg->reveal_toggle = true;
    cfg->sensitive = true;
+   cfg->width = 0;  // 0 = full width (100%)
+   cfg->height = 0; // 0 = auto size
 
    // Initialize style using common function
    widget_style_init(&cfg->style);
@@ -227,6 +229,32 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
 
    gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), cfg->reveal_toggle);
    gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
+
+   // Set size if specified
+   if (cfg->width > 0 || cfg->height > 0)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  cfg->width > 0 ? cfg->width : -1,
+                                  cfg->height > 0 ? cfg->height : -1);
+   }
+
+   // Control widget expansion behavior
+   if (cfg->width > 0)
+   {
+      // Fixed width - don't expand
+      gtk_widget_set_hexpand(cfg->widget, FALSE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+   }
+   else
+   {
+      // width = 0 means full width - expand to fill container
+      gtk_widget_set_hexpand(cfg->widget, TRUE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+   }
+
+   // Password entries typically don't need vertical expansion
+   gtk_widget_set_vexpand(cfg->widget, FALSE);
+   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
    g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_pw_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_pw_activate), cfg);
@@ -289,4 +317,49 @@ void champ_motdepasse_set_policy(ChampMotDePasse *cfg, ChampPasswordPolicy polic
    cfg->policy = policy;
    if (cfg->widget)
       champ_pw_validate(cfg);
+}
+
+void champ_motdepasse_set_size(ChampMotDePasse *cfg, int width, int height)
+{
+   if (!cfg)
+      return;
+   cfg->width = width;
+   cfg->height = height;
+   if (cfg->widget)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  width > 0 ? width : -1,
+                                  height > 0 ? height : -1);
+
+      // Update expansion behavior
+      if (width > 0)
+      {
+         gtk_widget_set_hexpand(cfg->widget, FALSE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      }
+      else
+      {
+         gtk_widget_set_hexpand(cfg->widget, TRUE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      }
+   }
+}
+
+void champ_motdepasse_free(ChampMotDePasse *cfg)
+{
+   if (!cfg)
+      return;
+
+   // Free the placeholder string if it was allocated
+   if (cfg->placeholder)
+   {
+      g_free(cfg->placeholder);
+      cfg->placeholder = NULL;
+   }
+
+   // Free the style structure
+   widget_style_free(&cfg->style);
+
+   // Clear the structure
+   memset(cfg, 0, sizeof(ChampMotDePasse));
 }

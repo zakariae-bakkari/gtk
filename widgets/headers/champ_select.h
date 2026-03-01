@@ -21,6 +21,10 @@ typedef struct
    bool required;      // sélection obligatoire
    bool enable_search; // futur (avec factory)
 
+   // Taille du widget
+   int width;  // largeur en pixels (0 = 100% largeur)
+   int height; // hauteur en pixels (0 = auto)
+
    // Style (utilise la structure commune)
    WidgetStyle style;
 
@@ -39,5 +43,8 @@ void champ_select_set_items(ChampSelect *cfg, const char **labels, int count);
 int champ_select_get_index(ChampSelect *cfg);
 void champ_select_set_index(ChampSelect *cfg, int index);
 const char *champ_select_get_string(ChampSelect *cfg);
+
+void champ_select_set_size(ChampSelect *cfg, int width, int height);
+void champ_select_free(ChampSelect *cfg);
 
 #endif // CHAMP_SELECT_H

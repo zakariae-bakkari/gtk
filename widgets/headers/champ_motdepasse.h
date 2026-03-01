@@ -28,6 +28,10 @@ typedef struct
    bool reveal_toggle; // afficher/masquer bouton
    bool sensitive;     // actif/inactif
 
+   // Taille du widget
+   int width;  // largeur en pixels (0 = 100% largeur)
+   int height; // hauteur en pixels (0 = auto)
+
    // Style (utilise la structure commune)
    WidgetStyle style;
 
@@ -48,5 +52,7 @@ void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len);
 void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required);
 void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, bool reveal);
 void champ_motdepasse_set_policy(ChampMotDePasse *cfg, ChampPasswordPolicy policy);
+void champ_motdepasse_set_size(ChampMotDePasse *cfg, int width, int height);
+void champ_motdepasse_free(ChampMotDePasse *cfg);
 
 #endif // CHAMP_MOTDEPASSE_H

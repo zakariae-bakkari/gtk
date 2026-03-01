@@ -108,6 +108,8 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    cfg->wrap = FALSE;
    cfg->valeur = 0.0;
    cfg->required = FALSE;
+   cfg->width = 0;  // 0 = full width (100%)
+   cfg->height = 0; // 0 = auto size
 
    // Initialize style using common function
    widget_style_init(&cfg->style);
@@ -130,6 +132,32 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
 
    gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), cfg->wrap);
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_nombre");
+
+   // Set size if specified
+   if (cfg->width > 0 || cfg->height > 0)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  cfg->width > 0 ? cfg->width : -1,
+                                  cfg->height > 0 ? cfg->height : -1);
+   }
+
+   // Control widget expansion behavior
+   if (cfg->width > 0)
+   {
+      // Fixed width - don't expand
+      gtk_widget_set_hexpand(cfg->widget, FALSE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+   }
+   else
+   {
+      // width = 0 means full width - expand to fill container
+      gtk_widget_set_hexpand(cfg->widget, TRUE);
+      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+   }
+
+   // Spin buttons typically don't need vertical expansion
+   gtk_widget_set_vexpand(cfg->widget, FALSE);
+   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
 
    g_signal_connect(cfg->widget, "value-changed", G_CALLBACK(on_spin_value_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_spin_activate), cfg);
@@ -211,4 +239,42 @@ void champ_nombre_apply_style(ChampNombre *cfg)
    if (!cfg)
       return;
    champ_nombre_apply_css(cfg);
+}
+
+void champ_nombre_set_size(ChampNombre *cfg, int width, int height)
+{
+   if (!cfg)
+      return;
+   cfg->width = width;
+   cfg->height = height;
+   if (cfg->widget)
+   {
+      gtk_widget_set_size_request(cfg->widget,
+                                  width > 0 ? width : -1,
+                                  height > 0 ? height : -1);
+
+      // Update expansion behavior
+      if (width > 0)
+      {
+         gtk_widget_set_hexpand(cfg->widget, FALSE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      }
+      else
+      {
+         gtk_widget_set_hexpand(cfg->widget, TRUE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      }
+   }
+}
+
+void champ_nombre_free(ChampNombre *cfg)
+{
+   if (!cfg)
+      return;
+
+   // Free the style structure
+   widget_style_free(&cfg->style);
+
+   // Clear the structure
+   memset(cfg, 0, sizeof(ChampNombre));
 }
