@@ -4,6 +4,7 @@
 #include "../widgets/headers/champ_nombre.h"
 #include "../widgets/headers/champ_select.h"
 #include "../widgets/headers/champ_zone_texte.h"
+#include "../widgets/headers/champ_texte.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */
@@ -23,7 +24,6 @@ static void on_input_text_activate(GtkEntry *entry, gpointer data)
 static void on_input_number_changed(GtkEditable *editable, gpointer data)
 {
     const char *id = (const char *)data;
-    // Cast to GtkSpinButton to get the numeric value
     GtkSpinButton *spin = GTK_SPIN_BUTTON(editable);
     double value = gtk_spin_button_get_value(spin);
     printf("[INPUT] number changed: %s -> %.2f\n", id, value);
@@ -53,28 +53,27 @@ static void on_select_changed(GtkDropDown *dd, gpointer data)
     const char *selected_item = gtk_string_list_get_string(model, selected);
     printf("[SELECT] changed: %s -> '%s'\n", id, selected_item);
 }
+
 /* --- Fonction principale de creation de l'interface --- */
 
 static void activate(GtkApplication *app, gpointer user_data)
 {
-    printf("GTK4 Password Input Test\n");
+    printf("GTK4 Input Components Test\n");
 
     /* ========== FENETRE PRINCIPALE ========== */
     Fenetre main_window;
     fenetre_initialiser(&main_window);
     main_window.title = "Input Components Size Test";
     main_window.taille.width = 500;
-    main_window.taille.height = 600; // Smaller height to trigger scrolling
-
+    main_window.taille.height = 600;
     main_window.color_bg = "#f5f5f5";
     main_window.icon_path = "";
     main_window.titre_align = TITRE_ALIGN_GAUCHE;
     main_window.bouton_agrandir = false;
 
-    // Enable window scrolling - this will make the entire window content scrollable
-    fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);  // Use WidgetScrollMode enum
-    fenetre_set_scroll_content_size(&main_window, -1, 800); // Content can be 800px tall
-    fenetre_set_scroll_overlay(&main_window, true);         // Modern overlay scrollbars
+    fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);
+    fenetre_set_scroll_content_size(&main_window, -1, 1100); // Augmenté pour le nouveau contenu
+    fenetre_set_scroll_overlay(&main_window, true);
 
     GtkWidget *window = fenetre_creer(&main_window);
     gtk_window_set_application(GTK_WINDOW(window), app);
@@ -91,20 +90,121 @@ static void activate(GtkApplication *app, gpointer user_data)
     main_container.couleur_fond = "#ffffff";
     main_container.enfants_hexpand = false;
 
-    // Note: We're using window scrolling instead of container scrolling
-    // So we don't need to make the container scrollable anymore
-
     GtkWidget *main_box = conteneur_creer(&main_container);
 
-    // Add the main container to the window's scrollable area if scrolling is enabled
     if (main_window.scroll_mode != SCROLL_NONE && main_window.scroll_widget)
-    {
         gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(main_window.scroll_widget), main_box);
-    }
     else
-    {
         gtk_window_set_child(GTK_WINDOW(window), main_box);
-    }
+
+    /* ========== CHAMP TEXTE - Texte libre, largeur fixe (250px) ========== */
+    GtkWidget *lbl_nom = gtk_label_new_with_mnemonic("_Nom (250px width):");
+
+    ChampTexte *ct_nom = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(ct_nom);
+    ct_nom->id_css = "input_nom";
+    ct_nom->placeholder = "Entrez votre nom...";
+    ct_nom->size.width = 250;
+    ct_nom->size.height = 0;
+    ct_nom->required = true;
+    ct_nom->max_length = 50;
+    ct_nom->policy.min_len = 2;
+    ct_nom->policy.no_digits = true;
+    ct_nom->style.epaisseur_bordure = 2;
+    ct_nom->style.couleur_bordure = g_strdup("#3498db");
+    ct_nom->style.rayon_arrondi = 8;
+    ct_nom->on_change = on_input_text_changed;
+    ct_nom->on_activate = on_input_text_activate;
+    ct_nom->on_invalid = on_input_invalid;
+    ct_nom->user_data = "nom";
+
+    GtkWidget *w_nom = champ_texte_creer(ct_nom);
+    g_signal_connect_swapped(w_nom, "destroy", G_CALLBACK(champ_texte_free), ct_nom);
+    g_signal_connect(w_nom, "destroy", G_CALLBACK(g_free), ct_nom);
+
+    conteneur_ajouter(&main_container, lbl_nom);
+    conteneur_ajouter(&main_container, w_nom);
+
+    /* ========== CHAMP TEXTE - E-mail, largeur complète (100%) ========== */
+    GtkWidget *lbl_email = gtk_label_new_with_mnemonic("_Email (100% width):");
+
+    ChampTexte *ct_email = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(ct_email);
+    ct_email->id_css = "input_email";
+    ct_email->placeholder = "exemple@domaine.com";
+    ct_email->size.width = 0;   // Largeur complète
+    ct_email->size.height = 40;
+    ct_email->required = true;
+    ct_email->type = CHAMP_TEXTE_TYPE_EMAIL;
+    ct_email->icon_primary = "mail-send-symbolic";
+    ct_email->style.epaisseur_bordure = 1;
+    ct_email->style.couleur_bordure = g_strdup("#2ecc71");
+    ct_email->style.rayon_arrondi = 5;
+    ct_email->on_change = on_input_text_changed;
+    ct_email->on_activate = on_input_text_activate;
+    ct_email->on_invalid = on_input_invalid;
+    ct_email->user_data = "email";
+
+    GtkWidget *w_email = champ_texte_creer(ct_email);
+    g_signal_connect_swapped(w_email, "destroy", G_CALLBACK(champ_texte_free), ct_email);
+    g_signal_connect(w_email, "destroy", G_CALLBACK(g_free), ct_email);
+
+    conteneur_ajouter(&main_container, lbl_email);
+    conteneur_ajouter(&main_container, w_email);
+
+    /* ========== CHAMP TEXTE - URL, largeur fixe (300px) ========== */
+    GtkWidget *lbl_url = gtk_label_new_with_mnemonic("_Site web (300px width):");
+
+    ChampTexte *ct_url = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(ct_url);
+    ct_url->id_css = "input_url";
+    ct_url->placeholder = "https://exemple.com";
+    ct_url->size.width = 300;
+    ct_url->size.height = 0;
+    ct_url->required = false;
+    ct_url->type = CHAMP_TEXTE_TYPE_URL;
+    ct_url->icon_primary = "web-browser-symbolic";
+    ct_url->style.epaisseur_bordure = 2;
+    ct_url->style.couleur_bordure = g_strdup("#9b59b6");
+    ct_url->style.rayon_arrondi = 6;
+    ct_url->on_change = on_input_text_changed;
+    ct_url->on_invalid = on_input_invalid;
+    ct_url->user_data = "url";
+
+    GtkWidget *w_url = champ_texte_creer(ct_url);
+    g_signal_connect_swapped(w_url, "destroy", G_CALLBACK(champ_texte_free), ct_url);
+    g_signal_connect(w_url, "destroy", G_CALLBACK(g_free), ct_url);
+
+    conteneur_ajouter(&main_container, lbl_url);
+    conteneur_ajouter(&main_container, w_url);
+
+    /* ========== CHAMP TEXTE - Recherche, largeur complète ========== */
+    GtkWidget *lbl_search = gtk_label_new_with_mnemonic("_Recherche (100% width):");
+
+    ChampTexte *ct_search = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(ct_search);
+    ct_search->id_css = "input_search";
+    ct_search->placeholder = "Rechercher...";
+    ct_search->size.width = 0;   // Largeur complète
+    ct_search->size.height = 38;
+    ct_search->required = false;
+    ct_search->type = CHAMP_TEXTE_TYPE_SEARCH;
+    ct_search->max_length = 100;
+    ct_search->icon_primary = "edit-find-symbolic";
+    ct_search->icon_secondary = "edit-clear-symbolic";
+    ct_search->style.epaisseur_bordure = 1;
+    ct_search->style.couleur_bordure = g_strdup("#bdc3c7");
+    ct_search->style.rayon_arrondi = 20; // Arrondi prononcé style barre de recherche
+    ct_search->on_change = on_input_text_changed;
+    ct_search->on_invalid = on_input_invalid;
+    ct_search->user_data = "search";
+
+    GtkWidget *w_search = champ_texte_creer(ct_search);
+    g_signal_connect_swapped(w_search, "destroy", G_CALLBACK(champ_texte_free), ct_search);
+    g_signal_connect(w_search, "destroy", G_CALLBACK(g_free), ct_search);
+
+    conteneur_ajouter(&main_container, lbl_search);
+    conteneur_ajouter(&main_container, w_search);
 
     /* ========== PASSWORD INPUT - Fixed Width ========== */
     GtkWidget *lbl_pwd1 = gtk_label_new_with_mnemonic("_Password (250px width):");
@@ -113,8 +213,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_motdepasse_initialiser(pwd1);
     pwd1->id_css = "input_password_fixed";
     pwd1->placeholder = "Enter password...";
-    pwd1->size.width = 250; // Fixed width
-    pwd1->size.height = 0;  // Auto height
+    pwd1->size.width = 250;
+    pwd1->size.height = 0;
     pwd1->required = true;
     pwd1->max_length = 5;
     pwd1->policy.min_len = 6;
@@ -141,8 +241,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_motdepasse_initialiser(pwd2);
     pwd2->id_css = "input_password_full";
     pwd2->placeholder = "Confirm your password...";
-    pwd2->size.width = 0;   // Full width (100%)
-    pwd2->size.height = 40; // Custom height
+    pwd2->size.width = 0;
+    pwd2->size.height = 40;
     pwd2->required = true;
     pwd2->style.epaisseur_bordure = 1;
     pwd2->style.couleur_bordure = g_strdup("#3498db");
@@ -169,8 +269,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     age->step = 1;
     age->digits = 0;
     age->valeur = 25;
-    age->size.width = 120; // Small fixed width
-    age->size.height = 35; // Custom height
+    age->size.width = 120;
+    age->size.height = 35;
     age->required = true;
     age->style.epaisseur_bordure = 2;
     age->style.couleur_bordure = g_strdup("#2ecc71");
@@ -197,8 +297,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     salary->step = 100;
     salary->digits = 2;
     salary->valeur = 50000.00;
-    salary->size.width = 200; // Medium width
-    salary->size.height = 0;  // Auto height
+    salary->size.width = 200;
+    salary->size.height = 0;
     salary->style.epaisseur_bordure = 1;
     salary->style.couleur_bordure = g_strdup("#f39c12");
     salary->style.rayon_arrondi = 4;
@@ -218,8 +318,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampSelect *country = g_new0(ChampSelect, 1);
     champ_select_initialiser(country);
     country->id_css = "input_country";
-    country->size.width = 180; // Fixed width
-    country->size.height = 0;  // Auto height
+    country->size.width = 180;
+    country->size.height = 0;
     country->required = true;
     country->style.epaisseur_bordure = 2;
     country->style.couleur_bordure = g_strdup("#9b59b6");
@@ -228,7 +328,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     country->on_invalid = on_input_invalid;
     country->user_data = "country";
 
-    // Add items to the dropdown
     champ_select_add_item(country, "Select a country...");
     champ_select_add_item(country, "France");
     champ_select_add_item(country, "Germany");
@@ -250,8 +349,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampSelect *language = g_new0(ChampSelect, 1);
     champ_select_initialiser(language);
     language->id_css = "input_language";
-    language->size.width = 0;   // Full width (100%)
-    language->size.height = 45; // Custom height
+    language->size.width = 0;
+    language->size.height = 45;
     language->required = false;
     language->style.epaisseur_bordure = 1;
     language->style.couleur_bordure = g_strdup("#34495e");
@@ -259,7 +358,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     language->on_change = on_select_changed;
     language->user_data = "language";
 
-    // Add programming languages
     champ_select_add_item(language, "Choose your favorite...");
     champ_select_add_item(language, "C");
     champ_select_add_item(language, "C++");
@@ -267,7 +365,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_select_add_item(language, "JavaScript");
     champ_select_add_item(language, "Rust");
     champ_select_add_item(language, "Go");
-    champ_select_set_index(language, 2); // Select C
+    champ_select_set_index(language, 2);
 
     GtkWidget *w_language = champ_select_creer(language);
     g_signal_connect_swapped(w_language, "destroy", G_CALLBACK(champ_select_free), language);
@@ -283,10 +381,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_zone_texte_initialiser(czt);
     czt->id_css = "input_zone_texte";
     czt->max_length = 200;
-    // Option 1: Fixed width (300px exact)
-    // czt->size.width = 300;
-    // Option 2: Full width (100% of container)
-    czt->size.width = 0; // 0 = 100% width
+    czt->size.width = 0;
     czt->size.height = 90;
     czt->wrap_word = true;
     czt->sensitive = true;
@@ -300,8 +395,6 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt->on_change = on_zone_texte_changed;
     czt->on_invalid = on_input_invalid;
     czt->user_data = "zone_texte";
-
-    // Set the initial text AFTER all other properties are configured
     czt->texte = g_strdup("this is a comment");
 
     GtkWidget *w_zone = champ_zone_texte_creer(czt);
@@ -314,19 +407,18 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     /* ========== BIO ZONE TEXTE ========== */
     GtkWidget *lbl_bio = gtk_label_new_with_mnemonic("_Bio:");
+
     ChampZoneTexte *czt2 = g_new0(ChampZoneTexte, 1);
     champ_zone_texte_initialiser(czt2);
     czt2->id_css = "input_bio";
     czt2->required = true;
     czt2->max_length = 300;
     czt2->size.width = 100;
-    czt2->size.height = 90; // Set height using the new attribute
+    czt2->size.height = 90;
     czt2->wrap_word = true;
     czt2->on_change = NULL;
     czt2->on_invalid = on_input_invalid;
     czt2->user_data = "bio";
-
-    // Set the initial text consistently
     czt2->texte = g_strdup("Short bio...");
 
     GtkWidget *w_bio = champ_zone_texte_creer(czt2);

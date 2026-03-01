@@ -2,132 +2,83 @@
 #define CHAMP_TEXTE_H
 
 #include <gtk/gtk.h>
+#include "common.h"
 
-/*
- * ChampTexte : composant réutilisable GTK4
- * - Bloc complet = root (Entry + Label d’erreur)
- * - Validation : required + regex
- * - Style configurable
- * - Callbacks personnalisables
+/**
+ * Type d'entrée pour le champ texte
  */
+typedef enum
+{
+   CHAMP_TEXTE_TYPE_TEXT,   // Texte libre (défaut)
+   CHAMP_TEXTE_TYPE_EMAIL,  // Adresse e-mail
+   CHAMP_TEXTE_TYPE_URL,    // URL
+   CHAMP_TEXTE_TYPE_SEARCH, // Champ de recherche
+} ChampTexteType;
 
-// ====================== CALLBACKS ======================
-
-typedef void (*ChampOnChange)(GtkEditable *editable, gpointer user_data);
-typedef void (*ChampOnActivate)(GtkEntry *entry, gpointer user_data);
-typedef void (*ChampOnInvalid)(GtkWidget *widget, const char *message, gpointer user_data);
-
-// ====================== STYLE ======================
+/**
+ * Politique de validation pour le champ texte
+ */
+typedef struct
+{
+   int min_len;             // Longueur minimale (0 = aucune)
+   int max_len;             // Longueur maximale (0 = illimitée)
+   const char *pattern;     // Expression régulière de validation (NULL = aucune)
+   gboolean no_whitespace;  // Interdit les espaces
+   gboolean no_digits;      // Interdit les chiffres
+   gboolean only_digits;    // Uniquement des chiffres (pour texte numérique simple)
+} ChampTextePolicy;
 
 typedef struct
 {
-    char *bg_normal;
-    char *fg_normal;
+   GtkWidget *widget; // GtkEntry
+   char *id_css;      // ID CSS
 
-    char *placeholder_color;
+   // Contenu / contraintes
+   char *placeholder;
+   int max_length;        // 0 = illimité (raccourci direct GTK)
+   gboolean required;
+   ChampTexteType type;
+   ChampTextePolicy policy;
 
-    int   epaisseur_bordure;     // 0 = défaut
-    char *couleur_bordure;
+   // Comportement
+   gboolean sensitive;    // actif/inactif
+   gboolean editable;     // éditable ou lecture seule
 
-    int   rayon_arrondi;         // 0 = défaut
+   // Icônes dans le champ (optionnelles)
+   const char *icon_primary;   // Nom d'icône GTK (ex: "edit-find-symbolic")
+   const char *icon_secondary; // Nom d'icône GTK secondaire (ex: "edit-clear-symbolic")
 
-    gboolean gras;
-    gboolean italique;
+   // Taille du widget
+   WidgetSize size;
 
-    int   taille_texte_px;       // 0 = défaut
+   // Style (utilise la structure commune)
+   WidgetStyle style;
 
-    // Etat erreur
-    char *couleur_bordure_error; // ex: "#ff3b30"
-    char *bg_error;              // ex: "#fff1f2"
-
-} ChampTexteStyle;
-
-// ====================== STRUCTURE PRINCIPALE ======================
-
-typedef struct
-{
-    // Widgets
-    GtkWidget *root;        // conteneur principal (GtkBox)
-    GtkWidget *entry;       // GtkEntry
-    GtkWidget *error_label; // message d’erreur sous le champ
-
-    // Classe CSS appliquée à entry
-    char *css_class;
-
-    // Contraintes & contenu
-    int   max_length;       // 0 = illimité
-    char *texte;            // valeur initiale
-    char *placeholder;      // texte aide visuelle
-
-    // Validation
-    gboolean required;
-    char   *regex_pattern;  // pattern texte
-    GRegex *regex;          // regex compilée
-
-    // Etat & comportement
-    gboolean sensitive;     // actif/inactif
-
-    // Style
-    ChampTexteStyle style;
-
-    // Callbacks
-    ChampOnChange   on_change;
-    ChampOnActivate on_activate;
-    ChampOnInvalid  on_invalid;
-    gpointer        user_data;
-
-    // Etat erreur courant
-    gboolean invalid;
-    char   *error_message;
-
+   // Événements
+   WidgetOnChange on_change;
+   WidgetOnActivate on_activate;
+   WidgetOnInvalid on_invalid;
+   gpointer user_data;
 } ChampTexte;
 
+/* Cycle de vie */
+void champ_texte_initialiser(ChampTexte *cfg);
+GtkWidget *champ_texte_creer(ChampTexte *cfg);
+void champ_texte_free(ChampTexte *cfg);
 
-// ====================== API ======================
+/* Getters / Setters */
+const char *champ_texte_get_texte(ChampTexte *cfg);
+void champ_texte_set_texte(ChampTexte *cfg, const char *texte);
+void champ_texte_set_placeholder(ChampTexte *cfg, const char *ph);
+void champ_texte_set_max_length(ChampTexte *cfg, int max_len);
+void champ_texte_set_required(ChampTexte *cfg, gboolean required);
+void champ_texte_set_editable(ChampTexte *cfg, gboolean editable);
+void champ_texte_set_type(ChampTexte *cfg, ChampTexteType type);
+void champ_texte_set_policy(ChampTexte *cfg, ChampTextePolicy policy);
+void champ_texte_set_size(ChampTexte *cfg, int width, int height);
+void champ_texte_set_icons(ChampTexte *cfg, const char *icon_primary, const char *icon_secondary);
 
-// Création / destruction
-ChampTexte* champtexte_new(const char *css_class);
-void        champtexte_free(ChampTexte *ct);
-
-// Récupérer le widget principal à insérer dans l’UI
-GtkWidget*  champtexte_widget(ChampTexte *ct);
-
-// ----- Setters / Getters -----
-
-const char* champtexte_get_text(ChampTexte *ct);
-void        champtexte_set_text(ChampTexte *ct, const char *text);
-
-void        champtexte_set_placeholder(ChampTexte *ct, const char *ph);
-
-void        champtexte_set_max_length(ChampTexte *ct, int max_len);
-
-void        champtexte_set_required(ChampTexte *ct, gboolean required);
-
-gboolean    champtexte_set_regex(ChampTexte *ct, const char *pattern, GError **err);
-
-void        champtexte_set_sensitive(ChampTexte *ct, gboolean sensitive);
-
-// ----- Style -----
-
-void        champtexte_set_style(ChampTexte *ct, const ChampTexteStyle *style);
-void        champtexte_apply_style(ChampTexte *ct);
-
-// ----- Validation -----
-
-gboolean    champtexte_validate(ChampTexte *ct);
-
-void        champtexte_set_invalid(ChampTexte *ct, const char *message);
-void        champtexte_clear_invalid(ChampTexte *ct);
-void champtexte_set_size(ChampTexte *ct, int width, int height);
-
-// ----- Callbacks -----
-
-void champtexte_set_callbacks(
-    ChampTexte      *ct,
-    ChampOnChange    on_change,
-    ChampOnActivate  on_activate,
-    ChampOnInvalid   on_invalid,
-    gpointer         user_data
-);
+/* Validation manuelle */
+gboolean champ_texte_valider(ChampTexte *cfg);
 
 #endif // CHAMP_TEXTE_H
