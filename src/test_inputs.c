@@ -137,6 +137,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_email->required = true;
     ct_email->type = CHAMP_TEXTE_TYPE_EMAIL;
     ct_email->icon_primary = "mail-send-symbolic";
+    ct_email->show_error_label = false;
     ct_email->style.epaisseur_bordure = 1;
     ct_email->style.couleur_bordure = g_strdup("#2ecc71");
     ct_email->style.rayon_arrondi = 5;

@@ -10,8 +10,12 @@
 static void champ_texte_show_error(ChampTexte *cfg, const char *message)
 {
    gtk_widget_add_css_class(cfg->widget, "error");
-   gtk_label_set_text(GTK_LABEL(cfg->label_erreur), message);
-   gtk_widget_set_visible(cfg->label_erreur, TRUE);
+
+   if (cfg->show_error_label)
+   {
+      gtk_label_set_text(GTK_LABEL(cfg->label_erreur), message);
+      gtk_widget_set_visible(cfg->label_erreur, TRUE);
+   }
 
    if (cfg->on_invalid)
       cfg->on_invalid(cfg->widget, message, cfg->user_data);
@@ -23,8 +27,12 @@ static void champ_texte_show_error(ChampTexte *cfg, const char *message)
 static void champ_texte_clear_error(ChampTexte *cfg)
 {
    gtk_widget_remove_css_class(cfg->widget, "error");
-   gtk_label_set_text(GTK_LABEL(cfg->label_erreur), "");
-   gtk_widget_set_visible(cfg->label_erreur, FALSE);
+
+   if (cfg->show_error_label)
+   {
+      gtk_label_set_text(GTK_LABEL(cfg->label_erreur), "");
+      gtk_widget_set_visible(cfg->label_erreur, FALSE);
+   }
 }
 
 // ====================== CSS ======================
@@ -296,8 +304,9 @@ void champ_texte_initialiser(ChampTexte *cfg)
    cfg->size.width = 0;
    cfg->size.height = 0;
 
-   cfg->erreur_couleur = NULL; // Utilise #e74c3c par défaut
-   cfg->erreur_taille_px = 0;  // Utilise 11px par défaut
+   cfg->show_error_label = TRUE; // Afficher le label d'erreur par défaut
+   cfg->erreur_couleur = NULL;   // Utilise #e74c3c par défaut
+   cfg->erreur_taille_px = 0;    // Utilise 11px par défaut
 
    widget_style_init(&cfg->style);
    cfg->style.bg_normal = g_strdup("white");

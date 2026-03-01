@@ -64,8 +64,9 @@ typedef struct
    WidgetStyle style;
 
    // Style du label d'erreur (laisser à NULL/0 pour les valeurs par défaut)
-   char *erreur_couleur;  // Couleur du texte d'erreur  (défaut : "#e74c3c")
-   int erreur_taille_px;  // Taille de police en px      (défaut : 11px)
+   gboolean show_error_label; // Afficher le label d'erreur sous le champ (défaut : TRUE)
+   char *erreur_couleur;      // Couleur du texte d'erreur  (défaut : "#e74c3c")
+   int erreur_taille_px;      // Taille de police en px      (défaut : 11px)
 
    // Événements
    WidgetOnChange on_change;
