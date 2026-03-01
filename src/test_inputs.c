@@ -116,7 +116,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     pwd1->width = 250; // Fixed width
     pwd1->height = 0;  // Auto height
     pwd1->required = true;
-    pwd1->max_length = 20;
+    pwd1->max_length = 5;
     pwd1->policy.min_len = 6;
     pwd1->policy.require_digit = true;
     pwd1->style.epaisseur_bordure = 2;

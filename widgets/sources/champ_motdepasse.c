@@ -159,6 +159,7 @@ static void on_pw_changed(GtkEditable *editable, gpointer user_data)
          char *truncated = g_strndup(txt, cfg->max_length);
          g_signal_handlers_block_by_func(editable, on_pw_changed, user_data);
          gtk_editable_set_text(editable, truncated);
+         gtk_editable_set_position(GTK_EDITABLE(editable), cfg->max_length); // Set cursor to the end
          g_signal_handlers_unblock_by_func(editable, on_pw_changed, user_data);
          g_free(truncated);
       }
