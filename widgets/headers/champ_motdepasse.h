@@ -9,9 +9,9 @@
  */
 typedef struct
 {
-   int min_len;            // Longueur minimale (0 = aucune)
-   gboolean require_digit; // Exige au moins un chiffre
-   gboolean require_upper; // Exige au moins une majuscule
+   int min_len;             // Longueur minimale (0 = aucune)
+   gboolean require_digit;  // Exige au moins un chiffre
+   gboolean require_upper;  // Exige au moins une majuscule
    gboolean require_symbol; // Exige au moins un symbole
 } ChampPasswordPolicy;
 
@@ -27,7 +27,7 @@ typedef struct
    GtkWidget *widget;       // GtkPasswordEntry — pour lire/écrire la valeur
    GtkWidget *label_erreur; // GtkLabel du message d'erreur
 
-   char *id_css;      // ID CSS
+   char *id_css; // ID CSS
 
    // Contenu / contraintes
    char *placeholder;

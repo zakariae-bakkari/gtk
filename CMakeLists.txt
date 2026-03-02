@@ -13,6 +13,7 @@ add_executable(gtk
         widgets/sources/conteneur.c
         widgets/sources/common.c
         widgets/sources/texte.c
+        widgets/sources/image.c
 
         # Inputs
         widgets/sources/champ_texte.c
@@ -23,8 +24,8 @@ add_executable(gtk
         # App
 #        src/main.c
         # src/test_champ_text.c
-#        src/test.c
-       src/test_inputs.c
+        src/test.c
+#       src/test_inputs.c
 #        src/test_callbacks.c
 #        src/example_scroll_design.c
 #        src/test_buttons.c

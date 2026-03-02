@@ -64,16 +64,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     Fenetre main_window;
     fenetre_initialiser(&main_window);
     main_window.title = "Input Components Size Test";
-    main_window.taille.width = 500;
-    main_window.taille.height = 600;
     main_window.color_bg = "#f5f5f5";
-    main_window.icon_path = "";
-    main_window.titre_align = TITRE_ALIGN_GAUCHE;
-    main_window.bouton_agrandir = false;
-
-    fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);
-    fenetre_set_scroll_content_size(&main_window, -1, 1100); // Augmenté pour le nouveau contenu
-    fenetre_set_scroll_overlay(&main_window, true);
+    main_window.icon_path = "computer-symbolic";
+    main_window.scroll_mode = SCROLL_VERTICAL;
+    // fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);
+    // fenetre_set_scroll_content_size(&main_window, -1, 1100); // Augmenté pour le nouveau contenu
+    // fenetre_set_scroll_overlay(&main_window, true);
 
     GtkWidget *window = fenetre_creer(&main_window);
     gtk_window_set_application(GTK_WINDOW(window), app);
@@ -132,7 +128,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_texte_initialiser(ct_email);
     ct_email->id_css = "input_email";
     ct_email->placeholder = "exemple@domaine.com";
-    ct_email->size.width = 0;   // Largeur complète
+    ct_email->size.width = 0; // Largeur complète
     ct_email->size.height = 40;
     ct_email->required = true;
     ct_email->type = CHAMP_TEXTE_TYPE_EMAIL;
@@ -186,7 +182,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_texte_initialiser(ct_search);
     ct_search->id_css = "input_search";
     ct_search->placeholder = "Rechercher...";
-    ct_search->size.width = 0;   // Largeur complète
+    ct_search->size.width = 0; // Largeur complète
     ct_search->size.height = 38;
     ct_search->required = false;
     ct_search->type = CHAMP_TEXTE_TYPE_SEARCH;
