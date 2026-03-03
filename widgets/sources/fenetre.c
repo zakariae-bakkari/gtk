@@ -1,30 +1,19 @@
 #include "../headers/fenetre.h"
 #include <stdio.h>
 #include <string.h>
-#include <gdk-pixbuf/gdk-pixbuf.h> // pour charger des images
+
 /* Fonction interne pour le CSS */
 static void _fenetre_appliquer_css(GtkWidget *window, Fenetre *config)
 {
+    if (config->color_bg == NULL)
+        return;
+
     GtkCssProvider *provider = gtk_css_provider_new();
     char css_data[1024];
 
-    if (config->background_image != NULL)
-    {
-        snprintf(css_data, sizeof(css_data),
-                 "window { background-image: url('%s'); background-size: cover; background-position: center; }",
-                 config->background_image);
-    }
-    else if (config->color_bg != NULL)
-    {
-        snprintf(css_data, sizeof(css_data),
-                 "window { background-color: %s; }",
-                 config->color_bg);
-    }
-    else
-    {
-        g_object_unref(provider);
-        return;
-    }
+    snprintf(css_data, sizeof(css_data),
+             "window { background-color: %s; }",
+             config->color_bg);
 
     gtk_css_provider_load_from_string(provider, css_data);
     GtkStyleContext *context = gtk_widget_get_style_context(window);
@@ -56,7 +45,6 @@ void fenetre_initialiser(Fenetre *config)
     config->taille.width = 800;
     config->taille.height = 600;
     config->color_bg = NULL;
-    config->background_image = NULL;
     config->id = 0;
 }
 

@@ -49,7 +49,6 @@ typedef struct
     // --- Style ---
     WidgetSize taille;
     char *color_bg;
-    char *background_image;
     int id;
 } Fenetre;
 
