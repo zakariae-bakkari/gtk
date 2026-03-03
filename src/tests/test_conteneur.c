@@ -95,10 +95,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     /* ----------------------------------------------------------------
      * 1. ORIENTATION
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>1. orientation</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("CONTENEUR_VERTICAL (haut) et CONTENEUR_HORIZONTAL (bas)"));
+    conteneur_ajouter(&root, make_title("<b><big>1. orientation</big></b>"));
+    conteneur_ajouter(&root, make_desc("CONTENEUR_VERTICAL (haut) et CONTENEUR_HORIZONTAL (bas)"));
 
     // Vertical
     Conteneur c_vert;
@@ -115,7 +113,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&c_vert, make_label("Item A"));
     conteneur_ajouter(&c_vert, make_label("Item B"));
     conteneur_ajouter(&c_vert, make_label("Item C"));
-    gtk_box_append(GTK_BOX(root_widget), w_vert);
+    conteneur_ajouter(&root, w_vert);
 
     // Horizontal
     Conteneur c_horiz;
@@ -132,15 +130,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&c_horiz, make_label("Item A"));
     conteneur_ajouter(&c_horiz, make_label("Item B"));
     conteneur_ajouter(&c_horiz, make_label("Item C"));
-    gtk_box_append(GTK_BOX(root_widget), w_horiz);
+    conteneur_ajouter(&root, w_horiz);
 
     /* ----------------------------------------------------------------
      * 2. ESPACEMENT
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>2. espacement</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("Gauche = espacement 0 px  |  Droite = espacement 30 px"));
+    conteneur_ajouter(&root, make_title("<b><big>2. espacement</big></b>"));
+    conteneur_ajouter(&root, make_desc("Gauche = espacement 0 px  |  Droite = espacement 30 px"));
 
     Conteneur row_esp;
     conteneur_initialiser(&row_esp);
@@ -178,15 +174,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
 
     conteneur_ajouter(&row_esp, w_esp0);
     conteneur_ajouter(&row_esp, w_esp30);
-    gtk_box_append(GTK_BOX(root_widget), w_row_esp);
+    conteneur_ajouter(&root, w_row_esp);
 
     /* ----------------------------------------------------------------
      * 3. HOMOGENE
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>3. homogene</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("homogene=FALSE (gauche) vs homogene=TRUE — tous les enfants ont la même largeur (droite)"));
+    conteneur_ajouter(&root, make_title("<b><big>3. homogene</big></b>"));
+    conteneur_ajouter(&root, make_desc("homogene=FALSE (gauche) vs homogene=TRUE — tous les enfants ont la même largeur (droite)"));
 
     Conteneur row_hom;
     conteneur_initialiser(&row_hom);
@@ -226,15 +220,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
 
     conteneur_ajouter(&row_hom, w_hom_false);
     conteneur_ajouter(&row_hom, w_hom_true);
-    gtk_box_append(GTK_BOX(root_widget), w_row_hom);
+    conteneur_ajouter(&root, w_row_hom);
 
     /* ----------------------------------------------------------------
      * 4. TAILLE  (largeur / hauteur forcées)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>4. taille (largeur / hauteur)</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("Conteneur forcé à 300 × 80 px"));
+    conteneur_ajouter(&root, make_title("<b><big>4. taille (largeur / hauteur)</big></b>"));
+    conteneur_ajouter(&root, make_desc("Conteneur forcé à 300 × 80 px"));
 
     Conteneur c_taille;
     conteneur_initialiser(&c_taille);
@@ -247,15 +239,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_taille.bordure_rayon = 6;
     GtkWidget *w_taille = conteneur_creer(&c_taille);
     conteneur_ajouter(&c_taille, make_label("300 × 80 px"));
-    gtk_box_append(GTK_BOX(root_widget), w_taille);
+    conteneur_ajouter(&root, w_taille);
 
     /* ----------------------------------------------------------------
      * 5. ALIGNEMENT  (align_x / align_y)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>5. align_x / align_y</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("DEBUT | CENTRE | FIN | REMPLIR  (horizontal)"));
+    conteneur_ajouter(&root, make_title("<b><big>5. align_x / align_y</big></b>"));
+    conteneur_ajouter(&root, make_desc("DEBUT | CENTRE | FIN | REMPLIR  (horizontal)"));
 
     const char *align_labels[] = {"DEBUT", "CENTRE", "FIN", "REMPLIR"};
     ConteneurAlignement align_vals[] = {
@@ -277,16 +267,14 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         ca.padding.gauche = ca.padding.droite = 8;
         GtkWidget *wca = conteneur_creer(&ca);
         conteneur_ajouter(&ca, make_colored_btn(align_labels[i], align_colors[i]));
-        gtk_box_append(GTK_BOX(root_widget), wca);
+        conteneur_ajouter(&root, wca);
     }
 
     /* ----------------------------------------------------------------
      * 6. EXPANSION DES ENFANTS  (enfants_hexpand / enfants_vexpand)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>6. enfants_hexpand / enfants_vexpand</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("hexpand=FALSE (gauche) — boutons restent compacts\nhexpand=TRUE (droite) — boutons s'étirent"));
+    conteneur_ajouter(&root, make_title("<b><big>6. enfants_hexpand / enfants_vexpand</big></b>"));
+    conteneur_ajouter(&root, make_desc("hexpand=FALSE (gauche) — boutons restent compacts\nhexpand=TRUE (droite) — boutons s'étirent"));
 
     Conteneur row_exp;
     conteneur_initialiser(&row_exp);
@@ -333,15 +321,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
 
     conteneur_ajouter(&row_exp, w_exp_false);
     conteneur_ajouter(&row_exp, w_exp_true);
-    gtk_box_append(GTK_BOX(root_widget), w_row_exp);
+    conteneur_ajouter(&root, w_row_exp);
 
     /* ----------------------------------------------------------------
      * 7. MARGES  (marges haut / bas / gauche / droite)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>7. marges</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("marges : haut=30  bas=5  gauche=60  droite=5"));
+    conteneur_ajouter(&root, make_title("<b><big>7. marges</big></b>"));
+    conteneur_ajouter(&root, make_desc("marges : haut=30  bas=5  gauche=60  droite=5"));
 
     Conteneur c_marges;
     conteneur_initialiser(&c_marges);
@@ -356,15 +342,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_marges.bordure_rayon = 4;
     GtkWidget *w_marges = conteneur_creer(&c_marges);
     conteneur_ajouter(&c_marges, make_label("marge haut=30 | gauche=60"));
-    gtk_box_append(GTK_BOX(root_widget), w_marges);
+    conteneur_ajouter(&root, w_marges);
 
     /* ----------------------------------------------------------------
      * 8. PADDING  (padding haut / bas / gauche / droite)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>8. padding</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("padding : haut=30  bas=5  gauche=50  droite=5"));
+    conteneur_ajouter(&root, make_title("<b><big>8. padding</big></b>"));
+    conteneur_ajouter(&root, make_desc("padding : haut=30  bas=5  gauche=50  droite=5"));
 
     Conteneur c_pad;
     conteneur_initialiser(&c_pad);
@@ -379,15 +363,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_pad.bordure_rayon = 4;
     GtkWidget *w_pad = conteneur_creer(&c_pad);
     conteneur_ajouter(&c_pad, make_label("padding haut=30 | gauche=50"));
-    gtk_box_append(GTK_BOX(root_widget), w_pad);
+    conteneur_ajouter(&root, w_pad);
 
     /* ----------------------------------------------------------------
      * 9. STYLE  (id_css / couleur_fond / bordure_largeur / couleur / rayon)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>9. id_css · couleur_fond · bordure_*</big></b>"));
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_desc("Trois conteneurs : fond différent, bordure épaisse, grand rayon arrondi"));
+    conteneur_ajouter(&root, make_title("<b><big>9. id_css · couleur_fond · bordure_*</big></b>"));
+    conteneur_ajouter(&root, make_desc("Trois conteneurs : fond différent, bordure épaisse, grand rayon arrondi"));
 
     Conteneur row_style;
     conteneur_initialiser(&row_style);
@@ -438,16 +420,15 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&s3, make_label("rayon arrondi\n= 30 px"));
     conteneur_ajouter(&row_style, ws3);
 
-    gtk_box_append(GTK_BOX(root_widget), w_row_style);
+    conteneur_ajouter(&root, w_row_style);
 
     /* ----------------------------------------------------------------
      * 10. DÉFILEMENT  (scroll_mode / scroll_min_width / scroll_min_height / scroll_overlay)
      * ---------------------------------------------------------------- */
-    gtk_box_append(GTK_BOX(root_widget),
-                   make_title("<b><big>10. scroll_mode · scroll_min_width/height · scroll_overlay</big></b>"));
+    conteneur_ajouter(&root, make_title("<b><big>10. scroll_mode · scroll_min_width/height · scroll_overlay</big></b>"));
 
     // 10a. SCROLL_VERTICAL
-    gtk_box_append(GTK_BOX(root_widget), make_desc("SCROLL_VERTICAL — hauteur visible = 120 px, contenu = 400 px"));
+    conteneur_ajouter(&root, make_desc("SCROLL_VERTICAL — hauteur visible = 120 px, contenu = 400 px"));
 
     Conteneur sv;
     conteneur_initialiser(&sv);
@@ -468,10 +449,10 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         snprintf(t, sizeof(t), "Ligne verticale %d", i);
         conteneur_ajouter(&sv, make_label_left(t));
     }
-    gtk_box_append(GTK_BOX(root_widget), wsv);
+    conteneur_ajouter(&root, wsv);
 
     // 10b. SCROLL_HORIZONTAL
-    gtk_box_append(GTK_BOX(root_widget), make_desc("SCROLL_HORIZONTAL — largeur visible = 400 px, contenu = 900 px"));
+    conteneur_ajouter(&root, make_desc("SCROLL_HORIZONTAL — largeur visible = 400 px, contenu = 900 px"));
 
     Conteneur sh;
     conteneur_initialiser(&sh);
@@ -499,10 +480,10 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         GtkWidget *lbl = texte_creer(&tx);
         conteneur_ajouter(&sh, lbl);
     }
-    gtk_box_append(GTK_BOX(root_widget), wsh);
+    conteneur_ajouter(&root, wsh);
 
     // 10c. SCROLL_BOTH
-    gtk_box_append(GTK_BOX(root_widget), make_desc("SCROLL_BOTH — zone visible 300×120 px, contenu 700×400 px"));
+    conteneur_ajouter(&root, make_desc("SCROLL_BOTH — zone visible 300×120 px, contenu 700×400 px"));
 
     Conteneur sb;
     conteneur_initialiser(&sb);
@@ -530,7 +511,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         GtkWidget *lbl = texte_creer(&tx);
         conteneur_ajouter(&sb, lbl);
     }
-    gtk_box_append(GTK_BOX(root_widget), wsb);
+    conteneur_ajouter(&root, wsb);
 
     /* ================================================================
      * ATTACHEMENT FINAL
