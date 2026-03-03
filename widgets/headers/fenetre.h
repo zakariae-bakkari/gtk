@@ -15,12 +15,6 @@ typedef enum
     TITRE_ALIGN_DROITE = 2  // 1.0
 } FenetreTitreAlign;
 
-typedef struct
-{
-    int width;
-    int height;
-} FenetreTaille;
-
 /**
  * Structure Fenetre
  * Note: FenetrePosition et FenetreType ont été supprimés car non supportés en GTK4.
@@ -53,7 +47,7 @@ typedef struct
     int content_min_height;       // Hauteur minimale du contenu (0 = auto)
 
     // --- Style ---
-    FenetreTaille taille;
+    WidgetSize taille;
     char *color_bg;
     char *background_image;
     int id;
