@@ -12,8 +12,10 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    fenetre_config.title = "Test du Widget Texte - Headings et Alignements";
    fenetre_config.taille.width = 900;
    fenetre_config.taille.height = 700;
-
-   // Activer le défilement vertical
+   // fenetre_config.demarrer_maximisee = true;
+   fenetre_config.titre_align = TITRE_ALIGN_DROITE;
+   // fenetre_config.type = WIN_TYPE_POPUP;    // Supprimé : non supporté en GTK4
+   // fenetre_config.position = WIN_POS_MOUSE; // Supprimé : non supporté en GTK4
    fenetre_set_scrollable(&fenetre_config, SCROLL_VERTICAL);
 
    GtkWidget *window = fenetre_creer(&fenetre_config);

@@ -27,12 +27,6 @@ typedef enum
 
 typedef struct
 {
-   /**
-    * IMPORTANT : c'est `container` qu'il faut ajouter au widget parent.
-    * `container` est un GtkBox vertical qui empile :
-    *   1. cfg->widget       (GtkPicture ou GtkImage)
-    *   2. cfg->label_legende (GtkLabel, caché si aucune légende)
-    */
    GtkWidget *container; // GtkBox vertical — à passer à conteneur_ajouter()
    GtkWidget *widget;    // GtkPicture — l'image elle-même
 

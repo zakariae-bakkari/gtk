@@ -41,14 +41,13 @@ void fenetre_initialiser(Fenetre *config)
     config->title = "Application";
     config->titre_align = TITRE_ALIGN_CENTRE;
     config->icon_path = NULL;
-    config->type = WIN_TYPE_TOPLEVEL;
     config->resizable = true;
     config->demarrer_maximisee = false;
     config->bouton_fermer = true;
     config->bouton_agrandir = true;
     config->bouton_reduire = true;
 
-    // Scrolling defaults - using WidgetScrollMode enum
+    // Scrolling defaults
     config->scroll_mode = SCROLL_NONE;
     config->scroll_overlay = true;
     config->content_min_width = 0;
@@ -58,7 +57,6 @@ void fenetre_initialiser(Fenetre *config)
     config->taille.height = 600;
     config->color_bg = NULL;
     config->background_image = NULL;
-    config->position = WIN_POS_CENTER;
     config->id = 0;
 }
 

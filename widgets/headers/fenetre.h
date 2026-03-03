@@ -15,20 +15,6 @@ typedef enum
     TITRE_ALIGN_DROITE = 2  // 1.0
 } FenetreTitreAlign;
 
-typedef enum
-{
-    WIN_POS_CENTER,
-    WIN_POS_MOUSE,
-    WIN_POS_CENTER_ON_PARENT,
-    WIN_POS_DEFAULT
-} FenetrePosition;
-
-typedef enum
-{
-    WIN_TYPE_TOPLEVEL,
-    WIN_TYPE_POPUP
-} FenetreType;
-
 typedef struct
 {
     int width;
@@ -36,7 +22,10 @@ typedef struct
 } FenetreTaille;
 
 /**
- * Structure Fenetre Mise à Jour
+ * Structure Fenetre
+ * Note: FenetrePosition et FenetreType ont été supprimés car non supportés en GTK4.
+ * - Le positionnement de fenêtre est géré par le compositeur (Wayland/Windows).
+ * - Les popups GTK4 utilisent GtkPopover, pas un type de fenêtre.
  */
 typedef struct
 {
@@ -49,7 +38,6 @@ typedef struct
     char *icon_path;               // a tester
 
     // --- Comportement ---
-    FenetreType type; // a tester
     gboolean resizable;
     gboolean demarrer_maximisee; // Nouveau : Si true, prend toute la taille
 
@@ -68,7 +56,6 @@ typedef struct
     FenetreTaille taille;
     char *color_bg;
     char *background_image;
-    FenetrePosition position;
     int id;
 } Fenetre;
 
