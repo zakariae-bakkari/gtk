@@ -24,10 +24,10 @@ add_executable(gtk
         # App
 #        src/main.c
         # src/test_champ_text.c
-        src/test.c
+        # src/test.c
 #       src/test_inputs.c
 #        src/test_callbacks.c
-#        src/example_scroll_design.c
+       src/example_scroll_design.c
 #        src/test_buttons.c
         # src/test_texte.c
 )
