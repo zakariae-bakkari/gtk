@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-/* GSList para almacenar el grupo de radios - GTK4 usa GSList para los grupos */
-static GSList *radio_groups = NULL;
-
 /**
  * Fonction interne pour appliquer le CSS au bouton radio
  * Utilise gtk_widget_add_css_class (GTK4) au lieu des APIs dépréciées
@@ -33,13 +30,11 @@ static void _bouton_radio_appliquer_css(BoutonRadio *config)
 
    gtk_css_provider_load_from_string(provider, css_buffer);
 
-   // Ajouter le CSS à la feuille de style globale de l'application
-   GtkStyleContext *context = gtk_widget_get_style_context(config->widget);
-   if (context)
-   {
-      // En GTK4, on ajoute un CSS class au widget
-      gtk_widget_add_css_class(config->widget, config->id_css);
-   }
+   // BUG FIX: the provider was built but never actually applied — add it to the style context
+   gtk_style_context_add_provider(
+       gtk_widget_get_style_context(config->widget),
+       GTK_STYLE_PROVIDER(provider),
+       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
    g_object_unref(provider);
 }
