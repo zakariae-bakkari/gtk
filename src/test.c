@@ -124,7 +124,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_box_append(GTK_BOX(vbox), w5);
 
     // ── Afficher ────────────────────────────────────────────────────
-    gtk_widget_show(window);
+    gtk_window_present(GTK_WINDOW(window));
 }
 
 int main(int argc, char **argv)

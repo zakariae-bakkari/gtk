@@ -10,6 +10,16 @@ static void image_apply_css(Image *cfg)
 
    GtkCssProvider *provider = gtk_css_provider_new();
    char css[1024];
+   char border_css[128] = "";
+
+   // FIX: was using g_strdup_printf inline → memory leak, result was never freed
+   if (cfg->style.couleur_bordure && cfg->style.epaisseur_bordure > 0)
+   {
+      snprintf(border_css, sizeof(border_css),
+               "  border: %dpx solid %s;\n",
+               cfg->style.epaisseur_bordure,
+               cfg->style.couleur_bordure);
+   }
 
    int leg_size = cfg->legende_taille_px > 0 ? cfg->legende_taille_px : 11;
    const char *leg_color = cfg->legende_couleur ? cfg->legende_couleur : "#7f8c8d";
@@ -17,7 +27,7 @@ static void image_apply_css(Image *cfg)
    snprintf(css, sizeof(css),
             "picture#%s {\n"
             "  border-radius: %dpx;\n"
-            "%s%s"
+            "%s"
             "}\n"
             "label#%s_legende {\n"
             "  color: %s;\n"
@@ -26,14 +36,7 @@ static void image_apply_css(Image *cfg)
             "}\n",
             cfg->id_css,
             cfg->rayon_arrondi,
-            cfg->style.couleur_bordure && cfg->style.epaisseur_bordure > 0
-                ? "  border: "
-                : "",
-            cfg->style.couleur_bordure && cfg->style.epaisseur_bordure > 0
-                ? g_strdup_printf("%dpx solid %s;\n",
-                                  cfg->style.epaisseur_bordure,
-                                  cfg->style.couleur_bordure)
-                : "",
+            border_css,
             cfg->id_css,
             leg_color,
             leg_size);
