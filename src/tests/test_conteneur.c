@@ -7,21 +7,49 @@
 /* Helper : crée un label de titre de section */
 static GtkWidget *make_title(const char *markup)
 {
-    GtkWidget *lbl = gtk_label_new("");
-    gtk_label_set_markup(GTK_LABEL(lbl), markup);
-    gtk_label_set_xalign(GTK_LABEL(lbl), 0.0f);
-    gtk_widget_set_margin_top(lbl, 18);
-    gtk_widget_set_margin_bottom(lbl, 4);
-    return lbl;
+    Texte t;
+    texte_initialiser(&t);
+    t.texte = (char *)markup;
+    t.type = TEXTE_H2;
+    t.couleur_texte = "#1A237E";
+    t.marges.haut = 18;
+    t.marges.bas = 4;
+    return texte_creer(&t);
 }
 
 /* Helper : crée un label de description */
 static GtkWidget *make_desc(const char *text)
 {
-    GtkWidget *lbl = gtk_label_new(text);
-    gtk_label_set_xalign(GTK_LABEL(lbl), 0.0f);
-    gtk_label_set_wrap(GTK_LABEL(lbl), TRUE);
-    return lbl;
+    Texte t;
+    texte_initialiser(&t);
+    t.texte = (char *)text;
+    t.type = TEXTE_SUBTITLE;
+    t.couleur_texte = "#546E7A";
+    t.wrap = TRUE;
+    t.alignement = TEXTE_ALIGN_LEFT;
+    return texte_creer(&t);
+}
+
+/* Helper : crée un label normal centré */
+static GtkWidget *make_label(const char *text)
+{
+    Texte t;
+    texte_initialiser(&t);
+    t.texte = (char *)text;
+    t.type = TEXTE_NORMAL;
+    t.alignement = TEXTE_ALIGN_CENTER;
+    return texte_creer(&t);
+}
+
+/* Helper : crée un label normal aligné à gauche */
+static GtkWidget *make_label_left(const char *text)
+{
+    Texte t;
+    texte_initialiser(&t);
+    t.texte = (char *)text;
+    t.type = TEXTE_NORMAL;
+    t.alignement = TEXTE_ALIGN_LEFT;
+    return texte_creer(&t);
 }
 
 /* Helper : crée un bouton coloré avec texte */
@@ -84,9 +112,9 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_vert.padding.haut = c_vert.padding.bas =
         c_vert.padding.gauche = c_vert.padding.droite = 8;
     GtkWidget *w_vert = conteneur_creer(&c_vert);
-    conteneur_ajouter(&c_vert, gtk_label_new("Item A"));
-    conteneur_ajouter(&c_vert, gtk_label_new("Item B"));
-    conteneur_ajouter(&c_vert, gtk_label_new("Item C"));
+    conteneur_ajouter(&c_vert, make_label("Item A"));
+    conteneur_ajouter(&c_vert, make_label("Item B"));
+    conteneur_ajouter(&c_vert, make_label("Item C"));
     gtk_box_append(GTK_BOX(root_widget), w_vert);
 
     // Horizontal
@@ -101,9 +129,9 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_horiz.padding.haut = c_horiz.padding.bas =
         c_horiz.padding.gauche = c_horiz.padding.droite = 8;
     GtkWidget *w_horiz = conteneur_creer(&c_horiz);
-    conteneur_ajouter(&c_horiz, gtk_label_new("Item A"));
-    conteneur_ajouter(&c_horiz, gtk_label_new("Item B"));
-    conteneur_ajouter(&c_horiz, gtk_label_new("Item C"));
+    conteneur_ajouter(&c_horiz, make_label("Item A"));
+    conteneur_ajouter(&c_horiz, make_label("Item B"));
+    conteneur_ajouter(&c_horiz, make_label("Item C"));
     gtk_box_append(GTK_BOX(root_widget), w_horiz);
 
     /* ----------------------------------------------------------------
@@ -218,7 +246,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_taille.bordure_couleur = "#E65100";
     c_taille.bordure_rayon = 6;
     GtkWidget *w_taille = conteneur_creer(&c_taille);
-    conteneur_ajouter(&c_taille, gtk_label_new("300 × 80 px"));
+    conteneur_ajouter(&c_taille, make_label("300 × 80 px"));
     gtk_box_append(GTK_BOX(root_widget), w_taille);
 
     /* ----------------------------------------------------------------
@@ -327,7 +355,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_marges.bordure_couleur = "#0277BD";
     c_marges.bordure_rayon = 4;
     GtkWidget *w_marges = conteneur_creer(&c_marges);
-    conteneur_ajouter(&c_marges, gtk_label_new("marge haut=30 | gauche=60"));
+    conteneur_ajouter(&c_marges, make_label("marge haut=30 | gauche=60"));
     gtk_box_append(GTK_BOX(root_widget), w_marges);
 
     /* ----------------------------------------------------------------
@@ -350,7 +378,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_pad.bordure_couleur = "#7B1FA2";
     c_pad.bordure_rayon = 4;
     GtkWidget *w_pad = conteneur_creer(&c_pad);
-    conteneur_ajouter(&c_pad, gtk_label_new("padding haut=30 | gauche=50"));
+    conteneur_ajouter(&c_pad, make_label("padding haut=30 | gauche=50"));
     gtk_box_append(GTK_BOX(root_widget), w_pad);
 
     /* ----------------------------------------------------------------
@@ -377,7 +405,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     s1.padding.haut = s1.padding.bas =
         s1.padding.gauche = s1.padding.droite = 10;
     GtkWidget *ws1 = conteneur_creer(&s1);
-    conteneur_ajouter(&s1, gtk_label_new("fond jaune\nsans bordure"));
+    conteneur_ajouter(&s1, make_label("fond jaune\nsans bordure"));
     conteneur_ajouter(&row_style, ws1);
 
     // Bordure épaisse
@@ -392,7 +420,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     s2.padding.haut = s2.padding.bas =
         s2.padding.gauche = s2.padding.droite = 10;
     GtkWidget *ws2 = conteneur_creer(&s2);
-    conteneur_ajouter(&s2, gtk_label_new("bordure 5px\nrayon=0"));
+    conteneur_ajouter(&s2, make_label("bordure 5px\nrayon=0"));
     conteneur_ajouter(&row_style, ws2);
 
     // Grand rayon arrondi
@@ -407,7 +435,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     s3.padding.haut = s3.padding.bas =
         s3.padding.gauche = s3.padding.droite = 14;
     GtkWidget *ws3 = conteneur_creer(&s3);
-    conteneur_ajouter(&s3, gtk_label_new("rayon arrondi\n= 30 px"));
+    conteneur_ajouter(&s3, make_label("rayon arrondi\n= 30 px"));
     conteneur_ajouter(&row_style, ws3);
 
     gtk_box_append(GTK_BOX(root_widget), w_row_style);
@@ -438,7 +466,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     {
         char t[40];
         snprintf(t, sizeof(t), "Ligne verticale %d", i);
-        conteneur_ajouter(&sv, gtk_label_new(t));
+        conteneur_ajouter(&sv, make_label_left(t));
     }
     gtk_box_append(GTK_BOX(root_widget), wsv);
 
@@ -462,8 +490,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     {
         char t[40];
         snprintf(t, sizeof(t), "Colonne %d (large)", i);
-        GtkWidget *lbl = gtk_label_new(t);
-        gtk_widget_set_size_request(lbl, 90, -1);
+        Texte tx;
+        texte_initialiser(&tx);
+        tx.texte = g_strdup(t);
+        tx.type = TEXTE_NORMAL;
+        tx.alignement = TEXTE_ALIGN_CENTER;
+        tx.taille.largeur = 90;
+        GtkWidget *lbl = texte_creer(&tx);
         conteneur_ajouter(&sh, lbl);
     }
     gtk_box_append(GTK_BOX(root_widget), wsh);
@@ -488,9 +521,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     {
         char t[80];
         snprintf(t, sizeof(t), "Ligne %d — texte très large pour forcer le défilement horizontal aussi", i);
-        GtkWidget *lbl = gtk_label_new(t);
-        gtk_widget_set_size_request(lbl, 700, -1);
-        gtk_label_set_xalign(GTK_LABEL(lbl), 0.0f);
+        Texte tx;
+        texte_initialiser(&tx);
+        tx.texte = g_strdup(t);
+        tx.type = TEXTE_NORMAL;
+        tx.alignement = TEXTE_ALIGN_LEFT;
+        tx.taille.largeur = 700;
+        GtkWidget *lbl = texte_creer(&tx);
         conteneur_ajouter(&sb, lbl);
     }
     gtk_box_append(GTK_BOX(root_widget), wsb);
