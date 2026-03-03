@@ -1,5 +1,5 @@
-#include "../widgets/headers/champ_texte.h"
-#include "../widgets/headers/conteneur.h"
+#include "../../widgets/headers/champ_texte.h"
+#include "../../widgets/headers/conteneur.h"
 #include <gtk/gtk.h>
 #include <stdio.h>
 

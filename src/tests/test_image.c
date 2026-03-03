@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-#include "image.h"
+#include "../../widgets/headers/image.h"
 
 static void activate(GtkApplication *app, gpointer user_data)
 {

@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
-#include "../widgets/headers/fenetre.h"
-#include "../widgets/headers/conteneur.h"
-#include "../widgets/headers/texte.h"
+#include "../../widgets/headers/fenetre.h"
+#include "../../widgets/headers/conteneur.h"
+#include "../../widgets/headers/texte.h"
 #include <stdio.h>
 
 static void on_activate(GtkApplication *app, gpointer user_data)
