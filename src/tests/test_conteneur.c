@@ -65,6 +65,21 @@ static GtkWidget *make_colored_btn(const char *label_text, const char *color)
     return bouton_creer(&b);
 }
 
+/* Helper : crée un bouton large (pour tester hexpand) */
+static GtkWidget *make_expanded_btn(const char *label_text, const char *color)
+{
+    Bouton b;
+    bouton_initialiser(&b);
+    b.texte = (char *)label_text;
+    b.style.bg_normal = (char *)color;
+    b.style.bg_hover = "#555555";
+    b.style.fg_normal = "white";
+    b.taille.mode = TAILLE_FIXE; // ← TAILLE_FIXE pour occuper l'espace
+    b.taille.largeur = 200;      // ← largeur fixe large
+    b.taille.hauteur = -1;       // ← hauteur automatique
+    return bouton_creer(&b);
+}
+
 static void on_activate(GtkApplication *app, gpointer user_data)
 {
     /* ================================================================
@@ -274,7 +289,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
      * 6. EXPANSION DES ENFANTS  (enfants_hexpand / enfants_vexpand)
      * ---------------------------------------------------------------- */
     conteneur_ajouter(&root, make_title("<b><big>6. enfants_hexpand / enfants_vexpand</big></b>"));
-    conteneur_ajouter(&root, make_desc("hexpand=FALSE (gauche) — boutons restent compacts\nhexpand=TRUE (droite) — boutons s'étirent"));
+    conteneur_ajouter(&root, make_desc("hexpand=FALSE (gauche) — boutons compacts  |  hexpand=TRUE (droite) — boutons larges (TAILLE_FIXE 200px)"));
 
     Conteneur row_exp;
     conteneur_initialiser(&row_exp);
@@ -309,15 +324,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     exp_true.padding.haut = exp_true.padding.bas =
         exp_true.padding.gauche = exp_true.padding.droite = 6;
     GtkWidget *w_exp_true = conteneur_creer(&exp_true);
-    // Apply hexpand manually to the children for this demo
-    GtkWidget *b1 = make_colored_btn("Btn1", "#1B5E20");
-    GtkWidget *b2 = make_colored_btn("Btn2", "#1B5E20");
-    gtk_widget_set_hexpand(b1, TRUE);
-    gtk_widget_set_halign(b1, GTK_ALIGN_FILL);
-    gtk_widget_set_hexpand(b2, TRUE);
-    gtk_widget_set_halign(b2, GTK_ALIGN_FILL);
-    conteneur_ajouter(&exp_true, b1);
-    conteneur_ajouter(&exp_true, b2);
+    conteneur_ajouter(&exp_true, make_expanded_btn("Btn1", "#1B5E20")); // ← Bouton TAILLE_FIXE
+    conteneur_ajouter(&exp_true, make_expanded_btn("Btn2", "#1B5E20")); // ← Bouton TAILLE_FIXE
 
     conteneur_ajouter(&row_exp, w_exp_false);
     conteneur_ajouter(&row_exp, w_exp_true);
