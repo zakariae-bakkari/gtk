@@ -19,7 +19,7 @@ static void image_apply_css(Image *cfg)
                "  border: %dpx solid %s;\n",
                cfg->style.epaisseur_bordure,
                cfg->style.couleur_bordure);
-   }
+            }
 
    int leg_size = cfg->legende_taille_px > 0 ? cfg->legende_taille_px : 11;
    const char *leg_color = cfg->legende_couleur ? cfg->legende_couleur : "#7f8c8d";
@@ -57,7 +57,6 @@ static void image_apply_css(Image *cfg)
    g_object_unref(provider);
 }
 
-// ====================== HELPERS ======================
 
 static GtkAlign widget_align_to_gtk(WidgetAlignment align)
 {
@@ -113,7 +112,6 @@ static void image_load_source(Image *cfg)
    }
 }
 
-// ====================== CYCLE DE VIE ======================
 
 void image_initialiser(Image *cfg)
 {
@@ -140,28 +138,17 @@ void image_initialiser(Image *cfg)
    widget_style_init(&cfg->style);
 }
 
-/**
- * Crée le widget et retourne cfg->container (GtkBox vertical).
- *
- * Structure interne :
- *   GtkBox (vertical, spacing=0)
- *   ├── GtkPicture  (cfg->widget)
- *   └── GtkLabel    (cfg->label_legende, caché si aucune légende)
- */
 GtkWidget *image_creer(Image *cfg)
 {
    if (!cfg)
       return NULL;
-
    /* --- Container vertical --- */
    cfg->container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
    gtk_widget_set_halign(cfg->container, widget_align_to_gtk(cfg->halign));
    gtk_widget_set_hexpand(cfg->container, cfg->halign == WIDGET_ALIGN_FILL);
-
    /* --- GtkPicture --- */
    cfg->widget = gtk_picture_new();
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "image");
-
    /* Fit mode */
    switch (cfg->fit_mode)
    {
@@ -178,15 +165,11 @@ GtkWidget *image_creer(Image *cfg)
       gtk_picture_set_content_fit(GTK_PICTURE(cfg->widget), GTK_CONTENT_FIT_CONTAIN);
       break;
    }
-
    gtk_picture_set_can_shrink(GTK_PICTURE(cfg->widget), cfg->can_shrink);
    gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
-
    /* Dimensions */
    if (cfg->width > 0 || cfg->height > 0)
-      gtk_widget_set_size_request(cfg->widget,
-                                  cfg->width > 0 ? cfg->width : -1,
-                                  cfg->height > 0 ? cfg->height : -1);
+      gtk_widget_set_size_request(cfg->widget, cfg->width > 0 ? cfg->width : -1, cfg->height > 0 ? cfg->height : -1);
 
    if (cfg->halign == WIDGET_ALIGN_FILL)
    {
@@ -198,29 +181,22 @@ GtkWidget *image_creer(Image *cfg)
       gtk_widget_set_hexpand(cfg->widget, FALSE);
       gtk_widget_set_halign(cfg->widget, widget_align_to_gtk(cfg->halign));
    }
-
    /* Charger la source */
    image_load_source(cfg);
-
    /* --- Label de légende --- */
    cfg->label_legende = gtk_label_new(cfg->legende ? cfg->legende : "");
-
    char lbl_id[256];
    snprintf(lbl_id, sizeof(lbl_id), "%s_legende", cfg->id_css ? cfg->id_css : "image");
    gtk_widget_set_name(cfg->label_legende, lbl_id);
-
    gtk_label_set_xalign(GTK_LABEL(cfg->label_legende), 0.5f); /* centré sous l'image */
    gtk_label_set_wrap(GTK_LABEL(cfg->label_legende), TRUE);
    gtk_widget_set_hexpand(cfg->label_legende, TRUE);
    gtk_widget_set_visible(cfg->label_legende, cfg->legende != NULL);
-
    /* --- Assemblage --- */
    gtk_box_append(GTK_BOX(cfg->container), cfg->widget);
    gtk_box_append(GTK_BOX(cfg->container), cfg->label_legende);
-
    /* --- CSS --- */
    image_apply_css(cfg);
-
    return cfg->container;
 }
 
@@ -238,7 +214,6 @@ void image_free(Image *cfg)
    memset(cfg, 0, sizeof(Image));
 }
 
-// ====================== SETTERS ======================
 
 void image_set_from_file(Image *cfg, const char *file_path)
 {

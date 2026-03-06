@@ -24,7 +24,6 @@ static void _conteneur_appliquer_css(GtkWidget *widget, Conteneur *config)
     GtkCssProvider *provider = gtk_css_provider_new();
     char css_data[1024] = ""; // Buffer plus grand pour contenir tout le CSS
     char style_body[1024] = "";
-
     // 1. Construction du corps du style
     if (config->couleur_fond)
     {
@@ -32,7 +31,6 @@ static void _conteneur_appliquer_css(GtkWidget *widget, Conteneur *config)
         snprintf(buf, 64, "background-color: %s; ", config->couleur_fond);
         strcat(style_body, buf);
     }
-
     if (config->bordure_largeur > 0 && config->bordure_couleur)
     {
         char buf[128];
@@ -46,7 +44,6 @@ static void _conteneur_appliquer_css(GtkWidget *widget, Conteneur *config)
         snprintf(buf, 64, "border-radius: %dpx; ", config->bordure_rayon);
         strcat(style_body, buf);
     }
-
     // Application du padding via CSS (plus fiable pour les GtkBox en GTK4 que les propriétés widget)
     if (config->padding.haut > 0 || config->padding.gauche > 0)
     {
@@ -56,7 +53,6 @@ static void _conteneur_appliquer_css(GtkWidget *widget, Conteneur *config)
                  config->padding.bas, config->padding.gauche);
         strcat(style_body, buf);
     }
-
     // 2. Si on a du style à appliquer
     if (strlen(style_body) > 0)
     {
@@ -69,7 +65,6 @@ static void _conteneur_appliquer_css(GtkWidget *widget, Conteneur *config)
                                        GTK_STYLE_PROVIDER(provider),
                                        GTK_STYLE_PROVIDER_PRIORITY_USER);
     }
-
     g_object_unref(provider);
 }
 
@@ -181,15 +176,11 @@ GtkWidget *conteneur_creer(Conteneur *config)
 
         // Ajouter le conteneur dans la zone de défilement
         gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(config->scroll_widget), config->widget);
-
         // Le widget à retourner devient la ScrolledWindow
         top_widget = config->scroll_widget;
-
         // Appliquer les propriétés de dimension et alignement au widget scrollable
         if (config->taille.largeur != -1 || config->taille.hauteur != -1)
-        {
-            gtk_widget_set_size_request(top_widget, config->taille.largeur, config->taille.hauteur);
-        }
+        { gtk_widget_set_size_request(top_widget, config->taille.largeur, config->taille.hauteur);}
 
         gtk_widget_set_halign(top_widget, _convertir_align(config->align_x));
         gtk_widget_set_valign(top_widget, _convertir_align(config->align_y));
@@ -200,13 +191,10 @@ GtkWidget *conteneur_creer(Conteneur *config)
         gtk_widget_set_margin_end(top_widget, config->marges.droite);
 
         if (config->id_css)
-        {
-            gtk_widget_set_name(top_widget, config->id_css);
-        }
+        { gtk_widget_set_name(top_widget, config->id_css); }
     }
     else
-    {
-        // Pas de scrolling - configuration normale
+    {   // Pas de scrolling - configuration normale
         gtk_widget_set_size_request(config->widget, config->taille.largeur, config->taille.hauteur);
         gtk_widget_set_halign(config->widget, _convertir_align(config->align_x));
         gtk_widget_set_valign(config->widget, _convertir_align(config->align_y));
@@ -221,10 +209,8 @@ GtkWidget *conteneur_creer(Conteneur *config)
             gtk_widget_set_name(config->widget, config->id_css);
         }
     }
-
     // Style CSS (appliqué au conteneur principal, pas à la scrolled window)
     _conteneur_appliquer_css(config->widget, config);
-
     return top_widget;
 }
 
@@ -234,10 +220,6 @@ void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
         return;
 
     gtk_box_append(GTK_BOX(config->widget), enfant);
-
-    // The container's enfants_hexpand/vexpand are just defaults
-    // They don't override what the child widget has already set
-    // This allows buttons and other widgets to control their own expansion
 }
 
 // Scrolling configuration helper functions

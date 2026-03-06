@@ -67,17 +67,14 @@ static void _bouton_appliquer_css(Bouton *config)
              "  box-shadow: none;\n"
              "  text-shadow: none;\n"
              "}\n"
-
              /* Hover state */
              "button#%s:hover {\n"
              "  background-color: %s;\n"
              "}\n"
-
              /* Active/pressed state */
              "button#%s:active {\n"
              "  background-color: %s;\n"
              "}\n"
-
              /* Label color */
              "button#%s label {\n"
              "  color: %s;\n"
@@ -111,16 +108,15 @@ static void _bouton_appliquer_css(Bouton *config)
 
              config->id_css,
              config->style.fg_normal);
-
     gtk_css_provider_load_from_string(provider, css);
 
     gtk_style_context_add_provider(
         gtk_widget_get_style_context(config->widget),
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_USER);
-
     g_object_unref(provider);
 }
+
 void bouton_initialiser(Bouton *config)
 {
     if (!config)
@@ -158,18 +154,13 @@ GtkWidget *bouton_creer(Bouton *config)
 {
     if (!config)
         return NULL;
-
     config->widget = gtk_button_new();
-
-    // Important : On définit le nom CSS avant d'appliquer le style
     gtk_widget_set_name(config->widget, config->id_css);
-
     GtkWidget *box = gtk_box_new(
         (config->pos_icone == ICONE_HAUT || config->pos_icone == ICONE_BAS)
             ? GTK_ORIENTATION_VERTICAL
             : GTK_ORIENTATION_HORIZONTAL,
         config->espacement_icone);
-
     // Content inside the box should be centered
     gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
@@ -189,78 +180,12 @@ GtkWidget *bouton_creer(Bouton *config)
                 gtk_box_append(GTK_BOX(box), gtk_label_new(config->texte));
         }
     }
-    else
-    {
-        gtk_box_append(GTK_BOX(box), gtk_label_new(config->texte));
-    }
+    else{ gtk_box_append(GTK_BOX(box), gtk_label_new(config->texte)); }
 
     gtk_button_set_child(GTK_BUTTON(config->widget), box);
 
-    /* --- Appliquer le mode de dimensionnement --- */
-    switch (config->taille.mode)
-    {
-    case TAILLE_AUTO:
-        // Laisser le bouton se dimensionner automatiquement (défaut GTK)
-        // Les parametres largeur/hauteur sont ignores
-        gtk_widget_set_size_request(config->widget, -1, -1);
-        // NO hexpand for AUTO mode - button stays compact
-        gtk_widget_set_hexpand(config->widget, FALSE);
-        gtk_widget_set_halign(config->widget, GTK_ALIGN_CENTER);
-        break;
-
-    case TAILLE_FIXE:
-        // Dimensions exactes specifiees
-        if (config->taille.largeur > 0 && config->taille.hauteur > 0)
-        {
-            gtk_widget_set_size_request(config->widget,
-                                        config->taille.largeur,
-                                        config->taille.hauteur);
-        }
-        else if (config->taille.largeur > 0)
-        {
-            gtk_widget_set_size_request(config->widget,
-                                        config->taille.largeur,
-                                        -1);
-        }
-        else if (config->taille.hauteur > 0)
-        {
-            gtk_widget_set_size_request(config->widget,
-                                        -1,
-                                        config->taille.hauteur);
-        }
-
-        // For FIXED mode: only expand for "wide" buttons (>200px)
-        // Small buttons stay at their fixed size
-        if (config->taille.largeur > 200)
-        {
-            gtk_widget_set_hexpand(config->widget, TRUE);
-            gtk_widget_set_halign(config->widget, GTK_ALIGN_FILL);
-        }
-        else
-        {
-            gtk_widget_set_hexpand(config->widget, FALSE);
-            gtk_widget_set_halign(config->widget, GTK_ALIGN_CENTER);
-        }
-        gtk_widget_set_vexpand(config->widget, FALSE);
-        gtk_widget_set_valign(config->widget, GTK_ALIGN_CENTER);
-        break;
-
-    case TAILLE_FIT_CONTENT:
-        // Ajuster au contenu avec dimensions minimales optionnelles
-        gtk_widget_set_size_request(config->widget,
-                                    config->taille.largeur_min > 0 ? config->taille.largeur_min : -1,
-                                    config->taille.hauteur_min > 0 ? config->taille.hauteur_min : -1);
-        // FIT_CONTENT doesn't expand
-        gtk_widget_set_hexpand(config->widget, FALSE);
-        gtk_widget_set_halign(config->widget, GTK_ALIGN_CENTER);
-        break;
-
-    default:
-        gtk_widget_set_size_request(config->widget, -1, -1);
-        gtk_widget_set_hexpand(config->widget, FALSE);
-        gtk_widget_set_halign(config->widget, GTK_ALIGN_CENTER);
-        break;
-    }
+    /* --- Appliquer le mode de dimensionnement via la fonction dédiée --- */
+    bouton_set_taille(config, config->taille.mode, config->taille.largeur, config->taille.hauteur);
 
     if (config->tooltip)
         gtk_widget_set_tooltip_text(config->widget, config->tooltip);
@@ -280,13 +205,6 @@ void bouton_set_texte(Bouton *config, const char *nouveau_texte)
     // La mise à jour du texte nécessiterait de recréer le contenu du bouton
 }
 
-/**
- * Change la taille du bouton dynamiquement après sa création
- * @param config : Structure du bouton
- * @param mode : Mode de dimensionnement (AUTO, FIXE, FIT_CONTENT)
- * @param largeur : Largeur en pixels (ignorée en mode AUTO)
- * @param hauteur : Hauteur en pixels (ignorée en mode AUTO)
- */
 void bouton_set_taille(Bouton *config, BoutonTailleMode mode, int largeur, int hauteur)
 {
     if (!config || !config->widget)
@@ -335,38 +253,22 @@ void bouton_set_taille(Bouton *config, BoutonTailleMode mode, int largeur, int h
     }
 }
 
-/**
- * Change uniquement la largeur du bouton
- * Utile pour les boutons avec hauteur automatique
- * @param config : Structure du bouton
- * @param largeur : Largeur en pixels
- */
 void bouton_set_largeur(Bouton *config, int largeur)
 {
     if (!config || !config->widget)
         return;
     if (config->taille.mode == TAILLE_AUTO)
-    {
         config->taille.mode = TAILLE_FIXE;
-    }
-    config->taille.largeur = largeur;
-    gtk_widget_set_size_request(config->widget, largeur, config->taille.hauteur);
+
+    bouton_set_taille(config, config->taille.mode, largeur, config->taille.hauteur);
 }
 
-/**
- * Change uniquement la hauteur du bouton
- * Utile pour les boutons avec largeur automatique
- * @param config : Structure du bouton
- * @param hauteur : Hauteur en pixels
- */
 void bouton_set_hauteur(Bouton *config, int hauteur)
 {
     if (!config || !config->widget)
         return;
     if (config->taille.mode == TAILLE_AUTO)
-    {
         config->taille.mode = TAILLE_FIXE;
-    }
-    config->taille.hauteur = hauteur;
-    gtk_widget_set_size_request(config->widget, config->taille.largeur, hauteur);
+
+    bouton_set_taille(config, config->taille.mode, config->taille.largeur, hauteur);
 }
