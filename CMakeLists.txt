@@ -21,16 +21,18 @@ add_executable(gtk
         widgets/sources/champ_nombre.c
         widgets/sources/champ_select.c
         widgets/sources/champ_zone_texte.c
+        widgets/sources/slider.c
         # App
         #        src/main.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
-        src/tests/test_conteneur.c
+        # src/tests/test_conteneur.c
         #        src/tests/test_buttons.c
         #        src/tests/test_texte.c
         #        src/tests/test_image.c
         #        src/tests/test_champ_nombre.c
+        src/tests/test_slider.c
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
