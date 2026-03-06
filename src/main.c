@@ -161,7 +161,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     Fenetre win;
     fenetre_initialiser(&win);
-    win.title = "ZCode — Demo Widgets";
+    win.title = "Demo Widgets";
     win.taille.width = 720;
     win.taille.height = 540;
     win.resizable = TRUE;
@@ -194,14 +194,15 @@ static void activate(GtkApplication *app, gpointer user_data)
     menu.style.bg_item_hover = "#e0b030";
     menu.style.fg_item_hover = "#000000";
     menu.style.rayon_item = 4;
+    menu.style.rayon_arrondi = 0;
     menu.style.gras = TRUE;
 
     // Item "menu"
     MenuItem *m_menu = menu_item_creer("menu", "menu", NULL, MENU_ITEM_NORMAL);
 
     // Item "sous menu >" avec sous-menu vertical
-    MenuItem *m_sousmenu = menu_item_creer("sousmenu", "sous menu >", NULL, MENU_ITEM_NORMAL);
-    m_sousmenu->sous_menu_orientation = MENU_VERTICAL;
+    MenuItem *m_sousmenu = menu_item_creer("sousmenu", "sous menu", NULL, MENU_ITEM_NORMAL);
+    m_sousmenu->sous_menu_orientation = MENU_HORIZONTAL;
     menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm1", "sous item 1", NULL, MENU_ITEM_NORMAL));
     menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm2", "sous item 2", NULL, MENU_ITEM_NORMAL));
     menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm3", "sous item 3", NULL, MENU_ITEM_NORMAL));
@@ -262,7 +263,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Texte t1b;
     texte_initialiser(&t1b);
-    t1b.type = TEXTE_NORMAL;
+    t1b.type = TEXTE_H1;
     t1b.texte = "text h1 : form1";
     t1b.couleur_texte = "#555555";
     conteneur_ajouter(&col1_ct, texte_creer(&t1b));
@@ -427,7 +428,7 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Texte t2b;
     texte_initialiser(&t2b);
-    t2b.type = TEXTE_NORMAL;
+    t2b.type = TEXTE_H1;
     t2b.texte = "text h1 : form2";
     t2b.couleur_texte = "#555555";
     conteneur_ajouter(&col2_ct, texte_creer(&t2b));
@@ -497,12 +498,24 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&col2_ct, lbl_range_section);
 
     // --- SLIDER (range) ---
-    Slider sld;
-    slider_initialiser(&sld);
-    sld.id_css = "sld_main";
-    sld.on_change = on_slider_change; // GtkRange "value-changed"
-    sld.size.width = 200;
-    conteneur_ajouter(&col2_ct, slider_creer(&sld));
+    Slider *sld = g_new0(Slider, 1);
+    slider_initialiser(sld);
+    sld->id_css = "sld_main";
+    sld->min = 0;
+    sld->max = 100;
+    sld->valeur = 40;
+    sld->step = 1;
+    sld->digits = 0;
+    sld->afficher_valeur = TRUE;
+    sld->afficher_label = TRUE;
+    sld->orientation = SLIDER_HORIZONTAL;
+    sld->on_change = on_slider_change;
+    sld->user_data = "range";
+    sld->size.width = 220;
+    GtkWidget *w_sld = slider_creer(sld);
+    g_signal_connect_swapped(w_sld, "destroy", G_CALLBACK(slider_free), sld);
+    g_signal_connect(w_sld, "destroy", G_CALLBACK(g_free), sld);
+    conteneur_ajouter(&col2_ct, w_sld);
 
     // =========================================================================
     // AFFICHAGE
