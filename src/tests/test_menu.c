@@ -18,7 +18,6 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ========== FENETRE ==========
    Fenetre fenetre;
    fenetre_initialiser(&fenetre);
-   fenetre.app = app;
    fenetre.title = "Test Menu — Démo Complète";
    fenetre.taille.width = 900;
    fenetre.taille.height = 700;
@@ -55,31 +54,65 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    gtk_label_set_xalign(GTK_LABEL(lbl1), 0.0f);
    conteneur_ajouter(&main_ct, lbl1);
 
-   Menu menu_h;
-   menu_initialiser(&menu_h);
-   menu_h.id_css = "menu_principal";
-   menu_h.orientation = MENU_HORIZONTAL;
-   menu_h.espacement = 4;
-   menu_h.on_click = on_menu_click;
+   Menu *menu_h = g_new0(Menu, 1);
+   menu_initialiser(menu_h);
+   menu_h->id_css = "menu_principal";
+   menu_h->orientation = MENU_HORIZONTAL;
+   menu_h->espacement = 4;
+   menu_h->on_click = on_menu_click;
 
    /* Item 1 : Accueil (simple, actif par défaut) */
-   MenuItem *i_accueil = menu_item_creer("accueil", "Accueil",
-                                         "go-home-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *i_accueil = g_new0(MenuItem, 1);
+   i_accueil->id = "accueil";
+   i_accueil->texte = "Accueil";
+   i_accueil->nom_icone = "go-home-symbolic";
+   i_accueil->type = MENU_ITEM_NORMAL;
    i_accueil->tooltip = g_strdup("Retour à l'accueil");
-   menu_ajouter_item(&menu_h, i_accueil);
+   menu_ajouter_item(menu_h, i_accueil);
 
    /* Item 2 : Fichier → sous-menu vertical */
-   MenuItem *i_fichier = menu_item_creer("fichier", "Fichier",
-                                         "document-open-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *i_fichier = g_new0(MenuItem, 1);
+   i_fichier->id = "fichier";
+   i_fichier->texte = "Fichier";
+   i_fichier->nom_icone = "document-open-symbolic";
+   i_fichier->type = MENU_ITEM_NORMAL;
    i_fichier->sous_menu_orientation = MENU_VERTICAL;
 
-   MenuItem *si_nouveau = menu_item_creer("fichier_nouveau", "Nouveau", "document-new-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_ouvrir = menu_item_creer("fichier_ouvrir", "Ouvrir", "document-open-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_sep1 = menu_item_separateur();
-   MenuItem *si_sauv = menu_item_creer("fichier_sauv", "Sauvegarder", "document-save-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_sauv_as = menu_item_creer("fichier_sauv_as", "Sauvegarder sous…", "document-save-as-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_sep2 = menu_item_separateur();
-   MenuItem *si_quitter = menu_item_creer("fichier_quitter", "Quitter", "application-exit-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *si_nouveau = g_new0(MenuItem, 1);
+   si_nouveau->id = "fichier_nouveau";
+   si_nouveau->texte = "Nouveau";
+   si_nouveau->nom_icone = "document-new-symbolic";
+   si_nouveau->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_ouvrir = g_new0(MenuItem, 1);
+   si_ouvrir->id = "fichier_ouvrir";
+   si_ouvrir->texte = "Ouvrir";
+   si_ouvrir->nom_icone = "document-open-symbolic";
+   si_ouvrir->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_sep1 = g_new0(MenuItem, 1);
+   si_sep1->type = MENU_ITEM_SEPARATEUR;
+
+   MenuItem *si_sauv = g_new0(MenuItem, 1);
+   si_sauv->id = "fichier_sauv";
+   si_sauv->texte = "Sauvegarder";
+   si_sauv->nom_icone = "document-save-symbolic";
+   si_sauv->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_sauv_as = g_new0(MenuItem, 1);
+   si_sauv_as->id = "fichier_sauv_as";
+   si_sauv_as->texte = "Sauvegarder sous…";
+   si_sauv_as->nom_icone = "document-save-as-symbolic";
+   si_sauv_as->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_sep2 = g_new0(MenuItem, 1);
+   si_sep2->type = MENU_ITEM_SEPARATEUR;
+
+   MenuItem *si_quitter = g_new0(MenuItem, 1);
+   si_quitter->id = "fichier_quitter";
+   si_quitter->texte = "Quitter";
+   si_quitter->nom_icone = "application-exit-symbolic";
+   si_quitter->type = MENU_ITEM_NORMAL;
 
    menu_item_ajouter_sous_item(i_fichier, si_nouveau);
    menu_item_ajouter_sous_item(i_fichier, si_ouvrir);
@@ -88,19 +121,48 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    menu_item_ajouter_sous_item(i_fichier, si_sauv_as);
    menu_item_ajouter_sous_item(i_fichier, si_sep2);
    menu_item_ajouter_sous_item(i_fichier, si_quitter);
-   menu_ajouter_item(&menu_h, i_fichier);
+   menu_ajouter_item(menu_h, i_fichier);
 
    /* Item 3 : Edition → sous-menu vertical */
-   MenuItem *i_edition = menu_item_creer("edition", "Édition",
-                                         "edit-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *i_edition = g_new0(MenuItem, 1);
+   i_edition->id = "edition";
+   i_edition->texte = "Édition";
+   i_edition->nom_icone = "edit-symbolic";
+   i_edition->type = MENU_ITEM_NORMAL;
    i_edition->sous_menu_orientation = MENU_VERTICAL;
 
-   MenuItem *si_couper = menu_item_creer("edition_couper", "Couper", "edit-cut-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_copier = menu_item_creer("edition_copier", "Copier", "edit-copy-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_coller = menu_item_creer("edition_coller", "Coller", "edit-paste-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_sep3 = menu_item_separateur();
-   MenuItem *si_annuler = menu_item_creer("edition_annuler", "Annuler", "edit-undo-symbolic", MENU_ITEM_DESACTIVE);
-   MenuItem *si_retablir = menu_item_creer("edition_retablir", "Rétablir", "edit-redo-symbolic", MENU_ITEM_DESACTIVE);
+   MenuItem *si_couper = g_new0(MenuItem, 1);
+   si_couper->id = "edition_couper";
+   si_couper->texte = "Couper";
+   si_couper->nom_icone = "edit-cut-symbolic";
+   si_couper->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_copier = g_new0(MenuItem, 1);
+   si_copier->id = "edition_copier";
+   si_copier->texte = "Copier";
+   si_copier->nom_icone = "edit-copy-symbolic";
+   si_copier->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_coller = g_new0(MenuItem, 1);
+   si_coller->id = "edition_coller";
+   si_coller->texte = "Coller";
+   si_coller->nom_icone = "edit-paste-symbolic";
+   si_coller->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_sep3 = g_new0(MenuItem, 1);
+   si_sep3->type = MENU_ITEM_SEPARATEUR;
+
+   MenuItem *si_annuler = g_new0(MenuItem, 1);
+   si_annuler->id = "edition_annuler";
+   si_annuler->texte = "Annuler";
+   si_annuler->nom_icone = "edit-undo-symbolic";
+   si_annuler->type = MENU_ITEM_DESACTIVE;
+
+   MenuItem *si_retablir = g_new0(MenuItem, 1);
+   si_retablir->id = "edition_retablir";
+   si_retablir->texte = "Rétablir";
+   si_retablir->nom_icone = "edit-redo-symbolic";
+   si_retablir->type = MENU_ITEM_DESACTIVE;
 
    menu_item_ajouter_sous_item(i_edition, si_couper);
    menu_item_ajouter_sous_item(i_edition, si_copier);
@@ -108,32 +170,55 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    menu_item_ajouter_sous_item(i_edition, si_sep3);
    menu_item_ajouter_sous_item(i_edition, si_annuler);
    menu_item_ajouter_sous_item(i_edition, si_retablir);
-   menu_ajouter_item(&menu_h, i_edition);
+   menu_ajouter_item(menu_h, i_edition);
 
    /* Item 4 : Affichage → sous-menu HORIZONTAL (cas mixte) */
-   MenuItem *i_affichage = menu_item_creer("affichage", "Affichage",
-                                           "video-display-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *i_affichage = g_new0(MenuItem, 1);
+   i_affichage->id = "affichage";
+   i_affichage->texte = "Affichage";
+   i_affichage->nom_icone = "video-display-symbolic";
+   i_affichage->type = MENU_ITEM_NORMAL;
    i_affichage->sous_menu_orientation = MENU_HORIZONTAL;
 
-   MenuItem *si_zoom_in = menu_item_creer("zoom_in", "Zoom +", "zoom-in-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_zoom_out = menu_item_creer("zoom_out", "Zoom −", "zoom-out-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *si_zoom_fit = menu_item_creer("zoom_fit", "Ajuster", "zoom-fit-best-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *si_zoom_in = g_new0(MenuItem, 1);
+   si_zoom_in->id = "zoom_in";
+   si_zoom_in->texte = "Zoom +";
+   si_zoom_in->nom_icone = "zoom-in-symbolic";
+   si_zoom_in->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_zoom_out = g_new0(MenuItem, 1);
+   si_zoom_out->id = "zoom_out";
+   si_zoom_out->texte = "Zoom −";
+   si_zoom_out->nom_icone = "zoom-out-symbolic";
+   si_zoom_out->type = MENU_ITEM_NORMAL;
+
+   MenuItem *si_zoom_fit = g_new0(MenuItem, 1);
+   si_zoom_fit->id = "zoom_fit";
+   si_zoom_fit->texte = "Ajuster";
+   si_zoom_fit->nom_icone = "zoom-fit-best-symbolic";
+   si_zoom_fit->type = MENU_ITEM_NORMAL;
 
    menu_item_ajouter_sous_item(i_affichage, si_zoom_in);
    menu_item_ajouter_sous_item(i_affichage, si_zoom_out);
    menu_item_ajouter_sous_item(i_affichage, si_zoom_fit);
-   menu_ajouter_item(&menu_h, i_affichage);
+   menu_ajouter_item(menu_h, i_affichage);
 
    /* Séparateur dans la barre principale */
-   menu_ajouter_item(&menu_h, menu_item_separateur());
+   MenuItem *sep_h = g_new0(MenuItem, 1);
+   sep_h->type = MENU_ITEM_SEPARATEUR;
+   menu_ajouter_item(menu_h, sep_h);
 
    /* Item 5 : À propos (désactivé) */
-   MenuItem *i_aide = menu_item_creer("aide", "Aide",
-                                      "help-about-symbolic", MENU_ITEM_NORMAL);
-   menu_ajouter_item(&menu_h, i_aide);
+   MenuItem *i_aide = g_new0(MenuItem, 1);
+   i_aide->id = "aide";
+   i_aide->texte = "Aide";
+   i_aide->nom_icone = "help-about-symbolic";
+   i_aide->type = MENU_ITEM_NORMAL;
+   menu_ajouter_item(menu_h, i_aide);
 
-   GtkWidget *w_menu_h = menu_creer(&menu_h);
-   menu_set_item_actif(&menu_h, "accueil");
+   GtkWidget *w_menu_h = menu_creer(menu_h);
+   menu_set_item_actif(menu_h, "accueil");
+   g_signal_connect_swapped(w_menu_h, "destroy", G_CALLBACK(menu_free), menu_h);
    conteneur_ajouter(&main_ct, w_menu_h);
 
    // =====================================================================
@@ -156,62 +241,108 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    conteneur_ajouter(&main_ct, row_box);
 
    /* --- Menu vertical (sidebar) --- */
-   Menu menu_v;
-   menu_initialiser(&menu_v);
-   menu_v.id_css = "menu_sidebar";
-   menu_v.orientation = MENU_VERTICAL;
-   menu_v.espacement = 2;
-   menu_v.size.width = 200;
-   menu_v.on_click = on_menu_click;
+   Menu *menu_v = g_new0(Menu, 1);
+   menu_initialiser(menu_v);
+   menu_v->id_css = "menu_sidebar";
+   menu_v->orientation = MENU_VERTICAL;
+   menu_v->espacement = 2;
+   menu_v->size.width = 200;
+   menu_v->on_click = on_menu_click;
 
    /* Couleurs claires pour contraster */
-   g_free(menu_v.style.bg_barre);
-   g_free(menu_v.style.bg_item_hover);
-   g_free(menu_v.style.bg_item_actif);
-   menu_v.style.bg_barre = g_strdup("#1a252f");
-   menu_v.style.bg_item_hover = g_strdup("#2c3e50");
-   menu_v.style.bg_item_actif = g_strdup("#e74c3c");
+   g_free(menu_v->style.bg_barre);
+   g_free(menu_v->style.bg_item_hover);
+   g_free(menu_v->style.bg_item_actif);
+   menu_v->style.bg_barre = g_strdup("#1a252f");
+   menu_v->style.bg_item_hover = g_strdup("#2c3e50");
+   menu_v->style.bg_item_actif = g_strdup("#e74c3c");
 
-   MenuItem *v_tableau = menu_item_creer("tableau_bord", "Tableau de bord",
-                                         "view-grid-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *v_utilisateurs = menu_item_creer("utilisateurs", "Utilisateurs",
-                                              "system-users-symbolic", MENU_ITEM_NORMAL);
-   /* Sous-menu vertical des utilisateurs */
+   MenuItem *v_tableau = g_new0(MenuItem, 1);
+   v_tableau->id = "tableau_bord";
+   v_tableau->texte = "Tableau de bord";
+   v_tableau->nom_icone = "view-grid-symbolic";
+   v_tableau->type = MENU_ITEM_NORMAL;
+
+   MenuItem *v_utilisateurs = g_new0(MenuItem, 1);
+   v_utilisateurs->id = "utilisateurs";
+   v_utilisateurs->texte = "Utilisateurs";
+   v_utilisateurs->nom_icone = "system-users-symbolic";
+   v_utilisateurs->type = MENU_ITEM_NORMAL;
    v_utilisateurs->sous_menu_orientation = MENU_VERTICAL;
-   menu_item_ajouter_sous_item(v_utilisateurs,
-                               menu_item_creer("util_liste", "Liste", "view-list-symbolic", MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(v_utilisateurs,
-                               menu_item_creer("util_ajouter", "Ajouter", "list-add-symbolic", MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(v_utilisateurs,
-                               menu_item_creer("util_groupes", "Groupes", "folder-symbolic", MENU_ITEM_NORMAL));
 
-   MenuItem *v_rapports = menu_item_creer("rapports", "Rapports",
-                                          "x-office-spreadsheet-symbolic", MENU_ITEM_NORMAL);
-   /* Sous-menu HORIZONTAL des rapports */
+   MenuItem *v_util_liste = g_new0(MenuItem, 1);
+   v_util_liste->id = "util_liste";
+   v_util_liste->texte = "Liste";
+   v_util_liste->nom_icone = "view-list-symbolic";
+   v_util_liste->type = MENU_ITEM_NORMAL;
+
+   MenuItem *v_util_ajouter = g_new0(MenuItem, 1);
+   v_util_ajouter->id = "util_ajouter";
+   v_util_ajouter->texte = "Ajouter";
+   v_util_ajouter->nom_icone = "list-add-symbolic";
+   v_util_ajouter->type = MENU_ITEM_NORMAL;
+
+   MenuItem *v_util_groupes = g_new0(MenuItem, 1);
+   v_util_groupes->id = "util_groupes";
+   v_util_groupes->texte = "Groupes";
+   v_util_groupes->nom_icone = "folder-symbolic";
+   v_util_groupes->type = MENU_ITEM_NORMAL;
+
+   menu_item_ajouter_sous_item(v_utilisateurs, v_util_liste);
+   menu_item_ajouter_sous_item(v_utilisateurs, v_util_ajouter);
+   menu_item_ajouter_sous_item(v_utilisateurs, v_util_groupes);
+
+   MenuItem *v_rapports = g_new0(MenuItem, 1);
+   v_rapports->id = "rapports";
+   v_rapports->texte = "Rapports";
+   v_rapports->nom_icone = "x-office-spreadsheet-symbolic";
+   v_rapports->type = MENU_ITEM_NORMAL;
    v_rapports->sous_menu_orientation = MENU_HORIZONTAL;
-   menu_item_ajouter_sous_item(v_rapports,
-                               menu_item_creer("rap_jour", "Jour", NULL, MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(v_rapports,
-                               menu_item_creer("rap_semaine", "Semaine", NULL, MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(v_rapports,
-                               menu_item_creer("rap_mois", "Mois", NULL, MENU_ITEM_NORMAL));
 
-   MenuItem *v_sep = menu_item_separateur();
+   MenuItem *v_rap_jour = g_new0(MenuItem, 1);
+   v_rap_jour->id = "rap_jour";
+   v_rap_jour->texte = "Jour";
+   v_rap_jour->type = MENU_ITEM_NORMAL;
 
-   MenuItem *v_parametres = menu_item_creer("parametres", "Paramètres",
-                                            "preferences-system-symbolic", MENU_ITEM_NORMAL);
-   MenuItem *v_deconnexion = menu_item_creer("deconnexion", "Déconnexion",
-                                             "system-log-out-symbolic", MENU_ITEM_NORMAL);
+   MenuItem *v_rap_semaine = g_new0(MenuItem, 1);
+   v_rap_semaine->id = "rap_semaine";
+   v_rap_semaine->texte = "Semaine";
+   v_rap_semaine->type = MENU_ITEM_NORMAL;
 
-   menu_ajouter_item(&menu_v, v_tableau);
-   menu_ajouter_item(&menu_v, v_utilisateurs);
-   menu_ajouter_item(&menu_v, v_rapports);
-   menu_ajouter_item(&menu_v, v_sep);
-   menu_ajouter_item(&menu_v, v_parametres);
-   menu_ajouter_item(&menu_v, v_deconnexion);
+   MenuItem *v_rap_mois = g_new0(MenuItem, 1);
+   v_rap_mois->id = "rap_mois";
+   v_rap_mois->texte = "Mois";
+   v_rap_mois->type = MENU_ITEM_NORMAL;
 
-   GtkWidget *w_menu_v = menu_creer(&menu_v);
-   menu_set_item_actif(&menu_v, "tableau_bord");
+   menu_item_ajouter_sous_item(v_rapports, v_rap_jour);
+   menu_item_ajouter_sous_item(v_rapports, v_rap_semaine);
+   menu_item_ajouter_sous_item(v_rapports, v_rap_mois);
+
+   MenuItem *v_sep = g_new0(MenuItem, 1);
+   v_sep->type = MENU_ITEM_SEPARATEUR;
+
+   MenuItem *v_parametres = g_new0(MenuItem, 1);
+   v_parametres->id = "parametres";
+   v_parametres->texte = "Paramètres";
+   v_parametres->nom_icone = "preferences-system-symbolic";
+   v_parametres->type = MENU_ITEM_NORMAL;
+
+   MenuItem *v_deconnexion = g_new0(MenuItem, 1);
+   v_deconnexion->id = "deconnexion";
+   v_deconnexion->texte = "Déconnexion";
+   v_deconnexion->nom_icone = "system-log-out-symbolic";
+   v_deconnexion->type = MENU_ITEM_NORMAL;
+
+   menu_ajouter_item(menu_v, v_tableau);
+   menu_ajouter_item(menu_v, v_utilisateurs);
+   menu_ajouter_item(menu_v, v_rapports);
+   menu_ajouter_item(menu_v, v_sep);
+   menu_ajouter_item(menu_v, v_parametres);
+   menu_ajouter_item(menu_v, v_deconnexion);
+
+   GtkWidget *w_menu_v = menu_creer(menu_v);
+   menu_set_item_actif(menu_v, "tableau_bord");
+   g_signal_connect_swapped(w_menu_v, "destroy", G_CALLBACK(menu_free), menu_v);
    gtk_box_append(GTK_BOX(row_box), w_menu_v);
 
    /* --- Zone de contenu à droite --- */
@@ -247,57 +378,104 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    gtk_label_set_xalign(GTK_LABEL(lbl3), 0.0f);
    conteneur_ajouter(&main_ct, lbl3);
 
-   Menu menu_clair;
-   menu_initialiser(&menu_clair);
-   menu_clair.id_css = "menu_clair";
-   menu_clair.orientation = MENU_HORIZONTAL;
-   menu_clair.espacement = 4;
-   menu_clair.on_click = on_menu_click;
+   Menu *menu_clair = g_new0(Menu, 1);
+   menu_initialiser(menu_clair);
+   menu_clair->id_css = "menu_clair";
+   menu_clair->orientation = MENU_HORIZONTAL;
+   menu_clair->espacement = 4;
+   menu_clair->on_click = on_menu_click;
 
    /* Thème clair */
-   g_free(menu_clair.style.bg_barre);
-   g_free(menu_clair.style.fg_item);
-   g_free(menu_clair.style.bg_item_hover);
-   g_free(menu_clair.style.fg_item_hover);
-   g_free(menu_clair.style.bg_item_actif);
-   g_free(menu_clair.style.couleur_separateur);
-   g_free(menu_clair.style.bg_popover);
-   menu_clair.style.bg_barre = g_strdup("#ffffff");
-   menu_clair.style.fg_item = g_strdup("#2c3e50");
-   menu_clair.style.bg_item_hover = g_strdup("#f0f2f5");
-   menu_clair.style.fg_item_hover = g_strdup("#2c3e50");
-   menu_clair.style.bg_item_actif = g_strdup("#3498db");
-   menu_clair.style.couleur_separateur = g_strdup("#dde1e7");
-   menu_clair.style.bg_popover = g_strdup("#ffffff");
-   menu_clair.style.epaisseur_bordure = 1;
-   g_free(menu_clair.style.couleur_bordure);
-   menu_clair.style.couleur_bordure = g_strdup("#dde1e7");
+   g_free(menu_clair->style.bg_barre);
+   g_free(menu_clair->style.fg_item);
+   g_free(menu_clair->style.bg_item_hover);
+   g_free(menu_clair->style.fg_item_hover);
+   g_free(menu_clair->style.bg_item_actif);
+   g_free(menu_clair->style.couleur_separateur);
+   g_free(menu_clair->style.bg_popover);
+   menu_clair->style.bg_barre = g_strdup("#ffffff");
+   menu_clair->style.fg_item = g_strdup("#2c3e50");
+   menu_clair->style.bg_item_hover = g_strdup("#f0f2f5");
+   menu_clair->style.fg_item_hover = g_strdup("#2c3e50");
+   menu_clair->style.bg_item_actif = g_strdup("#3498db");
+   menu_clair->style.couleur_separateur = g_strdup("#dde1e7");
+   menu_clair->style.bg_popover = g_strdup("#ffffff");
+   menu_clair->style.epaisseur_bordure = 1;
+   g_free(menu_clair->style.couleur_bordure);
+   menu_clair->style.couleur_bordure = g_strdup("#dde1e7");
 
-   menu_ajouter_item(&menu_clair, menu_item_creer("c_accueil", "Accueil", "go-home-symbolic", MENU_ITEM_NORMAL));
-   menu_ajouter_item(&menu_clair, menu_item_creer("c_produits", "Produits", "applications-symbolic", MENU_ITEM_NORMAL));
+   MenuItem *c_accueil = g_new0(MenuItem, 1);
+   c_accueil->id = "c_accueil";
+   c_accueil->texte = "Accueil";
+   c_accueil->nom_icone = "go-home-symbolic";
+   c_accueil->type = MENU_ITEM_NORMAL;
+   menu_ajouter_item(menu_clair, c_accueil);
 
-   MenuItem *c_services = menu_item_creer("c_services", "Services", NULL, MENU_ITEM_NORMAL);
+   MenuItem *c_produits = g_new0(MenuItem, 1);
+   c_produits->id = "c_produits";
+   c_produits->texte = "Produits";
+   c_produits->nom_icone = "applications-symbolic";
+   c_produits->type = MENU_ITEM_NORMAL;
+   menu_ajouter_item(menu_clair, c_produits);
+
+   MenuItem *c_services = g_new0(MenuItem, 1);
+   c_services->id = "c_services";
+   c_services->texte = "Services";
+   c_services->type = MENU_ITEM_NORMAL;
    c_services->sous_menu_orientation = MENU_VERTICAL;
-   menu_item_ajouter_sous_item(c_services, menu_item_creer("c_svc_web", "Web", "web-browser-symbolic", MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(c_services, menu_item_creer("c_svc_mobile", "Mobile", "phone-symbolic", MENU_ITEM_NORMAL));
-   menu_item_ajouter_sous_item(c_services, menu_item_creer("c_svc_cloud", "Cloud", "cloud-symbolic", MENU_ITEM_NORMAL));
-   menu_ajouter_item(&menu_clair, c_services);
 
-   menu_ajouter_item(&menu_clair, menu_item_separateur());
-   menu_ajouter_item(&menu_clair, menu_item_creer("c_contact", "Contact", "mail-send-symbolic", MENU_ITEM_NORMAL));
-   menu_ajouter_item(&menu_clair, menu_item_creer("c_desactive", "Désactivé", NULL, MENU_ITEM_DESACTIVE));
+   MenuItem *c_svc_web = g_new0(MenuItem, 1);
+   c_svc_web->id = "c_svc_web";
+   c_svc_web->texte = "Web";
+   c_svc_web->nom_icone = "web-browser-symbolic";
+   c_svc_web->type = MENU_ITEM_NORMAL;
 
-   GtkWidget *w_menu_clair = menu_creer(&menu_clair);
+   MenuItem *c_svc_mobile = g_new0(MenuItem, 1);
+   c_svc_mobile->id = "c_svc_mobile";
+   c_svc_mobile->texte = "Mobile";
+   c_svc_mobile->nom_icone = "phone-symbolic";
+   c_svc_mobile->type = MENU_ITEM_NORMAL;
+
+   MenuItem *c_svc_cloud = g_new0(MenuItem, 1);
+   c_svc_cloud->id = "c_svc_cloud";
+   c_svc_cloud->texte = "Cloud";
+   c_svc_cloud->nom_icone = "cloud-symbolic";
+   c_svc_cloud->type = MENU_ITEM_NORMAL;
+
+   menu_item_ajouter_sous_item(c_services, c_svc_web);
+   menu_item_ajouter_sous_item(c_services, c_svc_mobile);
+   menu_item_ajouter_sous_item(c_services, c_svc_cloud);
+   menu_ajouter_item(menu_clair, c_services);
+
+   MenuItem *sep_clair = g_new0(MenuItem, 1);
+   sep_clair->type = MENU_ITEM_SEPARATEUR;
+   menu_ajouter_item(menu_clair, sep_clair);
+
+   MenuItem *c_contact = g_new0(MenuItem, 1);
+   c_contact->id = "c_contact";
+   c_contact->texte = "Contact";
+   c_contact->nom_icone = "mail-send-symbolic";
+   c_contact->type = MENU_ITEM_NORMAL;
+   menu_ajouter_item(menu_clair, c_contact);
+
+   MenuItem *c_desactive = g_new0(MenuItem, 1);
+   c_desactive->id = "c_desactive";
+   c_desactive->texte = "Désactivé";
+   c_desactive->type = MENU_ITEM_DESACTIVE;
+   menu_ajouter_item(menu_clair, c_desactive);
+
+   GtkWidget *w_menu_clair = menu_creer(menu_clair);
    gtk_widget_set_margin_start(w_menu_clair, 20);
    gtk_widget_set_margin_end(w_menu_clair, 20);
-   menu_set_item_actif(&menu_clair, "c_accueil");
+   menu_set_item_actif(menu_clair, "c_accueil");
+   g_signal_connect_swapped(w_menu_clair, "destroy", G_CALLBACK(menu_free), menu_clair);
    conteneur_ajouter(&main_ct, w_menu_clair);
 
    // ========== AFFICHAGE ==========
    printf("[OK] Tous les menus créés avec succès.\n");
-   printf("[OK] Menu horizontal  : %d items\n", menu_h.nb_items);
-   printf("[OK] Menu vertical    : %d items\n", menu_v.nb_items);
-   printf("[OK] Menu clair       : %d items\n", menu_clair.nb_items);
+   printf("[OK] Menu horizontal  : %d items\n", menu_h->nb_items);
+   printf("[OK] Menu vertical    : %d items\n", menu_v->nb_items);
+   printf("[OK] Menu clair       : %d items\n", menu_clair->nb_items);
 
    gtk_window_present(GTK_WINDOW(window));
 }

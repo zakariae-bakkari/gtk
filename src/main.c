@@ -183,44 +183,100 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // MENU HORIZONTAL
     // =========================================================================
-    Menu menu;
-    menu_initialiser(&menu);
-    menu.orientation = MENU_HORIZONTAL;
-    menu.on_click = on_menu_click;
-    menu.espacement = 4;
-    menu.style.bg_barre = "#f0c040";
-    menu.style.fg_item = "#2c2c2c";
-    menu.style.bg_item = "transparent";
-    menu.style.bg_item_hover = "#e0b030";
-    menu.style.fg_item_hover = "#000000";
-    menu.style.rayon_item = 4;
-    menu.style.rayon_arrondi = 0;
-    menu.style.gras = TRUE;
+    Menu *menu = g_new0(Menu, 1);
+    menu_initialiser(menu);
+    menu->orientation = MENU_HORIZONTAL; // barre principale horizontale
+    menu->on_click = on_menu_click;
+    menu->espacement = 4;
+    menu->style.bg_barre = "#f0c040";
+    menu->style.fg_item = "#2c2c2c";
+    menu->style.bg_item = "transparent";
+    menu->style.bg_item_hover = "#e0b030";
+    menu->style.fg_item_hover = "#000000";
+    menu->style.rayon_item = 4;
+    menu->style.gras = TRUE;
 
-    // Item "menu"
-    MenuItem *m_menu = menu_item_creer("menu", "menu", NULL, MENU_ITEM_NORMAL);
+    // ── Item simple "menu" ─────────────────────────────────────────────────
+    MenuItem *m_menu = g_new0(MenuItem, 1);
+    m_menu->id = "menu";
+    m_menu->texte = "menu";
+    m_menu->type = MENU_ITEM_NORMAL;
+    m_menu->sous_menu_orientation = MENU_VERTICAL;
 
-    // Item "sous menu >" avec sous-menu vertical
-    MenuItem *m_sousmenu = menu_item_creer("sousmenu", "sous menu", NULL, MENU_ITEM_NORMAL);
-    m_sousmenu->sous_menu_orientation = MENU_HORIZONTAL;
-    menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm1", "sous item 1", NULL, MENU_ITEM_NORMAL));
-    menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm2", "sous item 2", NULL, MENU_ITEM_NORMAL));
-    menu_item_ajouter_sous_item(m_sousmenu, menu_item_creer("sm3", "sous item 3", NULL, MENU_ITEM_NORMAL));
+    // ── Item "sous menu >" — sous-menu HORIZONTAL ─────────────────────────
+    MenuItem *m_sousmenu = g_new0(MenuItem, 1);
+    m_sousmenu->id = "sousmenu";
+    m_sousmenu->texte = "sous menu >";
+    m_sousmenu->type = MENU_ITEM_NORMAL;
+    m_sousmenu->sous_menu_orientation = MENU_HORIZONTAL; // ← horizontal
 
-    // Item "sous menu vertical"
-    MenuItem *m_vertical = menu_item_creer("vertical", "sous menu vertical", NULL, MENU_ITEM_NORMAL);
-    menu_item_ajouter_sous_item(m_vertical, menu_item_creer("sv1", "option A", NULL, MENU_ITEM_NORMAL));
-    menu_item_ajouter_sous_item(m_vertical, menu_item_creer("sv2", "option B", NULL, MENU_ITEM_NORMAL));
+    MenuItem *sm1 = g_new0(MenuItem, 1);
+    sm1->id = "sm1";
+    sm1->texte = "sous item 1";
+    sm1->type = MENU_ITEM_NORMAL;
+    sm1->sous_menu_orientation = MENU_VERTICAL;
 
-    // Item "item"
-    MenuItem *m_item = menu_item_creer("item", "item", NULL, MENU_ITEM_NORMAL);
+    MenuItem *sm2 = g_new0(MenuItem, 1);
+    sm2->id = "sm2";
+    sm2->texte = "sous item 2";
+    sm2->type = MENU_ITEM_NORMAL;
+    sm2->sous_menu_orientation = MENU_VERTICAL;
 
-    menu_ajouter_item(&menu, m_menu);
-    menu_ajouter_item(&menu, m_sousmenu);
-    menu_ajouter_item(&menu, m_vertical);
-    menu_ajouter_item(&menu, m_item);
+    MenuItem *sm3 = g_new0(MenuItem, 1);
+    sm3->id = "sm3";
+    sm3->texte = "sous item 3";
+    sm3->type = MENU_ITEM_NORMAL;
+    sm3->sous_menu_orientation = MENU_VERTICAL;
 
-    conteneur_ajouter(&root_ct, menu_creer(&menu));
+    menu_item_ajouter_sous_item(m_sousmenu, sm1);
+    menu_item_ajouter_sous_item(m_sousmenu, sm2);
+    menu_item_ajouter_sous_item(m_sousmenu, menu_item_separateur());
+    menu_item_ajouter_sous_item(m_sousmenu, sm3);
+
+    // ── Item "sous menu vertical" ──────────────────────────────────────────
+    MenuItem *m_vertical = g_new0(MenuItem, 1);
+    m_vertical->id = "vertical";
+    m_vertical->texte = "sous menu vertical";
+    m_vertical->type = MENU_ITEM_NORMAL;
+    m_vertical->sous_menu_orientation = MENU_VERTICAL;
+
+    MenuItem *sv1 = g_new0(MenuItem, 1);
+    sv1->id = "sv1";
+    sv1->texte = "option A";
+    sv1->type = MENU_ITEM_NORMAL;
+    sv1->sous_menu_orientation = MENU_VERTICAL;
+
+    MenuItem *sv2 = g_new0(MenuItem, 1);
+    sv2->id = "sv2";
+    sv2->texte = "option B";
+    sv2->type = MENU_ITEM_NORMAL;
+    sv2->sous_menu_orientation = MENU_VERTICAL;
+
+    MenuItem *sv3 = g_new0(MenuItem, 1);
+    sv3->id = "sv3";
+    sv3->texte = "option C";
+    sv3->type = MENU_ITEM_NORMAL;
+    sv3->sous_menu_orientation = MENU_VERTICAL;
+
+    menu_item_ajouter_sous_item(m_vertical, sv1);
+    menu_item_ajouter_sous_item(m_vertical, sv2);
+    menu_item_ajouter_sous_item(m_vertical, sv3);
+
+    // ── Item simple "item" ────────────────────────────────────────────────
+    MenuItem *m_item = g_new0(MenuItem, 1);
+    m_item->id = "item";
+    m_item->texte = "item";
+    m_item->type = MENU_ITEM_NORMAL;
+    m_item->sous_menu_orientation = MENU_VERTICAL;
+
+    menu_ajouter_item(menu, m_menu);
+    menu_ajouter_item(menu, m_sousmenu);
+    menu_ajouter_item(menu, m_vertical);
+    menu_ajouter_item(menu, m_item);
+
+    GtkWidget *menu_widget = menu_creer(menu);
+    g_signal_connect_swapped(menu_widget, "destroy", G_CALLBACK(menu_free), menu);
+    conteneur_ajouter(&root_ct, menu_widget);
 
     // =========================================================================
     // CONTAINER MAIN (horizontal : colonne gauche + colonne droite)
