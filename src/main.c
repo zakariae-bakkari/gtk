@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
+#include "export_xml.h"
 #include "../widgets/headers/fenetre.h"
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/texte.h"
@@ -338,7 +339,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampTexte *ct_nom = g_new0(ChampTexte, 1);
     champ_texte_initialiser(ct_nom);
     ct_nom->id_css = "inp_nom";
-    ct_nom->placeholder = "";
+    ct_nom->placeholder = g_strdup("");
     ct_nom->on_change = on_texte_change; // GtkEditable "changed"
     ct_nom->user_data = "nom";
     GtkWidget *w_nom = champ_texte_creer(ct_nom);
@@ -354,7 +355,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     ChampMotDePasse *ct_mdp = g_new0(ChampMotDePasse, 1);
     champ_motdepasse_initialiser(ct_mdp);
     ct_mdp->id_css = "inp_mdp";
-    ct_mdp->placeholder = "";
+    ct_mdp->placeholder = g_strdup("");
     ct_mdp->on_change = on_texte_change; // GtkEditable "changed"
     ct_mdp->user_data = "mot_passe";
     GtkWidget *w_mdp = champ_motdepasse_creer(ct_mdp);
@@ -573,6 +574,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     g_signal_connect(w_sld, "destroy", G_CALLBACK(g_free), sld);
     conteneur_ajouter(&col2_ct, w_sld);
 
+    // generation du fichier
+    generer_fichier_interface(&win, ct_nom, ct_mdp, ct_sel, ct_zt, sld);
     // =========================================================================
     // AFFICHAGE
     // =========================================================================

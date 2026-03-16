@@ -26,6 +26,8 @@ add_executable(gtk
         widgets/sources/dialog.c
         # App
         src/main.c
+        widgets/headers/export_xml.h
+        widgets/sources/export_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
