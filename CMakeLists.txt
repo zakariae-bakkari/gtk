@@ -25,7 +25,8 @@ add_executable(gtk
         widgets/sources/menu.c
         widgets/sources/dialog.c
         # App
-        src/main.c
+        # src/main.c
+        src/tests/test_fenetre.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
