@@ -30,9 +30,12 @@ typedef struct
    gpointer user_data;
 } ChampZoneTexte;
 
+// fonctions d'initialisation et gestion de la mémoire
 void champ_zone_texte_initialiser(ChampZoneTexte *cfg);
 GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg);
+void champ_zone_texte_free(ChampZoneTexte *cfg);
 
+// fonctions d'accès et de modification (getters/setters)
 char *champ_zone_texte_get_texte(ChampZoneTexte *cfg);
 void champ_zone_texte_set_texte(ChampZoneTexte *cfg, const char *texte);
 void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len);
@@ -40,6 +43,5 @@ void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, gboolean wrap_word);
 void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, gboolean sensitive);
 void champ_zone_texte_set_required(ChampZoneTexte *cfg, gboolean required);
 void champ_zone_texte_set_size(ChampZoneTexte *cfg, int width, int height);
-void champ_zone_texte_free(ChampZoneTexte *cfg);
 
 #endif // CHAMP_ZONE_TEXTE_H

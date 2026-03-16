@@ -1,4 +1,4 @@
-#include "../widgets/headers/champ_texte.h"
+#include "../../widgets/headers/champ_texte.h"
 #include <gtk/gtk.h>
 #include <stdio.h>
 

@@ -1,10 +1,10 @@
-#include "../widgets/headers/fenetre.h"
-#include "../widgets/headers/conteneur.h"
-#include "../widgets/headers/champ_motdepasse.h"
-#include "../widgets/headers/champ_nombre.h"
-#include "../widgets/headers/champ_select.h"
-#include "../widgets/headers/champ_zone_texte.h"
-#include "../widgets/headers/champ_texte.h"
+#include "../../widgets/headers/fenetre.h"
+#include "../../widgets/headers/conteneur.h"
+#include "../../widgets/headers/champ_motdepasse.h"
+#include "../../widgets/headers/champ_nombre.h"
+#include "../../widgets/headers/champ_select.h"
+#include "../../widgets/headers/champ_zone_texte.h"
+#include "../../widgets/headers/champ_texte.h"
 #include <stdio.h>
 
 /* --- Callbacks pour les evenements --- */

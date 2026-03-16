@@ -1,9 +1,9 @@
 #include <gtk/gtk.h>
-#include "../widgets/headers/fenetre.h"
-#include "../widgets/headers/conteneur.h"
-#include "../widgets/headers/bouton.h"
-#include "../widgets/headers/bouton_radio.h"
-#include "../widgets/headers/bouton_checklist.h"
+#include "../../widgets/headers/fenetre.h"
+#include "../../widgets/headers/conteneur.h"
+#include "../../widgets/headers/bouton.h"
+#include "../../widgets/headers/bouton_radio.h"
+#include "../../widgets/headers/bouton_checklist.h"
 #include <stdio.h>
 
 // Callback functions for button testing
