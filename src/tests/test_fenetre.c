@@ -620,6 +620,7 @@ static void test_set_scrollable(GtkWidget *w, gpointer data) {
 // ════════════════════════════════════════════════════════════
 // FENÊTRE PRINCIPALE
 // ════════════════════════════════════════════════════════════
+static void activate(GtkApplication *app, gpointer user_data) {
     init_chemins();
 
     static Fenetre principale;
