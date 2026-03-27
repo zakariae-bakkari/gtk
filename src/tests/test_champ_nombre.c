@@ -1,7 +1,9 @@
 #include "../../widgets/headers/champ_nombre.h"
 #include "../../widgets/headers/conteneur.h"
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // ---------------- Callbacks de test ----------------
 static void cb_change(GtkEditable *editable, gpointer user_data)
@@ -58,13 +60,18 @@ static void activate(GtkApplication *app, gpointer user_data)
    // Style commun utilisant WidgetStyle de common.h
    WidgetStyle st = {0};
    widget_style_init(&st);
-   st.bg_normal = g_strdup("#ffffff");
-   st.fg_normal = g_strdup("#2c3e50");
+   st.bg_normal = malloc(strlen("#ffffff") + 1);
+   strcpy(st.bg_normal, "#ffffff");
+   st.fg_normal = malloc(strlen("#2c3e50") + 1);
+   strcpy(st.fg_normal, "#2c3e50");
    st.epaisseur_bordure = 2;
-   st.couleur_bordure = g_strdup("#3498db");
+   st.couleur_bordure = malloc(strlen("#3498db") + 1);
+   strcpy(st.couleur_bordure, "#3498db");
    st.rayon_arrondi = 8;
-   st.couleur_bordure_error = g_strdup("#e74c3c");
-   st.bg_error = g_strdup("#fff1f2");
+   st.couleur_bordure_error = malloc(strlen("#e74c3c") + 1);
+   strcpy(st.couleur_bordure_error, "#e74c3c");
+   st.bg_error = malloc(strlen("#fff1f2") + 1);
+   strcpy(st.bg_error, "#fff1f2");
 
    // ======================================================
    // 1) Champ nombre entier (0-100)
@@ -73,7 +80,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
    ChampNombre nombre1;
    champ_nombre_initialiser(&nombre1);
-   nombre1.id_css = "nombre1";
+   g_free(nombre1.id_css);
+   nombre1.id_css = malloc(strlen("nombre1") + 1);
+   strcpy(nombre1.id_css, "nombre1");
    nombre1.min = 0.0;
    nombre1.max = 100.0;
    nombre1.step = 1.0;
@@ -95,7 +104,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
    ChampNombre nombre2;
    champ_nombre_initialiser(&nombre2);
-   nombre2.id_css = "nombre2";
+   g_free(nombre2.id_css);
+   nombre2.id_css = malloc(strlen("nombre2") + 1);
+   strcpy(nombre2.id_css, "nombre2");
    nombre2.min = -10.0;
    nombre2.max = 10.0;
    nombre2.step = 0.1;
@@ -117,7 +128,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
    ChampNombre nombre3;
    champ_nombre_initialiser(&nombre3);
-   nombre3.id_css = "nombre3";
+   g_free(nombre3.id_css);
+   nombre3.id_css = malloc(strlen("nombre3") + 1);
+   strcpy(nombre3.id_css, "nombre3");
    nombre3.min = 0.0;
    nombre3.max = 10.0;
    nombre3.step = 1.0;

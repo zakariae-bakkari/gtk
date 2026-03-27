@@ -1,4 +1,5 @@
 #include "../headers/slider.h"
+#include <stdlib.h>
 #include <string.h>
 
 // ====================== CSS ======================
@@ -150,7 +151,8 @@ void slider_initialiser(Slider *cfg)
       return;
    memset(cfg, 0, sizeof(Slider));
 
-   cfg->id_css = "slider";
+   cfg->id_css = malloc(strlen("slider") + 1);
+   strcpy(cfg->id_css, "slider");
    cfg->min = 0.0;
    cfg->max = 100.0;
    cfg->step = 1.0;
@@ -170,9 +172,12 @@ void slider_initialiser(Slider *cfg)
    cfg->size.height = 0;
 
    widget_style_init(&cfg->style);
-   cfg->style.bg_normal = g_strdup("#3498db");
-   cfg->style.fg_normal = g_strdup("#2980b9");
-   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
+   cfg->style.bg_normal = malloc(strlen("#3498db") + 1);
+   strcpy(cfg->style.bg_normal, "#3498db");
+   cfg->style.fg_normal = malloc(strlen("#2980b9") + 1);
+   strcpy(cfg->style.fg_normal, "#2980b9");
+   cfg->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+   strcpy(cfg->style.couleur_bordure, "#bdc3c7");
    cfg->style.rayon_arrondi = 4;
 }
 
@@ -376,6 +381,7 @@ void slider_free(Slider *cfg)
    if (!cfg)
       return;
 
+   g_free(cfg->id_css);
    widget_style_free(&cfg->style);
    memset(cfg, 0, sizeof(Slider));
 }

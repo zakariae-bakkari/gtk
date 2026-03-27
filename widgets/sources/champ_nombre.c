@@ -1,4 +1,5 @@
 #include "../headers/champ_nombre.h"
+#include <stdlib.h>
 #include <string.h>
 
 static void champ_nombre_apply_css(ChampNombre *cfg)
@@ -100,7 +101,8 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    if (!cfg)
       return;
    memset(cfg, 0, sizeof(ChampNombre));
-   cfg->id_css = "champ_nombre";
+   cfg->id_css = malloc(strlen("champ_nombre") + 1);
+   strcpy(cfg->id_css, "champ_nombre");
    cfg->min = 0.0;
    cfg->max = 100.0;
    cfg->step = 1.0;
@@ -114,11 +116,16 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    // Initialize style using common function
    widget_style_init(&cfg->style);
    // Override defaults for number field
-   cfg->style.bg_normal = g_strdup("white");
-   cfg->style.fg_normal = g_strdup("#2c3e50");
-   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
-   cfg->style.couleur_bordure_error = g_strdup("#e74c3c");
-   cfg->style.bg_error = g_strdup("#fff1f2");
+   cfg->style.bg_normal = malloc(strlen("white") + 1);
+   strcpy(cfg->style.bg_normal, "white");
+   cfg->style.fg_normal = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_normal, "#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+   strcpy(cfg->style.couleur_bordure, "#bdc3c7");
+   cfg->style.couleur_bordure_error = malloc(strlen("#e74c3c") + 1);
+   strcpy(cfg->style.couleur_bordure_error, "#e74c3c");
+   cfg->style.bg_error = malloc(strlen("#fff1f2") + 1);
+   strcpy(cfg->style.bg_error, "#fff1f2");
    cfg->style.rayon_arrondi = 4;
 }
 
@@ -271,6 +278,9 @@ void champ_nombre_free(ChampNombre *cfg)
 {
    if (!cfg)
       return;
+
+   g_free(cfg->id_css);
+   cfg->id_css = NULL;
 
    // Free the style structure
    widget_style_free(&cfg->style);

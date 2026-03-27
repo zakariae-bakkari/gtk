@@ -1,4 +1,5 @@
 #include "../headers/champ_texte.h"
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -283,7 +284,8 @@ void champ_texte_initialiser(ChampTexte *cfg)
       return;
    memset(cfg, 0, sizeof(ChampTexte));
 
-   cfg->id_css = "champ_texte";
+   cfg->id_css = malloc(strlen("champ_texte") + 1);
+   strcpy(cfg->id_css, "champ_texte");
    cfg->placeholder = NULL;
    cfg->max_length = 0;
    cfg->required = FALSE;
@@ -309,9 +311,12 @@ void champ_texte_initialiser(ChampTexte *cfg)
    cfg->erreur_taille_px = 0;    // Utilise 11px par défaut
 
    widget_style_init(&cfg->style);
-   cfg->style.bg_normal = g_strdup("white");
-   cfg->style.fg_normal = g_strdup("#2c3e50");
-   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
+   cfg->style.bg_normal = malloc(strlen("white") + 1);
+   strcpy(cfg->style.bg_normal, "white");
+   cfg->style.fg_normal = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_normal, "#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+   strcpy(cfg->style.couleur_bordure, "#bdc3c7");
    cfg->style.rayon_arrondi = 4;
 }
 
@@ -430,9 +435,20 @@ void champ_texte_set_texte(ChampTexte *cfg, const char *texte)
 
 void champ_texte_set_placeholder(ChampTexte *cfg, const char *ph)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), ph);
+   g_free(cfg->placeholder);
+   if (ph)
+   {
+      cfg->placeholder = malloc(strlen(ph) + 1);
+      strcpy(cfg->placeholder, ph);
+   }
+   else
+   {
+      cfg->placeholder = NULL;
+   }
+   if (cfg->widget)
+      gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), cfg->placeholder);
 }
 
 void champ_texte_set_max_length(ChampTexte *cfg, int max_len)
@@ -541,6 +557,9 @@ void champ_texte_free(ChampTexte *cfg)
 {
    if (!cfg)
       return;
+
+   g_free(cfg->id_css);
+   cfg->id_css = NULL;
 
    if (cfg->placeholder)
    {

@@ -335,9 +335,36 @@ MenuItem *menu_item_creer(const char *id, const char *texte,
                           const char *nom_icone, MenuItemType type)
 {
    MenuItem *item = g_new0(MenuItem, 1);
-   item->id = id ? g_strdup(id) : NULL;
-   item->texte = texte ? g_strdup(texte) : NULL;
-   item->nom_icone = nom_icone ? g_strdup(nom_icone) : NULL;
+   if (id)
+   {
+      item->id = malloc(strlen(id) + 1);
+      strcpy(item->id, id);
+   }
+   else
+   {
+      item->id = NULL;
+   }
+
+   if (texte)
+   {
+      item->texte = malloc(strlen(texte) + 1);
+      strcpy(item->texte, texte);
+   }
+   else
+   {
+      item->texte = NULL;
+   }
+
+   if (nom_icone)
+   {
+      item->nom_icone = malloc(strlen(nom_icone) + 1);
+      strcpy(item->nom_icone, nom_icone);
+   }
+   else
+   {
+      item->nom_icone = NULL;
+   }
+
    item->type = type;
    item->tooltip = NULL;
    item->sous_items = NULL;
@@ -390,7 +417,8 @@ void menu_initialiser(Menu *cfg)
       return;
    memset(cfg, 0, sizeof(Menu));
 
-   cfg->id_css = "menu";
+   cfg->id_css = malloc(strlen("menu") + 1);
+   strcpy(cfg->id_css, "menu");
    cfg->orientation = MENU_HORIZONTAL;
    cfg->espacement = 2;
    cfg->items = NULL;
@@ -400,22 +428,31 @@ void menu_initialiser(Menu *cfg)
    cfg->size.height = 0;
 
    /* Style par défaut — thème sombre */
-   cfg->style.bg_barre = g_strdup("#2c3e50");
-   cfg->style.couleur_bordure = g_strdup("transparent");
+   cfg->style.bg_barre = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.bg_barre, "#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("transparent") + 1);
+   strcpy(cfg->style.couleur_bordure, "transparent");
    cfg->style.epaisseur_bordure = 0;
    cfg->style.rayon_arrondi = 6;
 
-   cfg->style.bg_item = g_strdup("transparent");
-   cfg->style.fg_item = g_strdup("#ecf0f1");
-   cfg->style.bg_item_hover = g_strdup("#3d5166");
-   cfg->style.fg_item_hover = g_strdup("#ffffff");
-   cfg->style.bg_item_actif = g_strdup("#2980b9");
+   cfg->style.bg_item = malloc(strlen("transparent") + 1);
+   strcpy(cfg->style.bg_item, "transparent");
+   cfg->style.fg_item = malloc(strlen("#ecf0f1") + 1);
+   strcpy(cfg->style.fg_item, "#ecf0f1");
+   cfg->style.bg_item_hover = malloc(strlen("#3d5166") + 1);
+   strcpy(cfg->style.bg_item_hover, "#3d5166");
+   cfg->style.fg_item_hover = malloc(strlen("#ffffff") + 1);
+   strcpy(cfg->style.fg_item_hover, "#ffffff");
+   cfg->style.bg_item_actif = malloc(strlen("#2980b9") + 1);
+   strcpy(cfg->style.bg_item_actif, "#2980b9");
    cfg->style.rayon_item = 4;
    cfg->style.taille_texte_px = 0;
    cfg->style.gras = FALSE;
 
-   cfg->style.couleur_separateur = g_strdup("#4a6278");
-   cfg->style.bg_popover = g_strdup("#2c3e50");
+   cfg->style.couleur_separateur = malloc(strlen("#4a6278") + 1);
+   strcpy(cfg->style.couleur_separateur, "#4a6278");
+   cfg->style.bg_popover = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.bg_popover, "#2c3e50");
 }
 
 /**
@@ -580,6 +617,7 @@ void menu_free(Menu *cfg)
       menu_item_free(cfg->items[i]);
 
    g_free(cfg->items);
+   g_free(cfg->id_css);
 
    g_free(cfg->style.bg_barre);
    g_free(cfg->style.couleur_bordure);

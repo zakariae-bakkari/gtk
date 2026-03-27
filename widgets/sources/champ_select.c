@@ -1,4 +1,5 @@
 #include "../headers/champ_select.h"
+#include <stdlib.h>
 #include <string.h>
 
 static void champ_select_apply_css(ChampSelect *cfg)
@@ -98,7 +99,8 @@ void champ_select_initialiser(ChampSelect *cfg)
    if (!cfg)
       return;
    memset(cfg, 0, sizeof(ChampSelect));
-   cfg->id_css = "champ_select";
+   cfg->id_css = malloc(strlen("champ_select") + 1);
+   strcpy(cfg->id_css, "champ_select");
    cfg->model = NULL;
    cfg->selected_index = -1;
    cfg->required = false;
@@ -241,6 +243,9 @@ void champ_select_free(ChampSelect *cfg)
 {
    if (!cfg)
       return;
+
+   g_free(cfg->id_css);
+   cfg->id_css = NULL;
 
    // Free the model if it exists
    if (cfg->model)

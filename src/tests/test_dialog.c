@@ -2,7 +2,9 @@
 #include "../../widgets/headers/fenetre.h"
 #include "../../widgets/headers/conteneur.h"
 #include "../../widgets/headers/dialog.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // ====================== STRUCTURES DE DONNÉES POUR CALLBACKS ======================
 
@@ -67,8 +69,10 @@ static void show_typed_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = info->win;
    cfg->type = info->type;
-   cfg->titre = g_strdup(info->titre);
-   cfg->message = g_strdup(info->msg);
+    cfg->titre = malloc(strlen(info->titre) + 1);
+    strcpy(cfg->titre, info->titre);
+    cfg->message = malloc(strlen(info->msg) + 1);
+    strcpy(cfg->message, info->msg);
    cfg->boutons_preset = DIALOG_BOUTONS_OK;
    cfg->on_reponse = on_reponse;
    cfg->user_data = (gpointer)info->titre;
@@ -84,9 +88,12 @@ static void show_preset_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = info->win;
    cfg->type = DIALOG_INFO;
-   cfg->titre = g_strdup(info->titre);
-   cfg->message = g_strdup("Choisissez une réponse parmi les boutons ci-dessous.\n"
-                           "Le résultat s'affichera dans la console.");
+    cfg->titre = malloc(strlen(info->titre) + 1);
+    strcpy(cfg->titre, info->titre);
+    cfg->message = malloc(strlen("Choisissez une réponse parmi les boutons ci-dessous.\n"
+                                 "Le résultat s'affichera dans la console.") + 1);
+    strcpy(cfg->message, "Choisissez une réponse parmi les boutons ci-dessous.\n"
+                         "Le résultat s'affichera dans la console.");
    cfg->boutons_preset = info->preset;
    cfg->on_reponse = on_reponse;
    cfg->user_data = (gpointer)info->titre;
@@ -102,9 +109,12 @@ static void show_custom_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_AVERTISSEMENT;
-   cfg->titre = g_strdup("Supprimer le fichier ?");
-   cfg->message = g_strdup("Cette action supprimera définitivement le fichier sélectionné.\n"
-                           "Voulez-vous le déplacer dans la corbeille ou le supprimer ?");
+    cfg->titre = malloc(strlen("Supprimer le fichier ?") + 1);
+    strcpy(cfg->titre, "Supprimer le fichier ?");
+    cfg->message = malloc(strlen("Cette action supprimera définitivement le fichier sélectionné.\n"
+                                 "Voulez-vous le déplacer dans la corbeille ou le supprimer ?") + 1);
+    strcpy(cfg->message, "Cette action supprimera définitivement le fichier sélectionné.\n"
+                         "Voulez-vous le déplacer dans la corbeille ou le supprimer ?");
    cfg->on_reponse = on_reponse;
    cfg->user_data = "custom";
 
@@ -124,8 +134,10 @@ static void show_contenu_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_PERSONNALISE;
-   cfg->titre = g_strdup("Renommer le fichier");
-   cfg->message = g_strdup("Entrez le nouveau nom du fichier :");
+    cfg->titre = malloc(strlen("Renommer le fichier") + 1);
+    strcpy(cfg->titre, "Renommer le fichier");
+    cfg->message = malloc(strlen("Entrez le nouveau nom du fichier :") + 1);
+    strcpy(cfg->message, "Entrez le nouveau nom du fichier :");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
    cfg->user_data = "contenu";
@@ -139,8 +151,10 @@ static void show_contenu_cb(GtkButton *btn, gpointer data)
    /* Couleur indigo */
    g_free(cfg->style.bg_header);
    g_free(cfg->style.bg_bouton_principal);
-   cfg->style.bg_header = g_strdup("#5c6bc0");
-   cfg->style.bg_bouton_principal = g_strdup("#5c6bc0");
+    cfg->style.bg_header = malloc(strlen("#5c6bc0") + 1);
+    strcpy(cfg->style.bg_header, "#5c6bc0");
+    cfg->style.bg_bouton_principal = malloc(strlen("#5c6bc0") + 1);
+    strcpy(cfg->style.bg_bouton_principal, "#5c6bc0");
 
    dialog_creer(cfg);
    dialog_afficher(cfg);
@@ -154,9 +168,12 @@ static void show_theme_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_PERSONNALISE;
-   cfg->titre = g_strdup("Thème sombre");
-   cfg->message = g_strdup("Voici un dialog avec un thème entièrement personnalisé.\n"
-                           "Toutes les couleurs sont définies manuellement.");
+    cfg->titre = malloc(strlen("Thème sombre") + 1);
+    strcpy(cfg->titre, "Thème sombre");
+    cfg->message = malloc(strlen("Voici un dialog avec un thème entièrement personnalisé.\n"
+                                 "Toutes les couleurs sont définies manuellement.") + 1);
+    strcpy(cfg->message, "Voici un dialog avec un thème entièrement personnalisé.\n"
+                         "Toutes les couleurs sont définies manuellement.");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
    cfg->user_data = "theme";
@@ -174,18 +191,28 @@ static void show_theme_cb(GtkButton *btn, gpointer data)
    g_free(cfg->style.fg_bouton_secondaire);
    g_free(cfg->style.couleur_bordure);
 
-   cfg->style.bg_header = g_strdup("#1a1a2e");
-   cfg->style.fg_header = g_strdup("#e94560");
-   cfg->style.bg_corps = g_strdup("#16213e");
-   cfg->style.fg_corps = g_strdup("#a8b2d8");
-   cfg->style.bg_footer = g_strdup("#0f3460");
-   cfg->style.bg_bouton_principal = g_strdup("#e94560");
-   cfg->style.fg_bouton_principal = g_strdup("#ffffff");
-   cfg->style.bg_bouton_secondaire = g_strdup("#1a1a2e");
-   cfg->style.fg_bouton_secondaire = g_strdup("#a8b2d8");
+    cfg->style.bg_header = malloc(strlen("#1a1a2e") + 1);
+    strcpy(cfg->style.bg_header, "#1a1a2e");
+    cfg->style.fg_header = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.fg_header, "#e94560");
+    cfg->style.bg_corps = malloc(strlen("#16213e") + 1);
+    strcpy(cfg->style.bg_corps, "#16213e");
+    cfg->style.fg_corps = malloc(strlen("#a8b2d8") + 1);
+    strcpy(cfg->style.fg_corps, "#a8b2d8");
+    cfg->style.bg_footer = malloc(strlen("#0f3460") + 1);
+    strcpy(cfg->style.bg_footer, "#0f3460");
+    cfg->style.bg_bouton_principal = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.bg_bouton_principal, "#e94560");
+    cfg->style.fg_bouton_principal = malloc(strlen("#ffffff") + 1);
+    strcpy(cfg->style.fg_bouton_principal, "#ffffff");
+    cfg->style.bg_bouton_secondaire = malloc(strlen("#1a1a2e") + 1);
+    strcpy(cfg->style.bg_bouton_secondaire, "#1a1a2e");
+    cfg->style.fg_bouton_secondaire = malloc(strlen("#a8b2d8") + 1);
+    strcpy(cfg->style.fg_bouton_secondaire, "#a8b2d8");
    cfg->style.rayon_arrondi = 12;
    cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = g_strdup("#e94560");
+    cfg->style.couleur_bordure = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.couleur_bordure, "#e94560");
 
    dialog_creer(cfg);
    dialog_afficher(cfg);

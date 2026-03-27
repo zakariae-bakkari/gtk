@@ -1,4 +1,5 @@
 #include "../headers/champ_zone_texte.h"
+#include <stdlib.h>
 #include <string.h>
 
 static void champ_zt_apply_css(ChampZoneTexte *cfg)
@@ -105,7 +106,8 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    if (!cfg)
       return;
    memset(cfg, 0, sizeof(ChampZoneTexte));
-   cfg->id_css = "champ_zone_texte";
+   cfg->id_css = malloc(strlen("champ_zone_texte") + 1);
+   strcpy(cfg->id_css, "champ_zone_texte");
    cfg->texte = NULL;
    cfg->max_length = 0;
    cfg->wrap_word = true;
@@ -117,9 +119,12 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    // Initialize style using common function
    widget_style_init(&cfg->style);
    // Override defaults for text area
-   cfg->style.bg_normal = g_strdup("white");
-   cfg->style.fg_normal = g_strdup("#2c3e50");
-   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
+   cfg->style.bg_normal = malloc(strlen("white") + 1);
+   strcpy(cfg->style.bg_normal, "white");
+   cfg->style.fg_normal = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_normal, "#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+   strcpy(cfg->style.couleur_bordure, "#bdc3c7");
    cfg->style.rayon_arrondi = 4;
 }
 
@@ -185,10 +190,23 @@ char *champ_zone_texte_get_texte(ChampZoneTexte *cfg)
 
 void champ_zone_texte_set_texte(ChampZoneTexte *cfg, const char *texte)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(cfg->widget));
-   gtk_text_buffer_set_text(buf, texte ? texte : "", -1);
+   g_free(cfg->texte);
+   if (texte)
+   {
+      cfg->texte = malloc(strlen(texte) + 1);
+      strcpy(cfg->texte, texte);
+   }
+   else
+   {
+      cfg->texte = NULL;
+   }
+   if (cfg->widget)
+   {
+      GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(cfg->widget));
+      gtk_text_buffer_set_text(buf, cfg->texte ? cfg->texte : "", -1);
+   }
 }
 
 void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len)
@@ -256,6 +274,9 @@ void champ_zone_texte_free(ChampZoneTexte *cfg)
 {
    if (!cfg)
       return;
+
+   g_free(cfg->id_css);
+   cfg->id_css = NULL;
 
    // Free the initial text if it was allocated
    g_free(cfg->texte);
