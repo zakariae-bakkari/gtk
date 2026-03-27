@@ -1,4 +1,5 @@
 #include "../headers/image.h"
+#include <stdlib.h>
 #include <string.h>
 
 // ====================== CSS ======================
@@ -119,7 +120,8 @@ void image_initialiser(Image *cfg)
       return;
    memset(cfg, 0, sizeof(Image));
 
-   cfg->id_css = "image";
+   cfg->id_css = malloc(strlen("image") + 1);
+   strcpy(cfg->id_css, "image");
    cfg->source_type = IMAGE_SOURCE_FILE;
    cfg->file_path = NULL;
    cfg->icon_name = NULL;
@@ -209,6 +211,7 @@ void image_free(Image *cfg)
    g_free(cfg->icon_name);
    g_free(cfg->legende);
    g_free(cfg->legende_couleur);
+   g_free(cfg->id_css);
    widget_style_free(&cfg->style);
 
    memset(cfg, 0, sizeof(Image));
@@ -220,7 +223,15 @@ void image_set_from_file(Image *cfg, const char *file_path)
    if (!cfg)
       return;
    g_free(cfg->file_path);
-   cfg->file_path = file_path ? g_strdup(file_path) : NULL;
+   if (file_path)
+   {
+      cfg->file_path = malloc(strlen(file_path) + 1);
+      strcpy(cfg->file_path, file_path);
+   }
+   else
+   {
+      cfg->file_path = NULL;
+   }
    cfg->source_type = IMAGE_SOURCE_FILE;
    if (cfg->widget)
       image_load_source(cfg);
@@ -231,7 +242,15 @@ void image_set_from_icon_name(Image *cfg, const char *icon_name)
    if (!cfg)
       return;
    g_free(cfg->icon_name);
-   cfg->icon_name = icon_name ? g_strdup(icon_name) : NULL;
+   if (icon_name)
+   {
+      cfg->icon_name = malloc(strlen(icon_name) + 1);
+      strcpy(cfg->icon_name, icon_name);
+   }
+   else
+   {
+      cfg->icon_name = NULL;
+   }
    cfg->source_type = IMAGE_SOURCE_ICON_NAME;
    if (cfg->widget)
       image_load_source(cfg);
@@ -289,7 +308,15 @@ void image_set_legende(Image *cfg, const char *legende)
    if (!cfg)
       return;
    g_free(cfg->legende);
-   cfg->legende = legende ? g_strdup(legende) : NULL;
+   if (legende)
+   {
+      cfg->legende = malloc(strlen(legende) + 1);
+      strcpy(cfg->legende, legende);
+   }
+   else
+   {
+      cfg->legende = NULL;
+   }
    if (cfg->label_legende)
    {
       gtk_label_set_text(GTK_LABEL(cfg->label_legende), cfg->legende ? cfg->legende : "");

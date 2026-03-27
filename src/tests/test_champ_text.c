@@ -1,6 +1,8 @@
 #include "../../widgets/headers/champ_texte.h"
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 static void cb_change(GtkEditable *editable, gpointer user_data)
 {
@@ -39,7 +41,9 @@ static void activate(GtkApplication *app, gpointer user_data)
     // --- Un seul ChampTexte ---
     ChampTexte email;
     champtexte_initialiser(&email);
-    email.id_css = "ct-email";
+    g_free(email.id_css);
+    email.id_css = malloc(strlen("ct-email") + 1);
+    strcpy(email.id_css, "ct-email");
 
     champtexte_set_placeholder(&email, "ex: abc@gmail.com");
     champtexte_set_required(&email, TRUE);

@@ -3,6 +3,8 @@
 #include "../../widgets/headers/conteneur.h"
 #include "../../widgets/headers/bouton.h"
 #include "../../widgets/headers/texte.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* Helper : crée un label de titre de section */
 static GtkWidget *make_title(const char *markup)
@@ -481,7 +483,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         snprintf(t, sizeof(t), "Colonne %d (large)", i);
         Texte tx;
         texte_initialiser(&tx);
-        tx.texte = g_strdup(t);
+        tx.texte = malloc(strlen(t) + 1);
+        strcpy(tx.texte, t);
         tx.type = TEXTE_NORMAL;
         tx.alignement = TEXTE_ALIGN_CENTER;
         tx.taille.largeur = 90;
@@ -512,7 +515,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         snprintf(t, sizeof(t), "Ligne %d — texte très large pour forcer le défilement horizontal aussi", i);
         Texte tx;
         texte_initialiser(&tx);
-        tx.texte = g_strdup(t);
+        tx.texte = malloc(strlen(t) + 1);
+        strcpy(tx.texte, t);
         tx.type = TEXTE_NORMAL;
         tx.alignement = TEXTE_ALIGN_LEFT;
         tx.taille.largeur = 700;

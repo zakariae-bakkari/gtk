@@ -1,4 +1,6 @@
 #include "../headers/bouton_radio.h"
+#include "../headers/common.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -45,16 +47,20 @@ void bouton_radio_initialiser(BoutonRadio *config)
       return;
    memset(config, 0, sizeof(BoutonRadio));
 
-   config->id_css = "radio_defaut";
-   config->label = "Option";
+   config->id_css = malloc(strlen("radio_defaut") + 1);
+   strcpy(config->id_css, "radio_defaut");
+   config->label = malloc(strlen("Option") + 1);
+   strcpy(config->label, "Option");
    config->pos_label = RADIO_LABEL_DROITE;
    config->est_actif = false;
    config->sensible = true;
    config->group_leader = NULL;
 
    // Style par défaut
-   config->style.couleur_texte = "#000000";
-   config->style.couleur_texte_hover = "#333333";
+   config->style.couleur_texte = malloc(strlen("#000000") + 1);
+   strcpy(config->style.couleur_texte, "#000000");
+   config->style.couleur_texte_hover = malloc(strlen("#333333") + 1);
+   strcpy(config->style.couleur_texte_hover, "#333333");
    config->style.couleur_point = NULL; // Laisse GTK gérer
    config->style.taille_texte_px = 0;  // Défaut
    config->style.gras = false;

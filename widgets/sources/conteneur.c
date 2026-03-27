@@ -1,5 +1,7 @@
 #include "../headers/conteneur.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Convertisseur interne pour l'alignement GTK */
 static GtkAlign _convertir_align(ConteneurAlignement a)
@@ -107,7 +109,8 @@ void conteneur_initialiser(Conteneur *config)
     config->id_css = NULL;
     config->couleur_fond = NULL;
     config->bordure_largeur = 0;
-    config->bordure_couleur = "black";
+    config->bordure_couleur = malloc(strlen("black") + 1);
+    strcpy(config->bordure_couleur, "black");
     config->bordure_rayon = 0;
 
     // Scrolling defaults

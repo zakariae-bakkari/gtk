@@ -1,4 +1,5 @@
 #include "../headers/common.h"
+#include <stdlib.h>
 #include <string.h>
 #include <glib.h>
 
@@ -48,14 +49,56 @@ void widget_style_copy(WidgetStyle *dest, const WidgetStyle *src)
    widget_style_free(dest);
 
    // Copier les valeurs
-   dest->bg_normal = src->bg_normal ? g_strdup(src->bg_normal) : NULL;
-   dest->fg_normal = src->fg_normal ? g_strdup(src->fg_normal) : NULL;
+   if (src->bg_normal)
+   {
+      dest->bg_normal = malloc(strlen(src->bg_normal) + 1);
+      strcpy(dest->bg_normal, src->bg_normal);
+   }
+   else
+   {
+      dest->bg_normal = NULL;
+   }
+
+   if (src->fg_normal)
+   {
+      dest->fg_normal = malloc(strlen(src->fg_normal) + 1);
+      strcpy(dest->fg_normal, src->fg_normal);
+   }
+   else
+   {
+      dest->fg_normal = NULL;
+   }
    dest->epaisseur_bordure = src->epaisseur_bordure;
-   dest->couleur_bordure = src->couleur_bordure ? g_strdup(src->couleur_bordure) : NULL;
+   if (src->couleur_bordure)
+   {
+      dest->couleur_bordure = malloc(strlen(src->couleur_bordure) + 1);
+      strcpy(dest->couleur_bordure, src->couleur_bordure);
+   }
+   else
+   {
+      dest->couleur_bordure = NULL;
+   }
    dest->rayon_arrondi = src->rayon_arrondi;
    dest->gras = src->gras;
    dest->italique = src->italique;
    dest->taille_texte_px = src->taille_texte_px;
-   dest->couleur_bordure_error = src->couleur_bordure_error ? g_strdup(src->couleur_bordure_error) : NULL;
-   dest->bg_error = src->bg_error ? g_strdup(src->bg_error) : NULL;
+   if (src->couleur_bordure_error)
+   {
+      dest->couleur_bordure_error = malloc(strlen(src->couleur_bordure_error) + 1);
+      strcpy(dest->couleur_bordure_error, src->couleur_bordure_error);
+   }
+   else
+   {
+      dest->couleur_bordure_error = NULL;
+   }
+
+   if (src->bg_error)
+   {
+      dest->bg_error = malloc(strlen(src->bg_error) + 1);
+      strcpy(dest->bg_error, src->bg_error);
+   }
+   else
+   {
+      dest->bg_error = NULL;
+   }
 }

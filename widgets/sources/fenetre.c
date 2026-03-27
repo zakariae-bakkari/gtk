@@ -1,4 +1,5 @@
 #include "../headers/fenetre.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -175,7 +176,8 @@ void fenetre_initialiser(Fenetre *config)
     if (!config) return;
     config->wind             = NULL;
     config->scroll_widget    = NULL;
-    config->title            = "Application";
+    config->title = malloc(strlen("Application") + 1);
+    strcpy(config->title, "Application");
     config->titre_align      = TITRE_ALIGN_CENTRE;
     config->icon_path        = NULL;
     config->ico_path         = NULL;   // ✅ NOUVEAU

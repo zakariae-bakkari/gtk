@@ -189,21 +189,29 @@ static void dialog_appliquer_couleurs_type(Dialog *cfg)
    switch (cfg->type)
    {
    case DIALOG_SUCCES:
-      cfg->style.bg_header = g_strdup("#27ae60");
-      cfg->style.bg_bouton_principal = g_strdup("#27ae60");
+      cfg->style.bg_header = malloc(strlen("#27ae60") + 1);
+      strcpy(cfg->style.bg_header, "#27ae60");
+      cfg->style.bg_bouton_principal = malloc(strlen("#27ae60") + 1);
+      strcpy(cfg->style.bg_bouton_principal, "#27ae60");
       break;
    case DIALOG_AVERTISSEMENT:
-      cfg->style.bg_header = g_strdup("#e67e22");
-      cfg->style.bg_bouton_principal = g_strdup("#e67e22");
+      cfg->style.bg_header = malloc(strlen("#e67e22") + 1);
+      strcpy(cfg->style.bg_header, "#e67e22");
+      cfg->style.bg_bouton_principal = malloc(strlen("#e67e22") + 1);
+      strcpy(cfg->style.bg_bouton_principal, "#e67e22");
       break;
    case DIALOG_ERREUR:
-      cfg->style.bg_header = g_strdup("#e74c3c");
-      cfg->style.bg_bouton_principal = g_strdup("#e74c3c");
+      cfg->style.bg_header = malloc(strlen("#e74c3c") + 1);
+      strcpy(cfg->style.bg_header, "#e74c3c");
+      cfg->style.bg_bouton_principal = malloc(strlen("#e74c3c") + 1);
+      strcpy(cfg->style.bg_bouton_principal, "#e74c3c");
       break;
    case DIALOG_INFO:
    default:
-      cfg->style.bg_header = g_strdup("#3498db");
-      cfg->style.bg_bouton_principal = g_strdup("#3498db");
+      cfg->style.bg_header = malloc(strlen("#3498db") + 1);
+      strcpy(cfg->style.bg_header, "#3498db");
+      cfg->style.bg_bouton_principal = malloc(strlen("#3498db") + 1);
+      strcpy(cfg->style.bg_bouton_principal, "#3498db");
       break;
    }
 }
@@ -337,7 +345,8 @@ void dialog_initialiser(Dialog *cfg)
       return;
    memset(cfg, 0, sizeof(Dialog));
 
-   cfg->id_css = g_strdup("dialog");
+   cfg->id_css = malloc(strlen("dialog") + 1);
+   strcpy(cfg->id_css, "dialog");
    cfg->type = DIALOG_INFO;
    cfg->boutons_preset = DIALOG_BOUTONS_OK;
    cfg->modal = TRUE;
@@ -347,20 +356,30 @@ void dialog_initialiser(Dialog *cfg)
    cfg->taille.height = 0; /* hauteur automatique */
 
    /* Style par défaut */
-   cfg->style.bg_header = g_strdup("#3498db");
-   cfg->style.fg_header = g_strdup("#ffffff");
+   cfg->style.bg_header = malloc(strlen("#3498db") + 1);
+   strcpy(cfg->style.bg_header, "#3498db");
+   cfg->style.fg_header = malloc(strlen("#ffffff") + 1);
+   strcpy(cfg->style.fg_header, "#ffffff");
    cfg->style.taille_titre = 15;
    cfg->style.titre_gras = TRUE;
-   cfg->style.bg_corps = g_strdup("#ffffff");
-   cfg->style.fg_corps = g_strdup("#2c3e50");
-   cfg->style.bg_footer = g_strdup("#f5f6fa");
+   cfg->style.bg_corps = malloc(strlen("#ffffff") + 1);
+   strcpy(cfg->style.bg_corps, "#ffffff");
+   cfg->style.fg_corps = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_corps, "#2c3e50");
+   cfg->style.bg_footer = malloc(strlen("#f5f6fa") + 1);
+   strcpy(cfg->style.bg_footer, "#f5f6fa");
    cfg->style.rayon_arrondi = 10;
    cfg->style.epaisseur_bordure = 0;
-   cfg->style.couleur_bordure = g_strdup("#cccccc");
-   cfg->style.bg_bouton_principal = g_strdup("#3498db");
-   cfg->style.fg_bouton_principal = g_strdup("#ffffff");
-   cfg->style.bg_bouton_secondaire = g_strdup("#ecf0f1");
-   cfg->style.fg_bouton_secondaire = g_strdup("#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("#cccccc") + 1);
+   strcpy(cfg->style.couleur_bordure, "#cccccc");
+   cfg->style.bg_bouton_principal = malloc(strlen("#3498db") + 1);
+   strcpy(cfg->style.bg_bouton_principal, "#3498db");
+   cfg->style.fg_bouton_principal = malloc(strlen("#ffffff") + 1);
+   strcpy(cfg->style.fg_bouton_principal, "#ffffff");
+   cfg->style.bg_bouton_secondaire = malloc(strlen("#ecf0f1") + 1);
+   strcpy(cfg->style.bg_bouton_secondaire, "#ecf0f1");
+   cfg->style.fg_bouton_secondaire = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_bouton_secondaire, "#2c3e50");
 }
 
 GtkWidget *dialog_creer(Dialog *cfg)
@@ -484,8 +503,17 @@ void dialog_ajouter_bouton(Dialog *cfg, const char *texte,
    cfg->boutons_preset = DIALOG_BOUTONS_PERSONNALISES;
 
    DialogBoutonConfig *bc = g_new0(DialogBoutonConfig, 1);
-   bc->texte = g_strdup(texte);
-   bc->nom_icone = nom_icone ? g_strdup(nom_icone) : NULL;
+   bc->texte = malloc(strlen(texte) + 1);
+   strcpy(bc->texte, texte);
+   if (nom_icone)
+   {
+      bc->nom_icone = malloc(strlen(nom_icone) + 1);
+      strcpy(bc->nom_icone, nom_icone);
+   }
+   else
+   {
+      bc->nom_icone = NULL;
+   }
    bc->reponse_id = reponse_id;
    bc->principal = principal;
 
@@ -510,8 +538,10 @@ static void dialog_afficher_simple(GtkWindow *parent, const char *titre,
    dialog_initialiser(cfg);
 
    cfg->parent = parent;
-   cfg->titre = g_strdup(titre ? titre : "");
-   cfg->message = g_strdup(message ? message : "");
+   cfg->titre = malloc(strlen(titre ? titre : "") + 1);
+   strcpy(cfg->titre, titre ? titre : "");
+   cfg->message = malloc(strlen(message ? message : "") + 1);
+   strcpy(cfg->message, message ? message : "");
    cfg->type = type;
    cfg->boutons_preset = boutons;
    cfg->on_reponse = cb;
@@ -559,7 +589,15 @@ void dialog_set_titre(Dialog *cfg, const char *titre)
    if (!cfg)
       return;
    g_free(cfg->titre);
-   cfg->titre = titre ? g_strdup(titre) : NULL;
+   if (titre)
+   {
+      cfg->titre = malloc(strlen(titre) + 1);
+      strcpy(cfg->titre, titre);
+   }
+   else
+   {
+      cfg->titre = NULL;
+   }
 
    if (cfg->box_header)
    {
@@ -582,7 +620,15 @@ void dialog_set_message(Dialog *cfg, const char *message)
    if (!cfg)
       return;
    g_free(cfg->message);
-   cfg->message = message ? g_strdup(message) : NULL;
+   if (message)
+   {
+      cfg->message = malloc(strlen(message) + 1);
+      strcpy(cfg->message, message);
+   }
+   else
+   {
+      cfg->message = NULL;
+   }
 
    if (cfg->box_corps)
    {

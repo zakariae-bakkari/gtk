@@ -5,7 +5,9 @@
 #include "../../widgets/headers/champ_select.h"
 #include "../../widgets/headers/champ_zone_texte.h"
 #include "../../widgets/headers/champ_texte.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* --- Callbacks pour les evenements --- */
 
@@ -107,7 +109,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_nom->policy.min_len = 2;
     ct_nom->policy.no_digits = true;
     ct_nom->style.epaisseur_bordure = 2;
-    ct_nom->style.couleur_bordure = g_strdup("#3498db");
+    ct_nom->style.couleur_bordure = malloc(strlen("#3498db") + 1);
+    strcpy(ct_nom->style.couleur_bordure, "#3498db");
     ct_nom->style.rayon_arrondi = 8;
     ct_nom->on_change = on_input_text_changed;
     ct_nom->on_activate = on_input_text_activate;
@@ -135,7 +138,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_email->icon_primary = "mail-send-symbolic";
     ct_email->show_error_label = false;
     ct_email->style.epaisseur_bordure = 1;
-    ct_email->style.couleur_bordure = g_strdup("#2ecc71");
+    ct_email->style.couleur_bordure = malloc(strlen("#2ecc71") + 1);
+    strcpy(ct_email->style.couleur_bordure, "#2ecc71");
     ct_email->style.rayon_arrondi = 5;
     ct_email->on_change = on_input_text_changed;
     ct_email->on_activate = on_input_text_activate;
@@ -162,7 +166,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_url->type = CHAMP_TEXTE_TYPE_URL;
     ct_url->icon_primary = "web-browser-symbolic";
     ct_url->style.epaisseur_bordure = 2;
-    ct_url->style.couleur_bordure = g_strdup("#9b59b6");
+    ct_url->style.couleur_bordure = malloc(strlen("#9b59b6") + 1);
+    strcpy(ct_url->style.couleur_bordure, "#9b59b6");
     ct_url->style.rayon_arrondi = 6;
     ct_url->on_change = on_input_text_changed;
     ct_url->on_invalid = on_input_invalid;
@@ -190,7 +195,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_search->icon_primary = "edit-find-symbolic";
     ct_search->icon_secondary = "edit-clear-symbolic";
     ct_search->style.epaisseur_bordure = 1;
-    ct_search->style.couleur_bordure = g_strdup("#bdc3c7");
+    ct_search->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+    strcpy(ct_search->style.couleur_bordure, "#bdc3c7");
     ct_search->style.rayon_arrondi = 20; // Arrondi prononcé style barre de recherche
     ct_search->on_change = on_input_text_changed;
     ct_search->on_invalid = on_input_invalid;
@@ -217,7 +223,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     pwd1->policy.min_len = 6;
     pwd1->policy.require_digit = true;
     pwd1->style.epaisseur_bordure = 2;
-    pwd1->style.couleur_bordure = g_strdup("#e74c3c");
+    pwd1->style.couleur_bordure = malloc(strlen("#e74c3c") + 1);
+    strcpy(pwd1->style.couleur_bordure, "#e74c3c");
     pwd1->style.rayon_arrondi = 8;
     pwd1->on_change = on_input_text_changed;
     pwd1->on_activate = on_input_text_activate;
@@ -242,7 +249,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     pwd2->size.height = 40;
     pwd2->required = true;
     pwd2->style.epaisseur_bordure = 1;
-    pwd2->style.couleur_bordure = g_strdup("#3498db");
+    pwd2->style.couleur_bordure = malloc(strlen("#3498db") + 1);
+    strcpy(pwd2->style.couleur_bordure, "#3498db");
     pwd2->style.rayon_arrondi = 5;
     pwd2->on_change = on_input_text_changed;
     pwd2->on_invalid = on_input_invalid;
@@ -270,7 +278,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     age->size.height = 35;
     age->required = true;
     age->style.epaisseur_bordure = 2;
-    age->style.couleur_bordure = g_strdup("#2ecc71");
+    age->style.couleur_bordure = malloc(strlen("#2ecc71") + 1);
+    strcpy(age->style.couleur_bordure, "#2ecc71");
     age->style.rayon_arrondi = 6;
     age->on_change = on_input_number_changed;
     age->on_invalid = on_input_invalid;
@@ -297,7 +306,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     salary->size.width = 200;
     salary->size.height = 0;
     salary->style.epaisseur_bordure = 1;
-    salary->style.couleur_bordure = g_strdup("#f39c12");
+    salary->style.couleur_bordure = malloc(strlen("#f39c12") + 1);
+    strcpy(salary->style.couleur_bordure, "#f39c12");
     salary->style.rayon_arrondi = 4;
     salary->on_change = on_input_number_changed;
     salary->user_data = "salary";
@@ -319,7 +329,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     country->size.height = 0;
     country->required = true;
     country->style.epaisseur_bordure = 2;
-    country->style.couleur_bordure = g_strdup("#9b59b6");
+    country->style.couleur_bordure = malloc(strlen("#9b59b6") + 1);
+    strcpy(country->style.couleur_bordure, "#9b59b6");
     country->style.rayon_arrondi = 7;
     country->on_change = on_select_changed;
     country->on_invalid = on_input_invalid;
@@ -350,7 +361,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     language->size.height = 45;
     language->required = false;
     language->style.epaisseur_bordure = 1;
-    language->style.couleur_bordure = g_strdup("#34495e");
+    language->style.couleur_bordure = malloc(strlen("#34495e") + 1);
+    strcpy(language->style.couleur_bordure, "#34495e");
     language->style.rayon_arrondi = 3;
     language->on_change = on_select_changed;
     language->user_data = "language";
@@ -384,7 +396,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt->sensitive = true;
     czt->required = false;
     czt->style.epaisseur_bordure = 2;
-    czt->style.couleur_bordure = g_strdup("purple");
+    czt->style.couleur_bordure = malloc(strlen("purple") + 1);
+    strcpy(czt->style.couleur_bordure, "purple");
     czt->style.rayon_arrondi = 5;
     czt->style.gras = false;
     czt->style.italique = false;
@@ -392,7 +405,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt->on_change = on_zone_texte_changed;
     czt->on_invalid = on_input_invalid;
     czt->user_data = "zone_texte";
-    czt->texte = g_strdup("this is a comment");
+    czt->texte = malloc(strlen("this is a comment") + 1);
+    strcpy(czt->texte, "this is a comment");
 
     GtkWidget *w_zone = champ_zone_texte_creer(czt);
     g_signal_connect_swapped(w_zone, "destroy", G_CALLBACK(champ_zone_texte_free), czt);
@@ -416,7 +430,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt2->on_change = NULL;
     czt2->on_invalid = on_input_invalid;
     czt2->user_data = "bio";
-    czt2->texte = g_strdup("Short bio...");
+    czt2->texte = malloc(strlen("Short bio...") + 1);
+    strcpy(czt2->texte, "Short bio...");
 
     GtkWidget *w_bio = champ_zone_texte_creer(czt2);
     g_signal_connect_swapped(w_bio, "destroy", G_CALLBACK(champ_zone_texte_free), czt2);
