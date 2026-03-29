@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <fenetre
     title="demo xml"
     width="900"
     height="600"
     resizable="true"
-    maximisee="false"
+    maximisee="true"
     bgcolor="#f0f0f0">
 
     <!-- ═══════════════════════════════════════════

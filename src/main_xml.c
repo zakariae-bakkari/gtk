@@ -36,7 +36,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     (void)user_data;
 
     /* ── Chargement de l'interface depuis le fichier XML ── */
-    GtkWidget *window = xml_load_file("ui_exemple.xml", app);
+    GtkWidget *window = xml_load_file("ui_exemple.txt", app);
 
     if (!window) {
         fprintf(stderr, "Erreur : impossible de charger ui_exemple.xml\n");
