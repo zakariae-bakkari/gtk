@@ -95,6 +95,21 @@
                 require_upper="false"
                 require_symbol="false"/>
 
+<bouton_radio id="r1" label="Option A" groupe_nom="choix" actif="true"/>
+<bouton_radio id="r2" label="Option B" groupe_nom="choix"/>
+
+<champ_texte id="email" placeholder="votre@email.com" type="email" required="true" width="300"/>
+
+<champ_nombre id="age" min="0" max="120" valeur="25" step="1" digits="0" width="120"/>
+
+<champ_select id="pays" items="Maroc,France,Espagne" selected="0" width="200"/>
+
+<champ_zone_texte id="bio" placeholder="Votre bio…" max_length="500" width="300" height="120"/>
+
+<slider id="volume" min="0" max="100" valeur="50" step="1" afficher_valeur="true" width="250"/>
+
+<image src="assets/logo.png" width="200" height="150" fit="contain" legende="Logo"/>
+
             <!-- Bouton submit -->
             <bouton
                 id="btn_connexion"

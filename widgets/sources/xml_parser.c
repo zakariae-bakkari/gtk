@@ -27,7 +27,14 @@
 #include "../headers/texte.h"
 #include "../headers/bouton.h"
 #include "../headers/bouton_checklist.h"
+#include "../headers/bouton_radio.h"
 #include "../headers/champ_motdepasse.h"
+#include "../headers/champ_texte.h"
+#include "../headers/champ_nombre.h"
+#include "../headers/champ_select.h"
+#include "../headers/champ_zone_texte.h"
+#include "../headers/slider.h"
+#include "../headers/image.h"
 #include "../headers/menu.h"
 #include "../headers/dialog.h"
 
@@ -123,7 +130,14 @@ static XmlNodeType tag_to_type(const char *tag)
     if (strcmp(tag, "texte")             == 0) return NODE_TEXTE;
     if (strcmp(tag, "bouton")            == 0) return NODE_BOUTON;
     if (strcmp(tag, "bouton_checklist")  == 0) return NODE_BOUTON_CHECKLIST;
+    if (strcmp(tag, "bouton_radio")      == 0) return NODE_BOUTON_RADIO;
     if (strcmp(tag, "champ_motdepasse")  == 0) return NODE_CHAMP_MOTDEPASSE;
+    if (strcmp(tag, "champ_texte")       == 0) return NODE_CHAMP_TEXTE;
+    if (strcmp(tag, "champ_nombre")      == 0) return NODE_CHAMP_NOMBRE;
+    if (strcmp(tag, "champ_select")      == 0) return NODE_CHAMP_SELECT;
+    if (strcmp(tag, "champ_zone_texte")  == 0) return NODE_CHAMP_ZONE_TEXTE;
+    if (strcmp(tag, "slider")            == 0) return NODE_SLIDER;
+    if (strcmp(tag, "image")             == 0) return NODE_IMAGE;
     if (strcmp(tag, "menu")              == 0) return NODE_MENU;
     if (strcmp(tag, "menu_item")         == 0) return NODE_MENU_ITEM;
     if (strcmp(tag, "dialog")            == 0) return NODE_DIALOG;
@@ -886,6 +900,545 @@ static GtkWidget *build_champ_motdepasse(const XmlNode *n, Conteneur *parent_ct)
 }
 
 /* ----------------------------------------------------------------
+ *  BOUTON_RADIO (GtkCheckButton en mode radio)
+ * ----------------------------------------------------------------
+ * IMPORTANT : les radios d'un même groupe partagent le leader.
+ * Dans le XML, le 1er <bouton_radio> du groupe n'a pas d'attribut
+ * "groupe" ; les suivants pointent vers l'id CSS du leader.
+ *
+ * Limitation parser : on ne peut pas résoudre les références croisées
+ * d'id à la volée.  On gère donc le groupe via un attribut numérique
+ * optionnel "groupe_leader_widget" stocké dans GObject data.
+ * Stratégie choisie : le parser garde un pointeur statique sur le
+ * dernier widget leader créé PAR CONTENEUR.  C'est suffisant pour
+ * les cas courants (un seul groupe radio par conteneur).
+ * Pour plusieurs groupes distincts, utilisez l'attribut "groupe_nom"
+ * (chaîne arbitraire) : tous les radios avec la même valeur
+ * groupe_nom sont liés.
+ *
+ * Implémentation simplifiée : on utilise une table de hachage légère
+ * (tableau fixe de 32 entrées) nom_groupe → GtkCheckButton* leader.
+ * ---------------------------------------------------------------- */
+
+#define RADIO_GROUP_MAX 32
+typedef struct { char nom[64]; GtkCheckButton *leader; } RadioGroupEntry;
+static RadioGroupEntry _radio_groups[RADIO_GROUP_MAX];
+static int             _radio_groups_count = 0;
+
+static GtkCheckButton *radio_group_get(const char *nom)
+{
+    for (int i = 0; i < _radio_groups_count; i++)
+        if (strcmp(_radio_groups[i].nom, nom) == 0)
+            return _radio_groups[i].leader;
+    return NULL;
+}
+
+static void radio_group_set(const char *nom, GtkCheckButton *leader)
+{
+    for (int i = 0; i < _radio_groups_count; i++) {
+        if (strcmp(_radio_groups[i].nom, nom) == 0) {
+            _radio_groups[i].leader = leader;
+            return;
+        }
+    }
+    if (_radio_groups_count < RADIO_GROUP_MAX) {
+        strncpy(_radio_groups[_radio_groups_count].nom, nom, 63);
+        _radio_groups[_radio_groups_count].nom[63] = '\0';
+        _radio_groups[_radio_groups_count].leader = leader;
+        _radio_groups_count++;
+    }
+}
+
+static GtkWidget *build_bouton_radio(const XmlNode *n, Conteneur *parent_ct)
+{
+    BoutonRadio *cfg = g_new0(BoutonRadio, 1);
+    bouton_radio_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Label */
+    const char *lbl = xml_attr_get(n, "label");
+    if (!lbl) lbl = xml_attr_get(n, "texte");
+    if (!lbl) lbl = xml_attr_get(n, "text");
+    if (lbl) set_str(&cfg->label, lbl);
+
+    /* Position label */
+    const char *lpos = xml_attr_get(n, "label_pos");
+    if (lpos && (strcmp(lpos, "gauche") == 0 || strcmp(lpos, "left") == 0))
+        cfg->pos_label = RADIO_LABEL_GAUCHE;
+
+    /* État initial */
+    cfg->est_actif = attr_bool(n, "actif", FALSE) || attr_bool(n, "checked", FALSE);
+
+    /* Sensibilité */
+    cfg->sensible = attr_bool(n, "sensible", TRUE);
+
+    /* Tooltip */
+    const char *tt = xml_attr_get(n, "tooltip");
+    if (tt) cfg->tooltip = xstrdup(tt);
+
+    /* Style */
+    const char *col = xml_attr_get(n, "color");
+    if (!col) col = xml_attr_get(n, "couleur");
+    if (col) cfg->style.couleur_texte = xstrdup(col);
+
+    const char *colh = xml_attr_get(n, "color_hover");
+    if (colh) cfg->style.couleur_texte_hover = xstrdup(colh);
+
+    const char *colp = xml_attr_get(n, "color_point");
+    if (colp) cfg->style.couleur_point = xstrdup(colp);
+
+    cfg->style.taille_texte_px = attr_int(n, "taille_texte", 0);
+    cfg->style.gras = attr_bool(n, "gras", FALSE) || attr_bool(n, "bold", FALSE);
+
+    /* Groupe radio — résolution par nom */
+    const char *grp = xml_attr_get(n, "groupe_nom");
+    if (!grp) grp = xml_attr_get(n, "group");
+    if (grp) {
+        GtkCheckButton *leader = radio_group_get(grp);
+        if (leader) {
+            /* Ce radio rejoint un groupe existant */
+            cfg->group_leader = leader;
+        }
+        /* Sinon : ce sera le leader, on l'enregistre après création */
+    }
+
+    GtkWidget *w = bouton_radio_creer(cfg);
+
+    /* Si leader d'un groupe nommé, l'enregistrer maintenant */
+    if (grp && cfg->group_leader == NULL)
+        radio_group_set(grp, GTK_CHECK_BUTTON(w));
+
+    /* Libération automatique */
+    g_signal_connect_swapped(w, "destroy", G_CALLBACK(g_free), cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, w);
+    return w;
+}
+
+/* ----------------------------------------------------------------
+ *  CHAMP_TEXTE (GtkEntry)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_champ_texte(const XmlNode *n, Conteneur *parent_ct)
+{
+    ChampTexte *cfg = g_new0(ChampTexte, 1);
+    champ_texte_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Placeholder */
+    const char *ph = xml_attr_get(n, "placeholder");
+    if (!ph) ph = xml_attr_get(n, "hint");
+    if (ph) champ_texte_set_placeholder(cfg, ph);
+
+    /* Longueur max */
+    int maxl = attr_int(n, "max_length", 0);
+    if (!maxl) maxl = attr_int(n, "maxlength", 0);
+    if (maxl) champ_texte_set_max_length(cfg, maxl);
+
+    /* Comportement */
+    cfg->required = attr_bool(n, "required", FALSE);
+    cfg->editable = attr_bool(n, "editable", TRUE);
+    cfg->sensitive = attr_bool(n, "actif", TRUE);
+
+    /* Type d'entrée */
+    const char *type = xml_attr_get(n, "type");
+    if (type) {
+        if      (strcmp(type, "email" ) == 0) cfg->type = CHAMP_TEXTE_TYPE_EMAIL;
+        else if (strcmp(type, "url"   ) == 0) cfg->type = CHAMP_TEXTE_TYPE_URL;
+        else if (strcmp(type, "search") == 0) cfg->type = CHAMP_TEXTE_TYPE_SEARCH;
+        else                                  cfg->type = CHAMP_TEXTE_TYPE_TEXT;
+    }
+
+    /* Politique de validation */
+    ChampTextePolicy pol = {0};
+    pol.min_len       = attr_int(n, "min_len", 0);
+    pol.max_len       = attr_int(n, "max_len", 0);
+    pol.no_whitespace = attr_bool(n, "no_whitespace", FALSE);
+    pol.no_digits     = attr_bool(n, "no_digits", FALSE);
+    pol.only_digits   = attr_bool(n, "only_digits", FALSE);
+    const char *pat   = xml_attr_get(n, "pattern");
+    if (pat) pol.pattern = pat;   /* pointe dans l'arbre XML (durée de vie suffisante) */
+    champ_texte_set_policy(cfg, pol);
+
+    /* Dimensions */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) champ_texte_set_size(cfg, w, h);
+
+    /* Icônes */
+    const char *ico1 = xml_attr_get(n, "icon_primary");
+    const char *ico2 = xml_attr_get(n, "icon_secondary");
+    if (ico1 || ico2) champ_texte_set_icons(cfg, ico1, ico2);
+
+    /* Style */
+    const char *bg = xml_attr_get(n, "bgcolor");
+    if (!bg) bg = xml_attr_get(n, "background");
+    if (bg) cfg->style.bg_normal = xstrdup(bg);
+
+    const char *fg = xml_attr_get(n, "color");
+    if (!fg) fg = xml_attr_get(n, "couleur");
+    if (fg) cfg->style.fg_normal = xstrdup(fg);
+
+    /* Label d'erreur */
+    cfg->show_error_label = attr_bool(n, "show_error", TRUE);
+    const char *ecol = xml_attr_get(n, "erreur_couleur");
+    if (!ecol) ecol = xml_attr_get(n, "error_color");
+    if (ecol) cfg->erreur_couleur = xstrdup(ecol);
+    cfg->erreur_taille_px = attr_int(n, "erreur_taille", 0);
+
+    /* Création : retourne cfg->container (GtkBox vertical) */
+    GtkWidget *container = champ_texte_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, container);
+
+    /* Libération automatique */
+    g_signal_connect_swapped(container, "destroy", G_CALLBACK(champ_texte_free), cfg);
+    g_signal_connect(container, "destroy", G_CALLBACK(g_free), cfg);
+
+    return cfg->widget; /* retourne le GtkEntry pour usage avancé */
+}
+
+/* ----------------------------------------------------------------
+ *  CHAMP_NOMBRE (GtkSpinButton)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_champ_nombre(const XmlNode *n, Conteneur *parent_ct)
+{
+    ChampNombre *cfg = g_new0(ChampNombre, 1);
+    champ_nombre_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Bornes & valeur */
+    const char *vmin = xml_attr_get(n, "min");
+    const char *vmax = xml_attr_get(n, "max");
+    if (vmin) cfg->min = atof(vmin);
+    if (vmax) cfg->max = atof(vmax);
+
+    const char *vval = xml_attr_get(n, "valeur");
+    if (!vval) vval = xml_attr_get(n, "value");
+    if (vval) cfg->valeur = atof(vval);
+
+    const char *vstep = xml_attr_get(n, "step");
+    if (vstep) cfg->step = atof(vstep);
+
+    cfg->digits = (guint)attr_int(n, "digits", 0);
+    cfg->wrap   = attr_bool(n, "wrap", FALSE);
+    cfg->required = attr_bool(n, "required", FALSE);
+
+    /* Taille */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) champ_nombre_set_size(cfg, w, h);
+
+    /* Style */
+    const char *bg = xml_attr_get(n, "bgcolor");
+    if (!bg) bg = xml_attr_get(n, "background");
+    if (bg) cfg->style.bg_normal = xstrdup(bg);
+
+    const char *fg = xml_attr_get(n, "color");
+    if (!fg) fg = xml_attr_get(n, "couleur");
+    if (fg) cfg->style.fg_normal = xstrdup(fg);
+
+    cfg->style.rayon_arrondi     = attr_int(n, "radius", 0);
+    cfg->style.epaisseur_bordure = attr_int(n, "border_width", 0);
+    cfg->style.gras   = attr_bool(n, "gras", FALSE) || attr_bool(n, "bold", FALSE);
+    cfg->style.taille_texte_px = attr_int(n, "taille_texte", 0);
+
+    GtkWidget *w_spin = champ_nombre_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, w_spin);
+
+    g_signal_connect_swapped(w_spin, "destroy", G_CALLBACK(champ_nombre_free), cfg);
+    g_signal_connect(w_spin, "destroy", G_CALLBACK(g_free), cfg);
+
+    return w_spin;
+}
+
+/* ----------------------------------------------------------------
+ *  CHAMP_SELECT (GtkDropDown)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_champ_select(const XmlNode *n, Conteneur *parent_ct)
+{
+    ChampSelect *cfg = g_new0(ChampSelect, 1);
+    champ_select_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Items : attribut "items" séparé par des virgules OU enfants <option> */
+    const char *items_str = xml_attr_get(n, "items");
+    if (items_str) {
+        /* Parse "Item1,Item2,Item3" */
+        char *copy = xstrdup(items_str);
+        char *tok  = strtok(copy, ",");
+        while (tok) {
+            /* Trim espaces de tête */
+            while (*tok == ' ') tok++;
+            champ_select_add_item(cfg, tok);
+            tok = strtok(NULL, ",");
+        }
+        free(copy);
+    }
+
+    /* Enfants <option texte="…"/> ou <option>Texte</option> (tag "option") */
+    for (const XmlNode *ch = n->children; ch; ch = ch->next) {
+        if (!ch->tag) continue;
+        if (strcmp(ch->tag, "option") == 0) {
+            const char *opt = xml_attr_get(ch, "texte");
+            if (!opt) opt = xml_attr_get(ch, "text");
+            if (!opt) opt = xml_attr_get(ch, "value");
+            if (opt) champ_select_add_item(cfg, opt);
+        }
+    }
+
+    /* Index sélectionné */
+    cfg->selected_index = attr_int(n, "selected", -1);
+    if (cfg->selected_index < 0)
+        cfg->selected_index = attr_int(n, "index", 0);
+
+    cfg->required      = attr_bool(n, "required", FALSE);
+    cfg->enable_search = attr_bool(n, "search", FALSE);
+
+    /* Taille */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) champ_select_set_size(cfg, w, h);
+
+    /* Style */
+    const char *bg = xml_attr_get(n, "bgcolor");
+    if (!bg) bg = xml_attr_get(n, "background");
+    if (bg) cfg->style.bg_normal = xstrdup(bg);
+
+    const char *fg = xml_attr_get(n, "color");
+    if (!fg) fg = xml_attr_get(n, "couleur");
+    if (fg) cfg->style.fg_normal = xstrdup(fg);
+
+    cfg->style.rayon_arrondi     = attr_int(n, "radius", 0);
+    cfg->style.epaisseur_bordure = attr_int(n, "border_width", 0);
+
+    GtkWidget *w_dd = champ_select_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, w_dd);
+
+    g_signal_connect_swapped(w_dd, "destroy", G_CALLBACK(champ_select_free), cfg);
+    g_signal_connect(w_dd, "destroy", G_CALLBACK(g_free), cfg);
+
+    return w_dd;
+}
+
+/* ----------------------------------------------------------------
+ *  CHAMP_ZONE_TEXTE (GtkTextView)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_champ_zone_texte(const XmlNode *n, Conteneur *parent_ct)
+{
+    ChampZoneTexte *cfg = g_new0(ChampZoneTexte, 1);
+    champ_zone_texte_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Contenu initial */
+    const char *txt = xml_attr_get(n, "texte");
+    if (!txt) txt = xml_attr_get(n, "text");
+    if (!txt) txt = xml_attr_get(n, "value");
+    if (txt) champ_zone_texte_set_texte(cfg, txt);
+
+    /* Contraintes */
+    int maxl = attr_int(n, "max_length", 0);
+    if (!maxl) maxl = attr_int(n, "maxlength", 0);
+    if (maxl) champ_zone_texte_set_max_length(cfg, maxl);
+
+    cfg->wrap_word = attr_bool(n, "wrap_word", TRUE);
+    cfg->sensitive = attr_bool(n, "actif", TRUE);
+    cfg->required  = attr_bool(n, "required", FALSE);
+
+    /* Taille */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) champ_zone_texte_set_size(cfg, w, h);
+
+    /* Style */
+    const char *bg = xml_attr_get(n, "bgcolor");
+    if (!bg) bg = xml_attr_get(n, "background");
+    if (bg) cfg->style.bg_normal = xstrdup(bg);
+
+    const char *fg = xml_attr_get(n, "color");
+    if (!fg) fg = xml_attr_get(n, "couleur");
+    if (fg) cfg->style.fg_normal = xstrdup(fg);
+
+    cfg->style.rayon_arrondi     = attr_int(n, "radius", 0);
+    cfg->style.epaisseur_bordure = attr_int(n, "border_width", 0);
+
+    GtkWidget *w_tv = champ_zone_texte_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, w_tv);
+
+    g_signal_connect_swapped(w_tv, "destroy", G_CALLBACK(champ_zone_texte_free), cfg);
+    g_signal_connect(w_tv, "destroy", G_CALLBACK(g_free), cfg);
+
+    return w_tv;
+}
+
+/* ----------------------------------------------------------------
+ *  SLIDER (GtkScale)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_slider(const XmlNode *n, Conteneur *parent_ct)
+{
+    Slider *cfg = g_new0(Slider, 1);
+    slider_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Bornes & valeur */
+    const char *vmin = xml_attr_get(n, "min");
+    const char *vmax = xml_attr_get(n, "max");
+    if (vmin) cfg->min = atof(vmin);
+    if (vmax) cfg->max = atof(vmax);
+
+    const char *vval = xml_attr_get(n, "valeur");
+    if (!vval) vval = xml_attr_get(n, "value");
+    if (vval) cfg->valeur = atof(vval);
+
+    const char *vstep = xml_attr_get(n, "step");
+    if (vstep) cfg->step = atof(vstep);
+
+    cfg->digits = (guint)attr_int(n, "digits", 0);
+
+    /* Orientation */
+    const char *orient = xml_attr_get(n, "orientation");
+    if (orient && (strcmp(orient, "vertical") == 0 || strcmp(orient, "v") == 0))
+        cfg->orientation = SLIDER_VERTICAL;
+    else
+        cfg->orientation = SLIDER_HORIZONTAL;
+
+    /* Comportement */
+    cfg->afficher_valeur = attr_bool(n, "afficher_valeur", FALSE)
+                        || attr_bool(n, "show_value",     FALSE);
+    cfg->afficher_label  = attr_bool(n, "afficher_label",  FALSE)
+                        || attr_bool(n, "show_label",      FALSE);
+    cfg->inverser        = attr_bool(n, "inverser", FALSE)
+                        || attr_bool(n, "invert",   FALSE);
+    cfg->sensitive       = attr_bool(n, "actif", TRUE);
+
+    /* Marques */
+    const char *mpos = xml_attr_get(n, "marques");
+    if (mpos) {
+        if      (strcmp(mpos, "dessus"    ) == 0) cfg->marques_pos = SLIDER_MARQUES_DESSUS;
+        else if (strcmp(mpos, "dessous"   ) == 0) cfg->marques_pos = SLIDER_MARQUES_DESSOUS;
+        else if (strcmp(mpos, "les_deux"  ) == 0) cfg->marques_pos = SLIDER_MARQUES_LES_DEUX;
+        else                                       cfg->marques_pos = SLIDER_MARQUES_AUCUNE;
+    }
+    const char *mstep = xml_attr_get(n, "marques_step");
+    if (mstep) cfg->marques_step = atof(mstep);
+
+    /* Taille */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) slider_set_size(cfg, w, h);
+
+    /* Style */
+    const char *bg = xml_attr_get(n, "bgcolor");
+    if (bg) cfg->style.bg_normal = xstrdup(bg);
+    const char *fg = xml_attr_get(n, "color");
+    if (fg) cfg->style.fg_normal = xstrdup(fg);
+
+    GtkWidget *w_sld = slider_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, w_sld);
+
+    g_signal_connect_swapped(w_sld, "destroy", G_CALLBACK(slider_free), cfg);
+    g_signal_connect(w_sld, "destroy", G_CALLBACK(g_free), cfg);
+
+    return w_sld;
+}
+
+/* ----------------------------------------------------------------
+ *  IMAGE (GtkPicture)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_image(const XmlNode *n, Conteneur *parent_ct)
+{
+    Image *cfg = g_new0(Image, 1);
+    image_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id) set_str(&cfg->id_css, id);
+
+    /* Source */
+    const char *src = xml_attr_get(n, "src");
+    if (!src) src = xml_attr_get(n, "fichier");
+    if (!src) src = xml_attr_get(n, "file");
+    if (src) {
+        image_set_from_file(cfg, src);
+    } else {
+        const char *icon = xml_attr_get(n, "icone");
+        if (!icon) icon = xml_attr_get(n, "icon");
+        if (icon) image_set_from_icon_name(cfg, icon);
+    }
+
+    /* Légende */
+    const char *leg = xml_attr_get(n, "legende");
+    if (!leg) leg = xml_attr_get(n, "caption");
+    if (leg) image_set_legende(cfg, leg);
+
+    /* Dimensions */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h) image_set_size(cfg, w, h);
+
+    /* Mode de redimensionnement */
+    const char *fit = xml_attr_get(n, "fit");
+    if (fit) {
+        if      (strcmp(fit, "fill"   ) == 0) image_set_fit_mode(cfg, IMAGE_FIT_FILL);
+        else if (strcmp(fit, "contain") == 0) image_set_fit_mode(cfg, IMAGE_FIT_CONTAIN);
+        else if (strcmp(fit, "cover"  ) == 0) image_set_fit_mode(cfg, IMAGE_FIT_COVER);
+        else                                  image_set_fit_mode(cfg, IMAGE_FIT_NONE);
+    }
+
+    /* Comportement */
+    cfg->can_shrink = attr_bool(n, "can_shrink", FALSE);
+    cfg->sensitive  = attr_bool(n, "actif", TRUE);
+
+    /* Alignement */
+    const char *ha = xml_attr_get(n, "align");
+    if (!ha) ha = xml_attr_get(n, "halign");
+    if (ha) {
+        if      (strcmp(ha, "centre") == 0 || strcmp(ha, "center") == 0) image_set_halign(cfg, WIDGET_ALIGN_CENTER);
+        else if (strcmp(ha, "fin"   ) == 0 || strcmp(ha, "end"    ) == 0) image_set_halign(cfg, WIDGET_ALIGN_END);
+        else if (strcmp(ha, "debut" ) == 0 || strcmp(ha, "start"  ) == 0) image_set_halign(cfg, WIDGET_ALIGN_START);
+        else                                                               image_set_halign(cfg, WIDGET_ALIGN_FILL);
+    }
+
+    /* Style */
+    cfg->rayon_arrondi = attr_int(n, "radius", 0);
+
+    const char *lc = xml_attr_get(n, "legende_couleur");
+    if (lc) cfg->legende_couleur = xstrdup(lc);
+    cfg->legende_taille_px = attr_int(n, "legende_taille", 0);
+
+    /* Création : retourne cfg->container */
+    GtkWidget *container = image_creer(cfg);
+
+    if (parent_ct) conteneur_ajouter(parent_ct, container);
+
+    g_signal_connect_swapped(container, "destroy", G_CALLBACK(image_free), cfg);
+    g_signal_connect(container, "destroy", G_CALLBACK(g_free), cfg);
+
+    return cfg->widget; /* GtkPicture */
+}
+
+/* ----------------------------------------------------------------
  *  MENU + MENU_ITEM
  * ----------------------------------------------------------------
  * Construit récursivement les MenuItems depuis l'arbre XML.
@@ -1129,8 +1682,29 @@ static GtkWidget *build_widget(const XmlNode *node, Conteneur *parent_ct,
         case NODE_BOUTON_CHECKLIST:
             return build_checklist(node, parent_ct);
 
+        case NODE_BOUTON_RADIO:
+            return build_bouton_radio(node, parent_ct);
+
         case NODE_CHAMP_MOTDEPASSE:
             return build_champ_motdepasse(node, parent_ct);
+
+        case NODE_CHAMP_TEXTE:
+            return build_champ_texte(node, parent_ct);
+
+        case NODE_CHAMP_NOMBRE:
+            return build_champ_nombre(node, parent_ct);
+
+        case NODE_CHAMP_SELECT:
+            return build_champ_select(node, parent_ct);
+
+        case NODE_CHAMP_ZONE_TEXTE:
+            return build_champ_zone_texte(node, parent_ct);
+
+        case NODE_SLIDER:
+            return build_slider(node, parent_ct);
+
+        case NODE_IMAGE:
+            return build_image(node, parent_ct);
 
         case NODE_MENU:
             return build_menu(node, parent_ct);
