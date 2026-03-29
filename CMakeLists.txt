@@ -24,8 +24,10 @@ add_executable(gtk
         widgets/sources/slider.c
         widgets/sources/menu.c
         widgets/sources/dialog.c
+        widgets/sources/xml_parser.c
         # App
-        src/main.c
+        # src/main.c
+        src/main_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
@@ -38,6 +40,7 @@ add_executable(gtk
         #        src/tests/test_menu.c
         #  src/tests/test_fenetre.c
         # src/tests/test_dialog.c
+        
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
