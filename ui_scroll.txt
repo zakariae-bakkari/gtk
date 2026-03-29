@@ -1,0 +1,223 @@
+<fenetre
+    title="demo scroll"
+    width="900"
+    height="600"
+    resizable="true"
+    scroll="vertical"
+    scroll_min_width="880"
+    scroll_min_height="1600"
+    bgcolor="#f0f0f0">
+
+    <!-- ═══════════════════════════════════════════
+         MENU HORIZONTAL en haut
+    ═══════════════════════════════════════════ -->
+    <menu
+        id="menu_principal"
+        orientation="horizontal"
+        espacement="4"
+        bg_barre="#2c3e50"
+        fg_item="#ffffff"
+        bg_item_hover="#3498db">
+
+        <menu_item id="fichier" texte="Fichier" icone="document-open-symbolic">
+            <menu_item id="nouveau" texte="Nouveau" icone="document-new-symbolic"/>
+            <menu_item id="ouvrir"  texte="Ouvrir"  icone="document-open-symbolic"/>
+            <menu_item type="separateur"/>
+            <menu_item id="quitter" texte="Quitter"  icone="application-exit-symbolic"/>
+        </menu_item>
+        <menu_item id="aide" texte="Aide" icone="help-about-symbolic"/>
+
+    </menu>
+
+    <!-- ═══════════════════════════════════════════
+         CONTENEUR PRINCIPAL — colonne unique
+         (contenu long → scroll de la fenêtre)
+    ═══════════════════════════════════════════ -->
+    <conteneur
+        id="main"
+        orientation="vertical"
+        espacement="20"
+        padding="30"
+        bgcolor="#ffffff">
+
+        <!-- ── SECTION 1 : En-tête ── -->
+        <texte
+            type="h1"
+            texte="Formulaire complet"
+            alignement="center"
+            color="#2c3e50"
+            bold="true"/>
+
+        <texte
+            type="caption"
+            texte="Faites défiler vers le bas pour voir tout le contenu"
+            color="#7f8c8d"
+            align="center"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 2 : Identité ── -->
+        <texte type="h3" texte="① Identité" color="#2980b9" bold="true"/>
+
+        <texte texte="Nom complet" bold="true" color="#34495e"/>
+        <champ_texte
+            id="nom"
+            placeholder="Jean Dupont"
+            required="true"
+            width="400"/>
+
+        <texte texte="Adresse e-mail" bold="true" color="#34495e"/>
+        <champ_texte
+            id="email"
+            placeholder="votre@email.com"
+            type="email"
+            required="true"
+            width="400"/>
+
+        <texte texte="Âge" bold="true" color="#34495e"/>
+        <champ_nombre
+            id="age"
+            min="0"
+            max="120"
+            valeur="25"
+            step="1"
+            digits="0"
+            width="120"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 3 : Mot de passe ── -->
+        <texte type="h3" texte="② Sécurité" color="#2980b9" bold="true"/>
+
+        <texte texte="Mot de passe" bold="true" color="#34495e"/>
+        <champ_motdepasse
+            id="pwd_main"
+            placeholder="Entrez votre mot de passe…"
+            max_length="64"
+            required="true"
+            reveal="true"
+            actif="true"
+            width="400"
+            min_len="8"
+            require_digit="true"
+            require_upper="false"
+            require_symbol="false"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 4 : Préférences ── -->
+        <texte type="h3" texte="③ Préférences" color="#2980b9" bold="true"/>
+
+        <texte texte="Pays" bold="true" color="#34495e"/>
+        <champ_select
+            id="pays"
+            items="Maroc,France,Espagne,Belgique,Suisse,Canada"
+            selected="0"
+            width="250"/>
+
+        <texte texte="Langue d'interface" bold="true" color="#34495e"/>
+        <bouton_radio id="r_fr" label="Français"  groupe_nom="langue" actif="true"/>
+        <bouton_radio id="r_en" label="English"   groupe_nom="langue"/>
+        <bouton_radio id="r_ar" label="العربية"   groupe_nom="langue"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 5 : Options ── -->
+        <texte type="h3" texte="④ Options" color="#2980b9" bold="true"/>
+
+        <bouton_checklist
+            id="chk_remember"
+            label="Se souvenir de moi"
+            etat="checked"
+            actif="true"
+            tooltip="Garder la session ouverte"/>
+
+        <bouton_checklist
+            id="chk_notifs"
+            label="Activer les notifications"
+            etat="unchecked"/>
+
+        <bouton_checklist
+            id="chk_dark"
+            label="Mode sombre"
+            etat="unchecked"
+            actif="true"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 6 : Slider + zone texte ── -->
+        <texte type="h3" texte="⑤ Réglages" color="#2980b9" bold="true"/>
+
+        <texte texte="Volume de notification" bold="true" color="#34495e"/>
+        <slider
+            id="volume"
+            min="0"
+            max="100"
+            valeur="50"
+            step="1"
+            afficher_valeur="true"
+            afficher_label="true"
+            width="350"/>
+
+        <texte texte="Biographie" bold="true" color="#34495e"/>
+        <champ_zone_texte
+            id="bio"
+            placeholder="Parlez-nous de vous…"
+            max_length="500"
+            wrap_word="true"
+            width="400"
+            height="120"/>
+
+        <separateur orientation="horizontal"/>
+
+        <!-- ── SECTION 7 : Image + statut ── -->
+        <texte type="h3" texte="⑥ Aperçu" color="#2980b9" bold="true"/>
+
+        <image
+            src="assets/logo.png"
+            width="180"
+            height="120"
+            fit="contain"
+            legende="Logo de l'application"
+            align="center"/>
+
+        <texte
+            id="lbl_status"
+            texte="En attente de validation…"
+            color="#e67e22"
+            italic="true"
+            wrap="true"
+            align="center"/>
+
+        <!-- ── BOUTONS FOOTER ── -->
+        <texte texte="" />
+
+        <bouton
+            id="btn_connexion"
+            texte="Valider le formulaire"
+            bgcolor="#27ae60"
+            color="#ffffff"
+            bgcolor_hover="#219a52"
+            radius="6"
+            width="400"
+            height="42"
+            bold="true"
+            tooltip="Soumettre le formulaire"/>
+
+        <bouton
+            id="btn_annuler"
+            texte="Annuler"
+            bgcolor="#ecf0f1"
+            color="#2c3e50"
+            bgcolor_hover="#d5dbdb"
+            radius="6"
+            width="400"
+            height="38"/>
+
+        <!-- espace en bas pour que le scroll soit visible -->
+        <texte texte="" />
+        <texte texte="" />
+
+    </conteneur>
+
+</fenetre>
