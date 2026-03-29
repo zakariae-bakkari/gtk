@@ -119,23 +119,23 @@ static void on_submit(GtkWidget *w, gpointer data) { printf("[FORM]      Submit\
 /* --- Dialog réponse --- */
 static void on_dialog_reponse(int r, gpointer data)
 {
-    const char *s = "?";
+    char *s = (char *)malloc(20); // allouer string avec la taille 20
     switch (r)
     {
     case DIALOG_REPONSE_OK:
-        s = "OK";
+        strcpy(s, "OK");
         break;
     case DIALOG_REPONSE_ANNULER:
-        s = "ANNULER";
+        strcpy(s, "ANNULER");
         break;
     case DIALOG_REPONSE_OUI:
-        s = "OUI";
+        strcpy(s, "OUI");
         break;
     case DIALOG_REPONSE_NON:
-        s = "NON";
+        strcpy(s, "NON");
         break;
     case DIALOG_REPONSE_FERMER:
-        s = "FERMER";
+        strcpy(s, "FERMER");
         break;
     }
     printf("[DIALOG]    '%s' → %s\n", (char *)data, s);
@@ -168,11 +168,12 @@ static void on_conditions(GtkWidget *w, gpointer data)
 
 static void on_conditions(GtkWidget *w, gpointer data)
 {
-    const char *message =
-        "En soumettant ce formulaire, vous acceptez nos conditions gÃ©nÃ©rales.\n\n"
-        "â€¢ Vos donnÃ©es sont protÃ©gÃ©es et ne seront pas partagÃ©es.\n"
-        "â€¢ Vous pouvez retirer votre consentement Ã  tout moment.\n"
-        "â€¢ Ce service est rÃ©servÃ© aux personnes majeures.";
+    char *message = (char *)malloc(500); // allouer string avec la taille 500
+    strcpy(message,
+           "En soumettant ce formulaire, vous acceptez nos conditions générales.\n\n"
+           "• Vos données sont protégées et ne seront pas partagées.\n"
+           "• Vous pouvez retirer votre consentement à tout moment.\n"
+           "• Ce service est réservé aux personnes majeures.");
     GtkWindow *parent = (GtkWindow *)data;
     Dialog *cfg = g_new0(Dialog, 1);
 
@@ -210,7 +211,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     win.resizable = TRUE;
     win.demarrer_maximisee = TRUE;
 
-    GtkWidget *window = fenetre_creer(&win,app);
+    GtkWidget *window = fenetre_creer(&win, app);
 
     // =========================================================================
     // CONTENEUR RACINE (vertical : menu + contenu)

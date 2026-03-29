@@ -25,7 +25,7 @@ add_executable(gtk
         widgets/sources/menu.c
         widgets/sources/dialog.c
         # App
-        #src/main.c
+        src/main.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
@@ -36,7 +36,7 @@ add_executable(gtk
         #        src/tests/test_champ_nombre.c
         #        src/tests/test_slider.c
         #        src/tests/test_menu.c
-         src/tests/test_fenetre.c
+        #  src/tests/test_fenetre.c
         # src/tests/test_dialog.c
 )
 
