@@ -192,6 +192,10 @@
                 color="#e67e22"
                 italic="true"
                 wrap="true"/>
+        <image src="resources/images/zakariae.png" width="50" height="20" fit="contain" legende="zakariae"/>
+        <image src="resources/images/rafaa.png" width="200" height="150" fit="contain" legende="rafaa"/>
+        <image src="resources/images/noureddine.png" width="200" height="150" fit="contain" legende="noureddine"/>
+        <image src="resources/images/meriem.png" width="450" height="350" fit="contain" legende="meriem"/>
 
         </conteneur>
 
