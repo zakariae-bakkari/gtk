@@ -26,8 +26,8 @@ add_executable(gtk
         widgets/sources/dialog.c
         widgets/sources/xml_parser.c
         # App
-        # src/main.c
-        src/main_xml.c
+        src/main.c
+        # src/main_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c

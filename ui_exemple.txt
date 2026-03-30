@@ -3,7 +3,7 @@
     width="900"
     height="600"
     resizable="true"
-    maximisee="true"
+    maximisee="false"
     scroll="vertical"
     scroll_min_height="1000"
     bgcolor="#f0f0f0">
@@ -20,7 +20,8 @@
         bg_item_hover="#3498db">
 
         <menu_item id="fichier"  texte="Fichier"  icone="document-open-symbolic">
-            <menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic"/>
+            <menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic" sous_menu_orientation="MENU_HORIZONTAL">
+            <menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic"></menu_item><menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic"></menu_item><menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic"></menu_item></menu_item>
             <menu_item id="ouvrir"    texte="Ouvrir"    icone="document-open-symbolic"/>
             <menu_item type="separateur"/>
             <menu_item id="quitter"   texte="Quitter"   icone="application-exit-symbolic"/>
@@ -122,7 +123,7 @@
                 color="#ffffff"
                 bgcolor_hover="#2980b9"
                 radius="6"
-                width="300"
+                width="50"
                 height="38"
                 bold="true"
                 tooltip="Cliquez pour vous connecter"/>
@@ -135,7 +136,7 @@
                 color="#2c3e50"
                 bgcolor_hover="#d5dbdb"
                 radius="6"
-                width="300"
+                width="50"
                 height="38"/>
 
         </conteneur>
