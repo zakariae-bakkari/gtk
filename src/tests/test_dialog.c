@@ -36,23 +36,24 @@ static void show_theme_cb(GtkButton *btn, gpointer data);
 static void on_reponse(int reponse, gpointer user_data)
 {
    const char *label = (const char *)user_data;
-   const char *r_str = "INCONNUE";
+   char r_str[16];
+   strcpy(r_str, "INCONNUE");
    switch (reponse)
    {
    case DIALOG_REPONSE_OK:
-      r_str = "OK";
+      strcpy(r_str, "OK");
       break;
    case DIALOG_REPONSE_ANNULER:
-      r_str = "ANNULER";
+      strcpy(r_str, "ANNULER");
       break;
    case DIALOG_REPONSE_OUI:
-      r_str = "OUI";
+      strcpy(r_str, "OUI");
       break;
    case DIALOG_REPONSE_NON:
-      r_str = "NON";
+      strcpy(r_str, "NON");
       break;
    case DIALOG_REPONSE_FERMER:
-      r_str = "FERMER";
+      strcpy(r_str, "FERMER");
       break;
    default:
       break;
@@ -116,7 +117,8 @@ static void show_custom_cb(GtkButton *btn, gpointer data)
     strcpy(cfg->message, "Cette action supprimera définitivement le fichier sélectionné.\n"
                          "Voulez-vous le déplacer dans la corbeille ou le supprimer ?");
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "custom";
+   cfg->user_data = malloc(strlen("custom") + 1);
+   strcpy(cfg->user_data, "custom");
 
    dialog_ajouter_bouton(cfg, "Annuler", "process-stop-symbolic", DIALOG_REPONSE_ANNULER, FALSE);
    dialog_ajouter_bouton(cfg, "Corbeille", "user-trash-symbolic", 10, FALSE);
@@ -140,7 +142,8 @@ static void show_contenu_cb(GtkButton *btn, gpointer data)
     strcpy(cfg->message, "Entrez le nouveau nom du fichier :");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "contenu";
+   cfg->user_data = malloc(strlen("contenu") + 1);
+   strcpy(cfg->user_data, "contenu");
 
    /* Widget personnalisé : champ de saisie */
    GtkWidget *entry = gtk_entry_new();
@@ -176,7 +179,8 @@ static void show_theme_cb(GtkButton *btn, gpointer data)
                          "Toutes les couleurs sont définies manuellement.");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "theme";
+   cfg->user_data = malloc(strlen("theme") + 1);
+   strcpy(cfg->user_data, "theme");
    cfg->taille.width = 480;
 
    /* Thème sombre */
@@ -226,7 +230,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ========== FENETRE ==========
    Fenetre fenetre;
    fenetre_initialiser(&fenetre);
-   fenetre.title = "Test Dialog — Démo Complète";
+   fenetre.title = malloc(strlen("Test Dialog — Démo Complète") + 1);
+   strcpy(fenetre.title, "Test Dialog — Démo Complète");
    fenetre.taille.width = 860;
    fenetre.taille.height = 620;
    fenetre.scroll_mode = SCROLL_VERTICAL;
@@ -243,7 +248,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    main_ct.padding.bas = 24;
    main_ct.padding.gauche = 32;
    main_ct.padding.droite = 32;
-   main_ct.couleur_fond = "#f0f2f5";
+   main_ct.couleur_fond = malloc(strlen("#f0f2f5") + 1);
+   strcpy(main_ct.couleur_fond, "#f0f2f5");
 
    GtkWidget *main_box = conteneur_creer(&main_ct);
 
@@ -290,26 +296,34 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    BtnTypeData *d_info = g_new0(BtnTypeData, 1);
    d_info->win = GTK_WINDOW(window);
    d_info->type = DIALOG_INFO;
-   d_info->titre = "Information";
-   d_info->msg = "Opération effectuée avec succès.\nVous pouvez continuer.";
+   d_info->titre = malloc(strlen("Information") + 1);
+   strcpy(d_info->titre, "Information");
+   d_info->msg = malloc(strlen("Opération effectuée avec succès.\nVous pouvez continuer.") + 1);
+   strcpy(d_info->msg, "Opération effectuée avec succès.\nVous pouvez continuer.");
 
    BtnTypeData *d_succes = g_new0(BtnTypeData, 1);
    d_succes->win = GTK_WINDOW(window);
    d_succes->type = DIALOG_SUCCES;
-   d_succes->titre = "Succès !";
-   d_succes->msg = "Le fichier a été sauvegardé correctement.";
+   d_succes->titre = malloc(strlen("Succès !") + 1);
+   strcpy(d_succes->titre, "Succès !");
+   d_succes->msg = malloc(strlen("Le fichier a été sauvegardé correctement.") + 1);
+   strcpy(d_succes->msg, "Le fichier a été sauvegardé correctement.");
 
    BtnTypeData *d_avert = g_new0(BtnTypeData, 1);
    d_avert->win = GTK_WINDOW(window);
    d_avert->type = DIALOG_AVERTISSEMENT;
-   d_avert->titre = "Attention";
-   d_avert->msg = "Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?";
+   d_avert->titre = malloc(strlen("Attention") + 1);
+   strcpy(d_avert->titre, "Attention");
+   d_avert->msg = malloc(strlen("Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?") + 1);
+   strcpy(d_avert->msg, "Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?");
 
    BtnTypeData *d_erreur = g_new0(BtnTypeData, 1);
    d_erreur->win = GTK_WINDOW(window);
    d_erreur->type = DIALOG_ERREUR;
-   d_erreur->titre = "Erreur critique";
-   d_erreur->msg = "Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.";
+   d_erreur->titre = malloc(strlen("Erreur critique") + 1);
+   strcpy(d_erreur->titre, "Erreur critique");
+   d_erreur->msg = malloc(strlen("Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.") + 1);
+   strcpy(d_erreur->msg, "Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.");
 
    g_signal_connect(w_info, "clicked", G_CALLBACK(show_typed_cb), d_info);
    g_signal_connect(w_succes, "clicked", G_CALLBACK(show_typed_cb), d_succes);
@@ -344,22 +358,26 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    BtnPresetData *p_ok = g_new0(BtnPresetData, 1);
    p_ok->win = GTK_WINDOW(window);
    p_ok->preset = DIALOG_BOUTONS_OK;
-   p_ok->titre = "OK seulement";
+   p_ok->titre = malloc(strlen("OK seulement") + 1);
+   strcpy(p_ok->titre, "OK seulement");
 
    BtnPresetData *p_ok_ann = g_new0(BtnPresetData, 1);
    p_ok_ann->win = GTK_WINDOW(window);
    p_ok_ann->preset = DIALOG_BOUTONS_OK_ANNULER;
-   p_ok_ann->titre = "OK + Annuler";
+   p_ok_ann->titre = malloc(strlen("OK + Annuler") + 1);
+   strcpy(p_ok_ann->titre, "OK + Annuler");
 
    BtnPresetData *p_oui_non = g_new0(BtnPresetData, 1);
    p_oui_non->win = GTK_WINDOW(window);
    p_oui_non->preset = DIALOG_BOUTONS_OUI_NON;
-   p_oui_non->titre = "Oui / Non";
+   p_oui_non->titre = malloc(strlen("Oui / Non") + 1);
+   strcpy(p_oui_non->titre, "Oui / Non");
 
    BtnPresetData *p_oui_non_ann = g_new0(BtnPresetData, 1);
    p_oui_non_ann->win = GTK_WINDOW(window);
    p_oui_non_ann->preset = DIALOG_BOUTONS_OUI_NON_ANNULER;
-   p_oui_non_ann->titre = "Oui / Non / Annuler";
+   p_oui_non_ann->titre = malloc(strlen("Oui / Non / Annuler") + 1);
+   strcpy(p_oui_non_ann->titre, "Oui / Non / Annuler");
 
    g_signal_connect(b_ok, "clicked", G_CALLBACK(show_preset_cb), p_ok);
    g_signal_connect(b_ok_ann, "clicked", G_CALLBACK(show_preset_cb), p_ok_ann);

@@ -2,6 +2,8 @@
 // Created by Noureddine on 3/3/2026.
 //
 #include <gtk/gtk.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../headers/conteneur.h"
 
 static void activate(GtkApplication *app, gpointer user_data)
@@ -19,9 +21,11 @@ static void activate(GtkApplication *app, gpointer user_data)
     c.homogene = FALSE;
 
     //STYLE
-    c.couleur_fond = "#DDEEFF";
+    c.couleur_fond = malloc(strlen("#DDEEFF") + 1);
+    strcpy(c.couleur_fond, "#DDEEFF");
     c.bordure_largeur = 5;
-    c.bordure_couleur = "blue";
+    c.bordure_couleur = malloc(strlen("blue") + 1);
+    strcpy(c.bordure_couleur, "blue");
     c.bordure_rayon = 20;
 
     //marges
