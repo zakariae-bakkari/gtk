@@ -28,6 +28,7 @@ add_executable(gtk
         # App
         # src/main.c
         src/main_xml.c
+        widgets/sources/export_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
