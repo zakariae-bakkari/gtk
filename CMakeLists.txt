@@ -45,3 +45,4 @@ add_executable(gtk
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
 target_include_directories(gtk PRIVATE widgets/headers)
+target_compile_definitions(gtk PRIVATE UI_EXEMPLE_PATH="${CMAKE_SOURCE_DIR}/ui_exemple.txt")

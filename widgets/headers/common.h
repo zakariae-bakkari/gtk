@@ -2,6 +2,8 @@
 #define COMMON_H
 
 #include <gtk/gtk.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
  * common.h : structures et définitions partagées entre tous les widgets

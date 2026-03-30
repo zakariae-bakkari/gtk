@@ -24,23 +24,24 @@ static void _bouton_appliquer_css(Bouton *config)
     }
 
     // Build cursor CSS based on type
-    const char *cursor_name = "pointer"; // default
+    char cursor_name[16];
+    strcpy(cursor_name, "pointer");
     switch (config->curseur)
     {
     case CURSEUR_DEFAUT:
-        cursor_name = "default";
+        strcpy(cursor_name, "default");
         break;
     case CURSEUR_MAIN:
-        cursor_name = "pointer";
+        strcpy(cursor_name, "pointer");
         break;
     case CURSEUR_AIDE:
-        cursor_name = "help";
+        strcpy(cursor_name, "help");
         break;
     case CURSEUR_ATTENTE:
-        cursor_name = "wait";
+        strcpy(cursor_name, "wait");
         break;
     case CURSEUR_CROIX:
-        cursor_name = "not-allowed";
+        strcpy(cursor_name, "not-allowed");
         break;
     }
     snprintf(cursor_css, sizeof(cursor_css), "  cursor: %s;\n", cursor_name);

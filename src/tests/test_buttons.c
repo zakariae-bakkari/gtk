@@ -4,7 +4,9 @@
 #include "../../widgets/headers/bouton.h"
 #include "../../widgets/headers/bouton_radio.h"
 #include "../../widgets/headers/bouton_checklist.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // Callback functions for button testing
 static void on_simple_button_click(GtkWidget *widget, gpointer user_data)
@@ -59,7 +61,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // 1. Configuration de la fenêtre
     Fenetre fenetre_config;
     fenetre_initialiser(&fenetre_config);
-    fenetre_config.title = "Test des Boutons - Démo Complète";
+    fenetre_config.title = malloc(strlen("Test des Boutons - Démo Complète") + 1);
+    strcpy(fenetre_config.title, "Test des Boutons - Démo Complète");
     fenetre_config.taille.width = 900;
     fenetre_config.taille.height = 700;
 
@@ -90,9 +93,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&section1);
     section1.orientation = CONTENEUR_HORIZONTAL;
     section1.espacement = 15;
-    section1.couleur_fond = "#E3F2FD";
+    section1.couleur_fond = malloc(strlen("#E3F2FD") + 1);
+    strcpy(section1.couleur_fond, "#E3F2FD");
     section1.bordure_largeur = 2;
-    section1.bordure_couleur = "#2196F3";
+    section1.bordure_couleur = malloc(strlen("#2196F3") + 1);
+    strcpy(section1.bordure_couleur, "#2196F3");
     section1.bordure_rayon = 8;
     section1.padding.haut = 15;
     section1.padding.bas = 15;
@@ -104,7 +109,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // Bouton simple
     Bouton btn_simple;
     bouton_initialiser(&btn_simple);
-    btn_simple.texte = "Bouton Simple";
+    btn_simple.texte = malloc(strlen("Bouton Simple") + 1);
+    strcpy(btn_simple.texte, "Bouton Simple");
     btn_simple.on_clic = on_simple_button_click;
 
     GtkWidget *simple_button = bouton_creer(&btn_simple);
@@ -113,12 +119,16 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // Bouton avec style personnalisé
     Bouton btn_styled;
     bouton_initialiser(&btn_styled);
-    btn_styled.texte = "Bouton Stylé";
+    btn_styled.texte = malloc(strlen("Bouton Stylé") + 1);
+    strcpy(btn_styled.texte, "Bouton Stylé");
     btn_styled.on_clic = on_styled_button_click;
-    btn_styled.style.bg_normal = "#FF5722";
-    btn_styled.style.fg_normal = "white";
+    btn_styled.style.bg_normal = malloc(strlen("#FF5722") + 1);
+    strcpy(btn_styled.style.bg_normal, "#FF5722");
+    btn_styled.style.fg_normal = malloc(strlen("white") + 1);
+    strcpy(btn_styled.style.fg_normal, "white");
     btn_styled.style.epaisseur_bordure = 2;
-    btn_styled.style.couleur_bordure = "#D32F2F";
+    btn_styled.style.couleur_bordure = malloc(strlen("#D32F2F") + 1);
+    strcpy(btn_styled.style.couleur_bordure, "#D32F2F");
     btn_styled.style.rayon_arrondi = 15;
     btn_styled.style.gras = true;
 
@@ -128,7 +138,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // Bouton désactivé par défaut
     Bouton btn_disabled;
     bouton_initialiser(&btn_disabled);
-    btn_disabled.texte = "Bouton Désactivé";
+    btn_disabled.texte = malloc(strlen("Bouton Désactivé") + 1);
+    strcpy(btn_disabled.texte, "Bouton Désactivé");
     btn_disabled.est_actif = false;
 
     GtkWidget *disabled_button = bouton_creer(&btn_disabled);
@@ -137,7 +148,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // Bouton pour activer/désactiver
     Bouton btn_toggle;
     bouton_initialiser(&btn_toggle);
-    btn_toggle.texte = "Enable Button";
+    btn_toggle.texte = malloc(strlen("Enable Button") + 1);
+    strcpy(btn_toggle.texte, "Enable Button");
     btn_toggle.on_clic = on_disabled_button_toggle;
     btn_toggle.user_data = disabled_button;
 
@@ -155,9 +167,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&section2);
     section2.orientation = CONTENEUR_VERTICAL;
     section2.espacement = 10;
-    section2.couleur_fond = "#F3E5F5";
+    section2.couleur_fond = malloc(strlen("#F3E5F5") + 1);
+    strcpy(section2.couleur_fond, "#F3E5F5");
     section2.bordure_largeur = 2;
-    section2.bordure_couleur = "#9C27B0";
+    section2.bordure_couleur = malloc(strlen("#9C27B0") + 1);
+    strcpy(section2.bordure_couleur, "#9C27B0");
     section2.bordure_rayon = 8;
     section2.padding.haut = 15;
     section2.padding.bas = 15;

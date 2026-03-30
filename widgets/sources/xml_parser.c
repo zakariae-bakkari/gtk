@@ -53,7 +53,7 @@ static char *xstrdup(const char *s)
     if (!s) return NULL;
     size_t len = strlen(s);
     char *d = malloc(len + 1);
-    if (d) memcpy(d, s, len + 1);
+    if (d) strcpy(d, s);
     return d;
 }
 
@@ -411,7 +411,10 @@ static GtkWidget *build_fenetre(const XmlNode *n, GtkApplication *app)
     GtkWidget *root_box  = conteneur_creer(root_ct);
     gtk_widget_set_hexpand(root_box, TRUE);
     gtk_widget_set_vexpand(root_box, TRUE);
-    gtk_window_set_child(GTK_WINDOW(window), root_box);
+    if (win.scroll_widget)
+        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(win.scroll_widget), root_box);
+    else
+        gtk_window_set_child(GTK_WINDOW(window), root_box);
     g_signal_connect_swapped(root_box, "destroy", G_CALLBACK(g_free), root_ct);
 
     /* Enfants XML → ajoutés dans root_ct */

@@ -292,10 +292,15 @@ GtkWidget *fenetre_creer(Fenetre *config, GtkApplication *app)
         gtk_scrolled_window_set_overlay_scrolling(
             GTK_SCROLLED_WINDOW(config->scroll_widget), config->scroll_overlay);
 
-        if (config->content_min_width > 0 || config->content_min_height > 0) {
-            gtk_widget_set_size_request(config->scroll_widget,
-                config->content_min_width  > 0 ? config->content_min_width  : -1,
-                config->content_min_height > 0 ? config->content_min_height : -1);
+        if (config->content_min_width > 0) {
+            gtk_scrolled_window_set_min_content_width(
+                GTK_SCROLLED_WINDOW(config->scroll_widget),
+                config->content_min_width);
+        }
+        if (config->content_min_height > 0) {
+            gtk_scrolled_window_set_min_content_height(
+                GTK_SCROLLED_WINDOW(config->scroll_widget),
+                config->content_min_height);
         }
 
         gtk_window_set_child(GTK_WINDOW(config->wind), config->scroll_widget);

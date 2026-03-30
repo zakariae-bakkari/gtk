@@ -1,6 +1,8 @@
 #include <gtk/gtk.h>
 #include "../headers/fenetre.h"
 #include "../headers/bouton.h"
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -96,11 +98,17 @@ static GtkWidget *creer_btn(const char *id, const char *texte,
     static int cpt = 0;
     cpt++;
     Bouton *btn = g_new0(Bouton, 1);
+    char id_buffer[256];
     bouton_initialiser(btn);
-    btn->id_css = g_strdup_printf("%s_%d", id, cpt);
-    btn->texte = (char *)texte;
-    btn->style.bg_normal = (char *)bg;
-    btn->style.bg_hover = (char *)hover;
+    snprintf(id_buffer, sizeof(id_buffer), "%s_%d", id, cpt);
+    btn->id_css = malloc(strlen(id_buffer) + 1);
+    strcpy(btn->id_css, id_buffer);
+    btn->texte = malloc(strlen(texte) + 1);
+    strcpy(btn->texte, texte);
+    btn->style.bg_normal = malloc(strlen(bg) + 1);
+    strcpy(btn->style.bg_normal, bg);
+    btn->style.bg_hover = malloc(strlen(hover) + 1);
+    strcpy(btn->style.bg_hover, hover);
     btn->taille.mode = TAILLE_FIXE;
     btn->taille.largeur = 380;
     btn->taille.hauteur = 46;
@@ -147,10 +155,12 @@ static void test_basique(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 1 — Couleur fond";
+    f.title = malloc(strlen("Test 1 — Couleur fond") + 1);
+    strcpy(f.title, "Test 1 — Couleur fond");
     f.taille.width = 420;
     f.taille.height = 220;
-    f.color_bg = "#d6eaf8";
+    f.color_bg = malloc(strlen("#d6eaf8") + 1);
+    strcpy(f.color_bg, "#d6eaf8");
     f.titre_align = TITRE_ALIGN_GAUCHE;
     f.bouton_agrandir = false;
     f.bouton_reduire = false;
@@ -168,10 +178,12 @@ static void test_titre_centre(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Titre Centré — Test 2";
+    f.title = malloc(strlen("Titre Centré — Test 2") + 1);
+    strcpy(f.title, "Titre Centré — Test 2");
     f.taille.width = 400;
     f.taille.height = 180;
-    f.color_bg = "#d5f5e3";
+    f.color_bg = malloc(strlen("#d5f5e3") + 1);
+    strcpy(f.color_bg, "#d5f5e3");
     f.titre_align = TITRE_ALIGN_CENTRE;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win), lbl("✅ titre_align=CENTRE"));
@@ -186,10 +198,12 @@ static void test_titre_droite(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 3 — TITRE_ALIGN_DROITE";
+    f.title = malloc(strlen("Test 3 — TITRE_ALIGN_DROITE") + 1);
+    strcpy(f.title, "Test 3 — TITRE_ALIGN_DROITE");
     f.taille.width = 420;
     f.taille.height = 180;
-    f.color_bg = "#fdebd0";
+    f.color_bg = malloc(strlen("#fdebd0") + 1);
+    strcpy(f.color_bg, "#fdebd0");
     f.titre_align = TITRE_ALIGN_DROITE;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -205,10 +219,12 @@ static void test_icone(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 4 — Icône zcode.png";
+    f.title = malloc(strlen("Test 4 — Icône zcode.png") + 1);
+    strcpy(f.title, "Test 4 — Icône zcode.png");
     f.taille.width = 460;
     f.taille.height = 300;
-    f.color_bg = "#e8daef";
+    f.color_bg = malloc(strlen("#e8daef") + 1);
+    strcpy(f.color_bg, "#e8daef");
     f.icon_path = ICON_PATH;
     GtkWidget *win = creer_fenetre_complete(&f, app);
 
@@ -242,10 +258,12 @@ static void test_titre_avec_icone(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "ignoré";
+    f.title = malloc(strlen("ignoré") + 1);
+    strcpy(f.title, "ignoré");
     f.taille.width = 440;
     f.taille.height = 200;
-    f.color_bg = "#fef9e7";
+    f.color_bg = malloc(strlen("#fef9e7") + 1);
+    strcpy(f.color_bg, "#fef9e7");
     GtkWidget *win = creer_fenetre_complete(&f, app);
     GtkWidget *header = gtk_window_get_titlebar(GTK_WINDOW(win));
     GtkWidget *tbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
@@ -270,7 +288,8 @@ static void test_background_image(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 6 — Background Image";
+    f.title = malloc(strlen("Test 6 — Background Image") + 1);
+    strcpy(f.title, "Test 6 — Background Image");
     f.taille.width = 500;
     f.taille.height = 350;
 
@@ -290,7 +309,8 @@ static void test_background_image(GtkWidget *w, gpointer data)
     }
     else
     {
-        f.color_bg = "#aed6f1";
+        f.color_bg = malloc(strlen("#aed6f1") + 1);
+        strcpy(f.color_bg, "#aed6f1");
         fprintf(stdout, "[TEST6] Aucune image, color_bg de secours\n");
     }
     fflush(stdout);
@@ -324,10 +344,12 @@ static void test_scroll_vertical(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 7 — Scroll Vertical";
+    f.title = malloc(strlen("Test 7 — Scroll Vertical") + 1);
+    strcpy(f.title, "Test 7 — Scroll Vertical");
     f.taille.width = 400;
     f.taille.height = 280;
-    f.color_bg = "#eaf4fb";
+    f.color_bg = malloc(strlen("#eaf4fb") + 1);
+    strcpy(f.color_bg, "#eaf4fb");
     f.scroll_mode = SCROLL_VERTICAL;
     f.scroll_overlay = true;
     GtkWidget *win = creer_fenetre_complete(&f, app);
@@ -359,10 +381,12 @@ static void test_scroll_horizontal(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 8 — Scroll Horizontal";
+    f.title = malloc(strlen("Test 8 — Scroll Horizontal") + 1);
+    strcpy(f.title, "Test 8 — Scroll Horizontal");
     f.taille.width = 300;
     f.taille.height = 180;
-    f.color_bg = "#e9f7ef";
+    f.color_bg = malloc(strlen("#e9f7ef") + 1);
+    strcpy(f.color_bg, "#e9f7ef");
     f.scroll_mode = SCROLL_HORIZONTAL;
     f.scroll_overlay = false;
     GtkWidget *win = creer_fenetre_complete(&f, app);
@@ -393,10 +417,12 @@ static void test_scroll_both(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 9 — Scroll Both";
+    f.title = malloc(strlen("Test 9 — Scroll Both") + 1);
+    strcpy(f.title, "Test 9 — Scroll Both");
     f.taille.width = 320;
     f.taille.height = 260;
-    f.color_bg = "#fdfefe";
+    f.color_bg = malloc(strlen("#fdfefe") + 1);
+    strcpy(f.color_bg, "#fdfefe");
     f.scroll_mode = SCROLL_BOTH;
     f.scroll_overlay = true;
     f.content_min_width = 600;
@@ -433,9 +459,11 @@ static void test_maximisee(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 10 — Maximisée";
+    f.title = malloc(strlen("Test 10 — Maximisée") + 1);
+    strcpy(f.title, "Test 10 — Maximisée");
     f.demarrer_maximisee = true;
-    f.color_bg = "#f2f3f4";
+    f.color_bg = malloc(strlen("#f2f3f4") + 1);
+    strcpy(f.color_bg, "#f2f3f4");
     GtkWidget *win = creer_fenetre_complete(&f, app);
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
@@ -457,10 +485,12 @@ static void test_sans_boutons(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 11 — Sans boutons";
+    f.title = malloc(strlen("Test 11 — Sans boutons") + 1);
+    strcpy(f.title, "Test 11 — Sans boutons");
     f.taille.width = 400;
     f.taille.height = 200;
-    f.color_bg = "#fef5e7";
+    f.color_bg = malloc(strlen("#fef5e7") + 1);
+    strcpy(f.color_bg, "#fef5e7");
     f.bouton_fermer = false;
     f.bouton_agrandir = false;
     f.bouton_reduire = false;
@@ -478,10 +508,12 @@ static void test_non_redim(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 12 — Non redimensionnable";
+    f.title = malloc(strlen("Test 12 — Non redimensionnable") + 1);
+    strcpy(f.title, "Test 12 — Non redimensionnable");
     f.taille.width = 420;
     f.taille.height = 190;
-    f.color_bg = "#eafaf1";
+    f.color_bg = malloc(strlen("#eafaf1") + 1);
+    strcpy(f.color_bg, "#eafaf1");
     f.resizable = false;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -497,10 +529,12 @@ static void test_popup(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 13 — Popup";
+    f.title = malloc(strlen("Test 13 — Popup") + 1);
+    strcpy(f.title, "Test 13 — Popup");
     f.taille.width = 340;
     f.taille.height = 200;
-    f.color_bg = "#f9ebea";
+    f.color_bg = malloc(strlen("#f9ebea") + 1);
+    strcpy(f.color_bg, "#f9ebea");
     f.type = WIN_TYPE_POPUP;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_decorated(GTK_WINDOW(win), FALSE);
@@ -525,10 +559,12 @@ static void test_position_center(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 14 — Position CENTER";
+    f.title = malloc(strlen("Test 14 — Position CENTER") + 1);
+    strcpy(f.title, "Test 14 — Position CENTER");
     f.taille.width = 420;
     f.taille.height = 200;
-    f.color_bg = "#d6eaf8";
+    f.color_bg = malloc(strlen("#d6eaf8") + 1);
+    strcpy(f.color_bg, "#d6eaf8");
     f.position = WIN_POS_CENTER;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -546,10 +582,12 @@ static void test_position_mouse(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 15 — Position MOUSE";
+    f.title = malloc(strlen("Test 15 — Position MOUSE") + 1);
+    strcpy(f.title, "Test 15 — Position MOUSE");
     f.taille.width = 380;
     f.taille.height = 200;
-    f.color_bg = "#d5f5e3";
+    f.color_bg = malloc(strlen("#d5f5e3") + 1);
+    strcpy(f.color_bg, "#d5f5e3");
     f.position = WIN_POS_MOUSE;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -566,10 +604,12 @@ static void test_position_center_parent(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 16 — Position CENTER_ON_PARENT";
+    f.title = malloc(strlen("Test 16 — Position CENTER_ON_PARENT") + 1);
+    strcpy(f.title, "Test 16 — Position CENTER_ON_PARENT");
     f.taille.width = 380;
     f.taille.height = 200;
-    f.color_bg = "#fdebd0";
+    f.color_bg = malloc(strlen("#fdebd0") + 1);
+    strcpy(f.color_bg, "#fdebd0");
     f.position = WIN_POS_CENTER_ON_PARENT;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -586,10 +626,12 @@ static void test_position_default(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 17 — Position DEFAULT";
+    f.title = malloc(strlen("Test 17 — Position DEFAULT") + 1);
+    strcpy(f.title, "Test 17 — Position DEFAULT");
     f.taille.width = 380;
     f.taille.height = 180;
-    f.color_bg = "#e8daef";
+    f.color_bg = malloc(strlen("#e8daef") + 1);
+    strcpy(f.color_bg, "#e8daef");
     f.position = WIN_POS_DEFAULT;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     gtk_window_set_child(GTK_WINDOW(win),
@@ -605,10 +647,12 @@ static void test_taille_id(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 18 — Taille & ID";
+    f.title = malloc(strlen("Test 18 — Taille & ID") + 1);
+    strcpy(f.title, "Test 18 — Taille & ID");
     f.taille.width = 600;
     f.taille.height = 400;
-    f.color_bg = "#ebf5fb";
+    f.color_bg = malloc(strlen("#ebf5fb") + 1);
+    strcpy(f.color_bg, "#ebf5fb");
     f.id = 42;
     GtkWidget *win = creer_fenetre_complete(&f, app);
     char txt[128];
@@ -627,10 +671,12 @@ static void test_set_scrollable(GtkWidget *w, gpointer data)
     GtkApplication *app = (GtkApplication *)data;
     static Fenetre f;
     fenetre_initialiser(&f);
-    f.title = "Test 19 — set_scrollable()";
+    f.title = malloc(strlen("Test 19 — set_scrollable()") + 1);
+    strcpy(f.title, "Test 19 — set_scrollable()");
     f.taille.width = 380;
     f.taille.height = 260;
-    f.color_bg = "#fdfefe";
+    f.color_bg = malloc(strlen("#fdfefe") + 1);
+    strcpy(f.color_bg, "#fdfefe");
     fenetre_set_scrollable(&f, SCROLL_VERTICAL);
     fenetre_set_scroll_overlay(&f, FALSE);
     fenetre_set_scroll_content_size(&f, 0, 900);
@@ -675,10 +721,12 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     static Fenetre principale;
     fenetre_initialiser(&principale);
-    principale.title = "Tests Fenetre — Tous les tests";
+    principale.title = malloc(strlen("Tests Fenetre — Tous les tests") + 1);
+    strcpy(principale.title, "Tests Fenetre — Tous les tests");
     principale.taille.width = 500;
     principale.taille.height = 780;
-    principale.color_bg = "#f4f6f7";
+    principale.color_bg = malloc(strlen("#f4f6f7") + 1);
+    strcpy(principale.color_bg, "#f4f6f7");
     principale.scroll_mode = SCROLL_VERTICAL;
 
     GtkWidget *win = creer_fenetre_complete(&principale, app);

@@ -159,7 +159,8 @@ static void on_conditions(GtkWidget *w, gpointer data)
         "• Ce service est réservé aux personnes majeures.");
     cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
     cfg->on_reponse = on_dialog_reponse;
-    cfg->user_data = "conditions";
+    cfg->user_data = malloc(strlen("conditions") + 1);
+    strcpy(cfg->user_data, "conditions");
     dialog_creer(cfg);
     dialog_afficher(cfg);
     g_signal_connect_swapped(cfg->window, "destroy", G_CALLBACK(dialog_free), cfg);
@@ -186,7 +187,8 @@ static void on_conditions(GtkWidget *w, gpointer data)
     strcpy(cfg->message, message);
     cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
     cfg->on_reponse = on_dialog_reponse;
-    cfg->user_data = "conditions";
+    cfg->user_data = malloc(strlen("conditions") + 1);
+    strcpy(cfg->user_data, "conditions");
     dialog_creer(cfg);
     dialog_afficher(cfg);
     g_signal_connect_swapped(cfg->window, "destroy", G_CALLBACK(dialog_free), cfg);
@@ -374,7 +376,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_nom->placeholder = malloc(strlen("") + 1);
     strcpy(ct_nom->placeholder, "");
     ct_nom->on_change = on_texte_change; // GtkEditable "changed"
-    ct_nom->user_data = "nom";
+    ct_nom->user_data = malloc(strlen("nom") + 1);
+    strcpy(ct_nom->user_data, "nom");
     GtkWidget *w_nom = champ_texte_creer(ct_nom);
     g_signal_connect_swapped(w_nom, "destroy", G_CALLBACK(champ_texte_free), ct_nom);
     g_signal_connect(w_nom, "destroy", G_CALLBACK(g_free), ct_nom);
@@ -394,7 +397,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_mdp->placeholder = malloc(strlen("") + 1);
     strcpy(ct_mdp->placeholder, "");
     ct_mdp->on_change = on_texte_change; // GtkEditable "changed"
-    ct_mdp->user_data = "mot_passe";
+    ct_mdp->user_data = malloc(strlen("mot_passe") + 1);
+    strcpy(ct_mdp->user_data, "mot_passe");
     GtkWidget *w_mdp = champ_motdepasse_creer(ct_mdp);
     g_signal_connect_swapped(w_mdp, "destroy", G_CALLBACK(champ_motdepasse_free), ct_mdp);
     g_signal_connect(w_mdp, "destroy", G_CALLBACK(g_free), ct_mdp);
@@ -415,7 +419,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     champ_select_add_item(ct_sel, "Option 3");
     ct_sel->selected_index = 0;
     ct_sel->on_change = on_select_change; // GtkDropDown "notify::selected"
-    ct_sel->user_data = "select";
+    ct_sel->user_data = malloc(strlen("select") + 1);
+    strcpy(ct_sel->user_data, "select");
     GtkWidget *w_sel = champ_select_creer(ct_sel);
     g_signal_connect_swapped(w_sel, "destroy", G_CALLBACK(champ_select_free), ct_sel);
     g_signal_connect(w_sel, "destroy", G_CALLBACK(g_free), ct_sel);
@@ -433,7 +438,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     strcpy(ct_zt->id_css, "inp_zt");
     ct_zt->wrap_word = TRUE;
     ct_zt->on_change = on_zone_texte_change; // GtkTextBuffer "changed"
-    ct_zt->user_data = "zone_texte";
+    ct_zt->user_data = malloc(strlen("zone_texte") + 1);
+    strcpy(ct_zt->user_data, "zone_texte");
     GtkWidget *w_zt = champ_zone_texte_creer(ct_zt);
     g_signal_connect_swapped(w_zt, "destroy", G_CALLBACK(champ_zone_texte_free), ct_zt);
     g_signal_connect(w_zt, "destroy", G_CALLBACK(g_free), ct_zt);
@@ -454,7 +460,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     strcpy(chk_terms.label, "accepter les termes");
     chk_terms.etat = CHECKLIST_UNCHECKED;
     chk_terms.on_toggled = on_check;
-    chk_terms.user_data = "termes";
+    chk_terms.user_data = malloc(strlen("termes") + 1);
+    strcpy(chk_terms.user_data, "termes");
     GtkWidget *w_chk = bouton_checklist_creer(&chk_terms);
     gtk_widget_set_hexpand(w_chk, TRUE);
     gtk_box_append(GTK_BOX(terms_row), w_chk);
@@ -588,7 +595,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     strcpy(rad1.label, "Option A");
     rad1.est_actif = TRUE;
     rad1.on_toggled = on_radio;
-    rad1.user_data = "Option A";
+    rad1.user_data = malloc(strlen("Option A") + 1);
+    strcpy(rad1.user_data, "Option A");
     GtkWidget *w_r1 = bouton_radio_creer(&rad1);
     conteneur_ajouter(&col2_ct, w_r1);
 
@@ -602,7 +610,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     strcpy(rad2.label, "Option B");
     rad2.group_leader = GTK_CHECK_BUTTON(w_r1);
     rad2.on_toggled = on_radio;
-    rad2.user_data = "Option B";
+    rad2.user_data = malloc(strlen("Option B") + 1);
+    strcpy(rad2.user_data, "Option B");
     conteneur_ajouter(&col2_ct, bouton_radio_creer(&rad2));
 
     BoutonRadio rad3;
@@ -615,7 +624,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     strcpy(rad3.label, "Option C");
     rad3.group_leader = GTK_CHECK_BUTTON(w_r1);
     rad3.on_toggled = on_radio;
-    rad3.user_data = "Option C";
+    rad3.user_data = malloc(strlen("Option C") + 1);
+    strcpy(rad3.user_data, "Option C");
     conteneur_ajouter(&col2_ct, bouton_radio_creer(&rad3));
 
     // Séparateur
@@ -663,7 +673,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     sld->afficher_label = TRUE;
     sld->orientation = SLIDER_HORIZONTAL;
     sld->on_change = on_slider_change;
-    sld->user_data = "range";
+    sld->user_data = malloc(strlen("range") + 1);
+    strcpy(sld->user_data, "range");
     sld->size.width = 220;
     GtkWidget *w_sld = slider_creer(sld);
     g_signal_connect_swapped(w_sld, "destroy", G_CALLBACK(slider_free), sld);

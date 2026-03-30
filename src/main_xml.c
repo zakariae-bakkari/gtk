@@ -8,23 +8,28 @@
 
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../widgets/headers/xml_parser.h"
+
+#ifndef UI_EXEMPLE_PATH
+#define UI_EXEMPLE_PATH "ui_exemple.txt"
+#endif
 
 /* ================================================================
  *  CALLBACKS
- *  (à connecter dynamiquement si nécessaire, ou via signal_connect
- *   après avoir récupéré le widget par son id CSS)
  * ================================================================ */
 
 static void on_connexion(GtkWidget *w, gpointer data)
 {
-    printf("[ACTION] Bouton connexion cliqué\n");
-    (void)w; (void)data;
+    printf("[ACTION] Bouton connexion clique\n");
+    (void)w;
+    (void)data;
 }
 
 static void on_menu_click(const char *id, gpointer data)
 {
-    printf("[MENU] Item cliqué : %s\n", id);
+    printf("[MENU] Item clique : %s\n", id);
     (void)data;
 }
 
@@ -33,31 +38,24 @@ static void on_menu_click(const char *id, gpointer data)
  * ================================================================ */
 static void activate(GtkApplication *app, gpointer user_data)
 {
+    char *ui_path;
+    GtkWidget *window;
+
     (void)user_data;
 
-    /* ── Chargement de l'interface depuis le fichier XML ── */
-    GtkWidget *window = xml_load_file("ui_exemple.txt", app);
+    ui_path = malloc(strlen(UI_EXEMPLE_PATH) + 1);
+    strcpy(ui_path, UI_EXEMPLE_PATH);
+
+    window = xml_load_file(ui_path, app);
 
     if (!window) {
-        fprintf(stderr, "Erreur : impossible de charger ui_exemple.xml\n");
+        fprintf(stderr, "Erreur : impossible de charger %s\n", ui_path);
+        free(ui_path);
         return;
     }
 
-    /* ── Exemple d'utilisation avancée : parse + introspection ── */
-    /*
-    XmlNode *root = xml_parser_parse_file("ui_exemple.xml");
-    if (root) {
-        // Lire un attribut
-        const char *titre = xml_attr_get(root, "title");
-        printf("Titre fenêtre : %s\n", titre ? titre : "(aucun)");
-
-        // Construire l'UI
-        window = xml_build_ui(root, app);
-        xml_node_free(root);   // libérer l'arbre après construction
-    }
-    */
-
     gtk_window_present(GTK_WINDOW(window));
+    free(ui_path);
 }
 
 /* ================================================================
@@ -65,10 +63,18 @@ static void activate(GtkApplication *app, gpointer user_data)
  * ================================================================ */
 int main(int argc, char **argv)
 {
-    GtkApplication *app = gtk_application_new("org.zcode.xml_demo",
-                                               G_APPLICATION_DEFAULT_FLAGS);
+    char *app_id;
+    GtkApplication *app;
+    int status;
+
+    app_id = malloc(strlen("org.zcode.xml_demo") + 1);
+    strcpy(app_id, "org.zcode.xml_demo");
+
+    app = gtk_application_new(app_id, G_APPLICATION_DEFAULT_FLAGS);
+    free(app_id);
+
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
     return status;
 }

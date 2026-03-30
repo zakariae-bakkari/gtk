@@ -41,33 +41,33 @@ static GtkJustification _convertir_text_align(TexteAlignement alignement)
 /* Génère le markup Pango basé sur le type de heading */
 static void _generer_markup_heading(char *buffer, size_t buffer_size, const char *texte, TexteType type)
 {
-   const char *format = NULL;
+   char format[128];
 
    switch (type)
    {
    case TEXTE_H1:
-      format = "<span size='xx-large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='xx-large' weight='bold'>%s</span>");
       break;
    case TEXTE_H2:
-      format = "<span size='x-large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='x-large' weight='bold'>%s</span>");
       break;
    case TEXTE_H3:
-      format = "<span size='large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='large' weight='bold'>%s</span>");
       break;
    case TEXTE_H4:
-      format = "<span size='medium' weight='bold'>%s</span>";
+      strcpy(format, "<span size='medium' weight='bold'>%s</span>");
       break;
    case TEXTE_H5:
-      format = "<span size='small' weight='bold'>%s</span>";
+      strcpy(format, "<span size='small' weight='bold'>%s</span>");
       break;
    case TEXTE_H6:
-      format = "<span size='x-small' weight='bold'>%s</span>";
+      strcpy(format, "<span size='x-small' weight='bold'>%s</span>");
       break;
    case TEXTE_SUBTITLE:
-      format = "<span size='large' weight='normal' style='italic'>%s</span>";
+      strcpy(format, "<span size='large' weight='normal' style='italic'>%s</span>");
       break;
    case TEXTE_CAPTION:
-      format = "<span size='small' weight='normal' style='italic'>%s</span>";
+      strcpy(format, "<span size='small' weight='normal' style='italic'>%s</span>");
       break;
    case TEXTE_NORMAL:
    default:

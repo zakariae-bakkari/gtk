@@ -134,12 +134,14 @@ static void champ_texte_apply_css(ChampTexte *cfg)
 
 static gboolean champ_texte_validate_internal(ChampTexte *cfg)
 {
+   char empty_txt[1] = "";
+
    if (!cfg || !cfg->widget || !cfg->label_erreur)
       return TRUE;
 
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    if (!txt)
-      txt = "";
+      txt = empty_txt;
 
    size_t len = strlen(txt);
 
@@ -254,7 +256,11 @@ static void on_texte_changed(GtkEditable *editable, gpointer user_data)
 
       if (n > (size_t)cfg->max_length)
       {
-         char *truncated = g_strndup(txt, cfg->max_length);
+         char *truncated = malloc(strlen(txt) + 1);
+         if (!truncated)
+            return;
+         strcpy(truncated, txt);
+         truncated[cfg->max_length] = '\0';
          g_signal_handlers_block_by_func(editable, on_texte_changed, user_data);
          gtk_editable_set_text(editable, truncated);
          gtk_editable_set_position(GTK_EDITABLE(editable), cfg->max_length);

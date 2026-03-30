@@ -4,6 +4,8 @@
     height="600"
     resizable="true"
     maximisee="true"
+    scroll="vertical"
+    scroll_min_height="1000"
     bgcolor="#f0f0f0">
 
     <!-- ═══════════════════════════════════════════
@@ -50,6 +52,8 @@
             id="col_gauche"
             orientation="vertical"
             espacement="12"
+            scroll="vertical"
+            scroll_min_height="1200"
             padding_top="16"
             padding_bottom="16"
             padding_left="20"

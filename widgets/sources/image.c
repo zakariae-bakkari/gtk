@@ -13,7 +13,7 @@ static void image_apply_css(Image *cfg)
    char css[1024];
    char border_css[128] = "";
 
-   // FIX: was using g_strdup_printf inline → memory leak, result was never freed
+   // Construction locale du CSS de bordure sans allocation dynamique.
    if (cfg->style.couleur_bordure && cfg->style.epaisseur_bordure > 0)
    {
       snprintf(border_css, sizeof(border_css),
