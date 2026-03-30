@@ -113,7 +113,7 @@
 
 <slider id="volume" min="0" max="100" valeur="50" step="1" afficher_valeur="true" width="250"/>
 
-<image src="assets/logo.png" width="200" height="150" fit="contain" legende="Logo"/>
+<image src="resources/images/zcode.png" width="200" height="150" fit="contain" legende="Logo"/>
 
             <!-- Bouton submit -->
             <bouton
