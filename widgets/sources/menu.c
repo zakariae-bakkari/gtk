@@ -217,6 +217,17 @@ static GtkWidget *menu_construire_sous_box(Menu *cfg, MenuItem *parent)
          gtk_box_append(GTK_BOX(inner), img);
       }
       gtk_box_append(GTK_BOX(inner), gtk_label_new(child->texte));
+
+      if (child->nb_sous_items > 0)
+      {
+         // Si le parent est vertical, ses enfants ouvrent à droite → flèche droite
+         // Si le parent est horizontal, ses enfants ouvrent en bas → flèche bas
+         const char *arrow = (parent->sous_menu_orientation == MENU_VERTICAL)
+             ? "pan-end-symbolic"    // →
+             : "pan-down-symbolic";  // ↓
+         GtkWidget *arrow_img = gtk_image_new_from_icon_name(arrow);
+         gtk_box_append(GTK_BOX(inner), arrow_img);
+      }
       gtk_button_set_child(GTK_BUTTON(btn), inner);
 
       if (child->tooltip)
@@ -232,6 +243,13 @@ static GtkWidget *menu_construire_sous_box(Menu *cfg, MenuItem *parent)
          child->sous_box = menu_construire_sous_box(cfg, child);
          gtk_popover_set_child(GTK_POPOVER(child->popover), child->sous_box);
          gtk_widget_set_parent(child->popover, btn);
+         gtk_popover_set_has_arrow(GTK_POPOVER(child->popover), TRUE);
+
+         // Position selon l'orientation du PARENT (pas du cfg global)
+         GtkPositionType pos = (orient == GTK_ORIENTATION_VERTICAL)
+    ? GTK_POS_RIGHT
+    : GTK_POS_BOTTOM;
+         gtk_popover_set_position(GTK_POPOVER(child->popover), pos);
       }
 
       MenuClickData *d = g_new0(MenuClickData, 1);
@@ -281,10 +299,10 @@ static GtkWidget *menu_construire_item(Menu *cfg, MenuItem *item)
    /* Indicateur de sous-menu (flèche) */
    if (item->nb_sous_items > 0)
    {
-      const char *arrow =
-          (item->sous_menu_orientation == MENU_VERTICAL)
-              ? "pan-down-symbolic"
-              : "pan-end-symbolic";
+      int orient;
+      const char *arrow = (orient == GTK_ORIENTATION_VERTICAL)
+                             ? "pan-end-symbolic"   // enfants empilés verticalement → flèche droite →
+                             : "pan-down-symbolic"; // enfants côte à côte horizontalement → flèche bas ↓
       GtkWidget *arrow_img = gtk_image_new_from_icon_name(arrow);
       gtk_box_append(GTK_BOX(inner), arrow_img);
    }
@@ -313,7 +331,8 @@ static GtkWidget *menu_construire_item(Menu *cfg, MenuItem *item)
       gtk_popover_set_has_arrow(GTK_POPOVER(item->popover), TRUE);
 
       /* Position du popover selon l'orientation */
-      if (cfg->orientation == MENU_HORIZONTAL)
+      // ✅ CORRECTION — position basée sur sous_menu_orientation de l'ITEM lui-même
+      if (item->sous_menu_orientation == MENU_VERTICAL)
          gtk_popover_set_position(GTK_POPOVER(item->popover), GTK_POS_BOTTOM);
       else
          gtk_popover_set_position(GTK_POPOVER(item->popover), GTK_POS_RIGHT);
