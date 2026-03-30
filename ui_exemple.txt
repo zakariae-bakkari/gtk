@@ -1,0 +1,199 @@
+<fenetre
+    title="demo xml"
+    width="900"
+    height="600"
+    resizable="true"
+    maximisee="true"
+    scroll="vertical"
+    scroll_min_height="1000"
+    bgcolor="#f0f0f0">
+
+    <!-- ═══════════════════════════════════════════
+         MENU HORIZONTAL en haut
+    ═══════════════════════════════════════════ -->
+    <menu
+        id="menu_principal"
+        orientation="horizontal"
+        espacement="4"
+        bg_barre="#2c3e50"
+        fg_item="#ffffff"
+        bg_item_hover="#3498db">
+
+        <menu_item id="fichier"  texte="Fichier"  icone="document-open-symbolic">
+            <menu_item id="nouveau"   texte="Nouveau"   icone="document-new-symbolic"/>
+            <menu_item id="ouvrir"    texte="Ouvrir"    icone="document-open-symbolic"/>
+            <menu_item type="separateur"/>
+            <menu_item id="quitter"   texte="Quitter"   icone="application-exit-symbolic"/>
+        </menu_item>
+
+        <menu_item id="edition"  texte="Édition">
+            <menu_item id="copier"    texte="Copier"/>
+            <menu_item id="coller"    texte="Coller"/>
+        </menu_item>
+
+        <menu_item id="aide"     texte="Aide"     icone="help-about-symbolic"/>
+        <menu_item id="sep1"     type="separateur"/>
+        <menu_item id="disabled" texte="Désactivé" type="desactive"/>
+
+    </menu>
+
+    <!-- ═══════════════════════════════════════════
+         CONTENEUR PRINCIPAL (2 colonnes)
+    ═══════════════════════════════════════════ -->
+    <conteneur
+        id="main"
+        orientation="horizontal"
+        espacement="16"
+        padding="20"
+        bgcolor="#ffffff">
+
+        <!-- ─── COLONNE GAUCHE ─── -->
+        <conteneur
+            id="col_gauche"
+            orientation="vertical"
+            espacement="12"
+            scroll="vertical"
+            scroll_min_height="1200"
+            padding_top="16"
+            padding_bottom="16"
+            padding_left="20"
+            padding_right="20"
+            bgcolor="#fafafa"
+            bordure_largeur="1"
+            bordure_couleur="#dddddd"
+            bordure_rayon="8">
+
+            <!-- Titre de section -->
+            <texte
+                type="h2"
+                texte="Formulaire de connexion"
+                alignement="center"
+                color="#2c3e50"
+                bold="true"/>
+
+            <texte
+                type="caption"
+                texte="Remplissez les champs ci-dessous"
+                color="#7f8c8d"
+                align="center"/>
+
+            <!-- Séparateur visuel (texte vide) -->
+            <texte texte="" />
+
+            <!-- Label + champ mot de passe -->
+            <texte
+                texte="Mot de passe"
+                bold="true"
+                color="#34495e"/>
+
+            <champ_motdepasse
+                id="pwd_main"
+                placeholder="Entrez votre mot de passe…"
+                max_length="64"
+                required="true"
+                reveal="true"
+                actif="true"
+                width="300"
+                min_len="8"
+                require_digit="true"
+                require_upper="false"
+                require_symbol="false"/>
+
+<bouton_radio id="r1" label="Option A" groupe_nom="choix" actif="true"/>
+<bouton_radio id="r2" label="Option B" groupe_nom="choix"/>
+
+<champ_texte id="email" placeholder="votre@email.com" type="email" required="true" width="300"/>
+
+<champ_nombre id="age" min="0" max="120" valeur="25" step="1" digits="0" width="120"/>
+
+<champ_select id="pays" items="Maroc,France,Espagne" selected="0" width="200"/>
+
+<champ_zone_texte id="bio" placeholder="Votre bio…" max_length="500" width="300" height="120"/>
+
+<slider id="volume" min="0" max="100" valeur="50" step="1" afficher_valeur="true" width="250"/>
+
+<image src="assets/logo.png" width="200" height="150" fit="contain" legende="Logo"/>
+
+            <!-- Bouton submit -->
+            <bouton
+                id="btn_connexion"
+                texte="Se connecter"
+                bgcolor="#3498db"
+                color="#ffffff"
+                bgcolor_hover="#2980b9"
+                radius="6"
+                width="300"
+                height="38"
+                bold="true"
+                tooltip="Cliquez pour vous connecter"/>
+
+            <!-- Bouton annuler (style secondaire) -->
+            <bouton
+                id="btn_annuler"
+                texte="Annuler"
+                bgcolor="#ecf0f1"
+                color="#2c3e50"
+                bgcolor_hover="#d5dbdb"
+                radius="6"
+                width="300"
+                height="38"/>
+
+        </conteneur>
+
+        <!-- ─── COLONNE DROITE ─── -->
+        <conteneur
+            id="col_droite"
+            orientation="vertical"
+            espacement="10"
+            padding="20"
+            bgcolor="#f8f9fa"
+            bordure_largeur="1"
+            bordure_couleur="#cccccc"
+            bordure_rayon="8">
+
+            <texte type="h3" texte="Options" color="#2c3e50"/>
+
+            <texte
+                type="subtitle"
+                texte="Sélectionnez vos préférences :"
+                color="#555555"/>
+
+            <!-- Cases à cocher -->
+            <bouton_checklist
+                id="chk_remember"
+                label="Se souvenir de moi"
+                etat="checked"
+                actif="true"
+                tooltip="Garder la session ouverte"/>
+
+            <bouton_checklist
+                id="chk_notifs"
+                label="Activer les notifications"
+                etat="unchecked"/>
+
+            <bouton_checklist
+                id="chk_dark"
+                label="Mode sombre"
+                etat="unchecked"
+                actif="true"/>
+
+            <!-- Séparateur GTK natif -->
+            <separateur orientation="horizontal"/>
+
+            <texte
+                type="caption"
+                texte="Zone de statut :"
+                color="#7f8c8d"/>
+
+            <texte
+                id="lbl_status"
+                texte="En attente de connexion…"
+                color="#e67e22"
+                italic="true"
+                wrap="true"/>
+
+        </conteneur>
+
+    </conteneur>
+
+</fenetre>

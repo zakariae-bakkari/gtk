@@ -1,4 +1,5 @@
 #include "../headers/champ_texte.h"
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -133,12 +134,14 @@ static void champ_texte_apply_css(ChampTexte *cfg)
 
 static gboolean champ_texte_validate_internal(ChampTexte *cfg)
 {
+   char empty_txt[1] = "";
+
    if (!cfg || !cfg->widget || !cfg->label_erreur)
       return TRUE;
 
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    if (!txt)
-      txt = "";
+      txt = empty_txt;
 
    size_t len = strlen(txt);
 
@@ -253,7 +256,11 @@ static void on_texte_changed(GtkEditable *editable, gpointer user_data)
 
       if (n > (size_t)cfg->max_length)
       {
-         char *truncated = g_strndup(txt, cfg->max_length);
+         char *truncated = malloc(strlen(txt) + 1);
+         if (!truncated)
+            return;
+         strcpy(truncated, txt);
+         truncated[cfg->max_length] = '\0';
          g_signal_handlers_block_by_func(editable, on_texte_changed, user_data);
          gtk_editable_set_text(editable, truncated);
          gtk_editable_set_position(GTK_EDITABLE(editable), cfg->max_length);
@@ -283,7 +290,8 @@ void champ_texte_initialiser(ChampTexte *cfg)
       return;
    memset(cfg, 0, sizeof(ChampTexte));
 
-   cfg->id_css = "champ_texte";
+   cfg->id_css = malloc(strlen("champ_texte") + 1);
+   strcpy(cfg->id_css, "champ_texte");
    cfg->placeholder = NULL;
    cfg->max_length = 0;
    cfg->required = FALSE;
@@ -309,9 +317,12 @@ void champ_texte_initialiser(ChampTexte *cfg)
    cfg->erreur_taille_px = 0;    // Utilise 11px par défaut
 
    widget_style_init(&cfg->style);
-   cfg->style.bg_normal = g_strdup("white");
-   cfg->style.fg_normal = g_strdup("#2c3e50");
-   cfg->style.couleur_bordure = g_strdup("#bdc3c7");
+   cfg->style.bg_normal = malloc(strlen("white") + 1);
+   strcpy(cfg->style.bg_normal, "white");
+   cfg->style.fg_normal = malloc(strlen("#2c3e50") + 1);
+   strcpy(cfg->style.fg_normal, "#2c3e50");
+   cfg->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+   strcpy(cfg->style.couleur_bordure, "#bdc3c7");
    cfg->style.rayon_arrondi = 4;
 }
 
@@ -430,9 +441,20 @@ void champ_texte_set_texte(ChampTexte *cfg, const char *texte)
 
 void champ_texte_set_placeholder(ChampTexte *cfg, const char *ph)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), ph);
+   g_free(cfg->placeholder);
+   if (ph)
+   {
+      cfg->placeholder = malloc(strlen(ph) + 1);
+      strcpy(cfg->placeholder, ph);
+   }
+   else
+   {
+      cfg->placeholder = NULL;
+   }
+   if (cfg->widget)
+      gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), cfg->placeholder);
 }
 
 void champ_texte_set_max_length(ChampTexte *cfg, int max_len)
@@ -541,6 +563,9 @@ void champ_texte_free(ChampTexte *cfg)
 {
    if (!cfg)
       return;
+
+   g_free(cfg->id_css);
+   cfg->id_css = NULL;
 
    if (cfg->placeholder)
    {

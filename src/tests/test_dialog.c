@@ -2,7 +2,9 @@
 #include "../../widgets/headers/fenetre.h"
 #include "../../widgets/headers/conteneur.h"
 #include "../../widgets/headers/dialog.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // ====================== STRUCTURES DE DONNÉES POUR CALLBACKS ======================
 
@@ -34,23 +36,24 @@ static void show_theme_cb(GtkButton *btn, gpointer data);
 static void on_reponse(int reponse, gpointer user_data)
 {
    const char *label = (const char *)user_data;
-   const char *r_str = "INCONNUE";
+   char r_str[16];
+   strcpy(r_str, "INCONNUE");
    switch (reponse)
    {
    case DIALOG_REPONSE_OK:
-      r_str = "OK";
+      strcpy(r_str, "OK");
       break;
    case DIALOG_REPONSE_ANNULER:
-      r_str = "ANNULER";
+      strcpy(r_str, "ANNULER");
       break;
    case DIALOG_REPONSE_OUI:
-      r_str = "OUI";
+      strcpy(r_str, "OUI");
       break;
    case DIALOG_REPONSE_NON:
-      r_str = "NON";
+      strcpy(r_str, "NON");
       break;
    case DIALOG_REPONSE_FERMER:
-      r_str = "FERMER";
+      strcpy(r_str, "FERMER");
       break;
    default:
       break;
@@ -67,8 +70,10 @@ static void show_typed_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = info->win;
    cfg->type = info->type;
-   cfg->titre = g_strdup(info->titre);
-   cfg->message = g_strdup(info->msg);
+    cfg->titre = malloc(strlen(info->titre) + 1);
+    strcpy(cfg->titre, info->titre);
+    cfg->message = malloc(strlen(info->msg) + 1);
+    strcpy(cfg->message, info->msg);
    cfg->boutons_preset = DIALOG_BOUTONS_OK;
    cfg->on_reponse = on_reponse;
    cfg->user_data = (gpointer)info->titre;
@@ -84,9 +89,12 @@ static void show_preset_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = info->win;
    cfg->type = DIALOG_INFO;
-   cfg->titre = g_strdup(info->titre);
-   cfg->message = g_strdup("Choisissez une réponse parmi les boutons ci-dessous.\n"
-                           "Le résultat s'affichera dans la console.");
+    cfg->titre = malloc(strlen(info->titre) + 1);
+    strcpy(cfg->titre, info->titre);
+    cfg->message = malloc(strlen("Choisissez une réponse parmi les boutons ci-dessous.\n"
+                                 "Le résultat s'affichera dans la console.") + 1);
+    strcpy(cfg->message, "Choisissez une réponse parmi les boutons ci-dessous.\n"
+                         "Le résultat s'affichera dans la console.");
    cfg->boutons_preset = info->preset;
    cfg->on_reponse = on_reponse;
    cfg->user_data = (gpointer)info->titre;
@@ -102,11 +110,15 @@ static void show_custom_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_AVERTISSEMENT;
-   cfg->titre = g_strdup("Supprimer le fichier ?");
-   cfg->message = g_strdup("Cette action supprimera définitivement le fichier sélectionné.\n"
-                           "Voulez-vous le déplacer dans la corbeille ou le supprimer ?");
+    cfg->titre = malloc(strlen("Supprimer le fichier ?") + 1);
+    strcpy(cfg->titre, "Supprimer le fichier ?");
+    cfg->message = malloc(strlen("Cette action supprimera définitivement le fichier sélectionné.\n"
+                                 "Voulez-vous le déplacer dans la corbeille ou le supprimer ?") + 1);
+    strcpy(cfg->message, "Cette action supprimera définitivement le fichier sélectionné.\n"
+                         "Voulez-vous le déplacer dans la corbeille ou le supprimer ?");
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "custom";
+   cfg->user_data = malloc(strlen("custom") + 1);
+   strcpy(cfg->user_data, "custom");
 
    dialog_ajouter_bouton(cfg, "Annuler", "process-stop-symbolic", DIALOG_REPONSE_ANNULER, FALSE);
    dialog_ajouter_bouton(cfg, "Corbeille", "user-trash-symbolic", 10, FALSE);
@@ -124,11 +136,14 @@ static void show_contenu_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_PERSONNALISE;
-   cfg->titre = g_strdup("Renommer le fichier");
-   cfg->message = g_strdup("Entrez le nouveau nom du fichier :");
+    cfg->titre = malloc(strlen("Renommer le fichier") + 1);
+    strcpy(cfg->titre, "Renommer le fichier");
+    cfg->message = malloc(strlen("Entrez le nouveau nom du fichier :") + 1);
+    strcpy(cfg->message, "Entrez le nouveau nom du fichier :");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "contenu";
+   cfg->user_data = malloc(strlen("contenu") + 1);
+   strcpy(cfg->user_data, "contenu");
 
    /* Widget personnalisé : champ de saisie */
    GtkWidget *entry = gtk_entry_new();
@@ -139,8 +154,10 @@ static void show_contenu_cb(GtkButton *btn, gpointer data)
    /* Couleur indigo */
    g_free(cfg->style.bg_header);
    g_free(cfg->style.bg_bouton_principal);
-   cfg->style.bg_header = g_strdup("#5c6bc0");
-   cfg->style.bg_bouton_principal = g_strdup("#5c6bc0");
+    cfg->style.bg_header = malloc(strlen("#5c6bc0") + 1);
+    strcpy(cfg->style.bg_header, "#5c6bc0");
+    cfg->style.bg_bouton_principal = malloc(strlen("#5c6bc0") + 1);
+    strcpy(cfg->style.bg_bouton_principal, "#5c6bc0");
 
    dialog_creer(cfg);
    dialog_afficher(cfg);
@@ -154,12 +171,16 @@ static void show_theme_cb(GtkButton *btn, gpointer data)
    dialog_initialiser(cfg);
    cfg->parent = parent;
    cfg->type = DIALOG_PERSONNALISE;
-   cfg->titre = g_strdup("Thème sombre");
-   cfg->message = g_strdup("Voici un dialog avec un thème entièrement personnalisé.\n"
-                           "Toutes les couleurs sont définies manuellement.");
+    cfg->titre = malloc(strlen("Thème sombre") + 1);
+    strcpy(cfg->titre, "Thème sombre");
+    cfg->message = malloc(strlen("Voici un dialog avec un thème entièrement personnalisé.\n"
+                                 "Toutes les couleurs sont définies manuellement.") + 1);
+    strcpy(cfg->message, "Voici un dialog avec un thème entièrement personnalisé.\n"
+                         "Toutes les couleurs sont définies manuellement.");
    cfg->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
    cfg->on_reponse = on_reponse;
-   cfg->user_data = "theme";
+   cfg->user_data = malloc(strlen("theme") + 1);
+   strcpy(cfg->user_data, "theme");
    cfg->taille.width = 480;
 
    /* Thème sombre */
@@ -174,18 +195,28 @@ static void show_theme_cb(GtkButton *btn, gpointer data)
    g_free(cfg->style.fg_bouton_secondaire);
    g_free(cfg->style.couleur_bordure);
 
-   cfg->style.bg_header = g_strdup("#1a1a2e");
-   cfg->style.fg_header = g_strdup("#e94560");
-   cfg->style.bg_corps = g_strdup("#16213e");
-   cfg->style.fg_corps = g_strdup("#a8b2d8");
-   cfg->style.bg_footer = g_strdup("#0f3460");
-   cfg->style.bg_bouton_principal = g_strdup("#e94560");
-   cfg->style.fg_bouton_principal = g_strdup("#ffffff");
-   cfg->style.bg_bouton_secondaire = g_strdup("#1a1a2e");
-   cfg->style.fg_bouton_secondaire = g_strdup("#a8b2d8");
+    cfg->style.bg_header = malloc(strlen("#1a1a2e") + 1);
+    strcpy(cfg->style.bg_header, "#1a1a2e");
+    cfg->style.fg_header = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.fg_header, "#e94560");
+    cfg->style.bg_corps = malloc(strlen("#16213e") + 1);
+    strcpy(cfg->style.bg_corps, "#16213e");
+    cfg->style.fg_corps = malloc(strlen("#a8b2d8") + 1);
+    strcpy(cfg->style.fg_corps, "#a8b2d8");
+    cfg->style.bg_footer = malloc(strlen("#0f3460") + 1);
+    strcpy(cfg->style.bg_footer, "#0f3460");
+    cfg->style.bg_bouton_principal = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.bg_bouton_principal, "#e94560");
+    cfg->style.fg_bouton_principal = malloc(strlen("#ffffff") + 1);
+    strcpy(cfg->style.fg_bouton_principal, "#ffffff");
+    cfg->style.bg_bouton_secondaire = malloc(strlen("#1a1a2e") + 1);
+    strcpy(cfg->style.bg_bouton_secondaire, "#1a1a2e");
+    cfg->style.fg_bouton_secondaire = malloc(strlen("#a8b2d8") + 1);
+    strcpy(cfg->style.fg_bouton_secondaire, "#a8b2d8");
    cfg->style.rayon_arrondi = 12;
    cfg->style.epaisseur_bordure = 1;
-   cfg->style.couleur_bordure = g_strdup("#e94560");
+    cfg->style.couleur_bordure = malloc(strlen("#e94560") + 1);
+    strcpy(cfg->style.couleur_bordure, "#e94560");
 
    dialog_creer(cfg);
    dialog_afficher(cfg);
@@ -199,7 +230,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ========== FENETRE ==========
    Fenetre fenetre;
    fenetre_initialiser(&fenetre);
-   fenetre.title = "Test Dialog — Démo Complète";
+   fenetre.title = malloc(strlen("Test Dialog — Démo Complète") + 1);
+   strcpy(fenetre.title, "Test Dialog — Démo Complète");
    fenetre.taille.width = 860;
    fenetre.taille.height = 620;
    fenetre.scroll_mode = SCROLL_VERTICAL;
@@ -216,7 +248,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    main_ct.padding.bas = 24;
    main_ct.padding.gauche = 32;
    main_ct.padding.droite = 32;
-   main_ct.couleur_fond = "#f0f2f5";
+   main_ct.couleur_fond = malloc(strlen("#f0f2f5") + 1);
+   strcpy(main_ct.couleur_fond, "#f0f2f5");
 
    GtkWidget *main_box = conteneur_creer(&main_ct);
 
@@ -263,26 +296,34 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    BtnTypeData *d_info = g_new0(BtnTypeData, 1);
    d_info->win = GTK_WINDOW(window);
    d_info->type = DIALOG_INFO;
-   d_info->titre = "Information";
-   d_info->msg = "Opération effectuée avec succès.\nVous pouvez continuer.";
+   d_info->titre = malloc(strlen("Information") + 1);
+   strcpy(d_info->titre, "Information");
+   d_info->msg = malloc(strlen("Opération effectuée avec succès.\nVous pouvez continuer.") + 1);
+   strcpy(d_info->msg, "Opération effectuée avec succès.\nVous pouvez continuer.");
 
    BtnTypeData *d_succes = g_new0(BtnTypeData, 1);
    d_succes->win = GTK_WINDOW(window);
    d_succes->type = DIALOG_SUCCES;
-   d_succes->titre = "Succès !";
-   d_succes->msg = "Le fichier a été sauvegardé correctement.";
+   d_succes->titre = malloc(strlen("Succès !") + 1);
+   strcpy(d_succes->titre, "Succès !");
+   d_succes->msg = malloc(strlen("Le fichier a été sauvegardé correctement.") + 1);
+   strcpy(d_succes->msg, "Le fichier a été sauvegardé correctement.");
 
    BtnTypeData *d_avert = g_new0(BtnTypeData, 1);
    d_avert->win = GTK_WINDOW(window);
    d_avert->type = DIALOG_AVERTISSEMENT;
-   d_avert->titre = "Attention";
-   d_avert->msg = "Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?";
+   d_avert->titre = malloc(strlen("Attention") + 1);
+   strcpy(d_avert->titre, "Attention");
+   d_avert->msg = malloc(strlen("Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?") + 1);
+   strcpy(d_avert->msg, "Cette action est irréversible.\nÊtes-vous sûr de vouloir continuer ?");
 
    BtnTypeData *d_erreur = g_new0(BtnTypeData, 1);
    d_erreur->win = GTK_WINDOW(window);
    d_erreur->type = DIALOG_ERREUR;
-   d_erreur->titre = "Erreur critique";
-   d_erreur->msg = "Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.";
+   d_erreur->titre = malloc(strlen("Erreur critique") + 1);
+   strcpy(d_erreur->titre, "Erreur critique");
+   d_erreur->msg = malloc(strlen("Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.") + 1);
+   strcpy(d_erreur->msg, "Impossible d'ouvrir le fichier.\nVérifiez les permissions d'accès.");
 
    g_signal_connect(w_info, "clicked", G_CALLBACK(show_typed_cb), d_info);
    g_signal_connect(w_succes, "clicked", G_CALLBACK(show_typed_cb), d_succes);
@@ -317,22 +358,26 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    BtnPresetData *p_ok = g_new0(BtnPresetData, 1);
    p_ok->win = GTK_WINDOW(window);
    p_ok->preset = DIALOG_BOUTONS_OK;
-   p_ok->titre = "OK seulement";
+   p_ok->titre = malloc(strlen("OK seulement") + 1);
+   strcpy(p_ok->titre, "OK seulement");
 
    BtnPresetData *p_ok_ann = g_new0(BtnPresetData, 1);
    p_ok_ann->win = GTK_WINDOW(window);
    p_ok_ann->preset = DIALOG_BOUTONS_OK_ANNULER;
-   p_ok_ann->titre = "OK + Annuler";
+   p_ok_ann->titre = malloc(strlen("OK + Annuler") + 1);
+   strcpy(p_ok_ann->titre, "OK + Annuler");
 
    BtnPresetData *p_oui_non = g_new0(BtnPresetData, 1);
    p_oui_non->win = GTK_WINDOW(window);
    p_oui_non->preset = DIALOG_BOUTONS_OUI_NON;
-   p_oui_non->titre = "Oui / Non";
+   p_oui_non->titre = malloc(strlen("Oui / Non") + 1);
+   strcpy(p_oui_non->titre, "Oui / Non");
 
    BtnPresetData *p_oui_non_ann = g_new0(BtnPresetData, 1);
    p_oui_non_ann->win = GTK_WINDOW(window);
    p_oui_non_ann->preset = DIALOG_BOUTONS_OUI_NON_ANNULER;
-   p_oui_non_ann->titre = "Oui / Non / Annuler";
+   p_oui_non_ann->titre = malloc(strlen("Oui / Non / Annuler") + 1);
+   strcpy(p_oui_non_ann->titre, "Oui / Non / Annuler");
 
    g_signal_connect(b_ok, "clicked", G_CALLBACK(show_preset_cb), p_ok);
    g_signal_connect(b_ok_ann, "clicked", G_CALLBACK(show_preset_cb), p_ok_ann);

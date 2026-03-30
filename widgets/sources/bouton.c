@@ -1,4 +1,6 @@
 #include "../headers/bouton.h"
+#include "../headers/common.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -22,23 +24,24 @@ static void _bouton_appliquer_css(Bouton *config)
     }
 
     // Build cursor CSS based on type
-    const char *cursor_name = "pointer"; // default
+    char cursor_name[16];
+    strcpy(cursor_name, "pointer");
     switch (config->curseur)
     {
     case CURSEUR_DEFAUT:
-        cursor_name = "default";
+        strcpy(cursor_name, "default");
         break;
     case CURSEUR_MAIN:
-        cursor_name = "pointer";
+        strcpy(cursor_name, "pointer");
         break;
     case CURSEUR_AIDE:
-        cursor_name = "help";
+        strcpy(cursor_name, "help");
         break;
     case CURSEUR_ATTENTE:
-        cursor_name = "wait";
+        strcpy(cursor_name, "wait");
         break;
     case CURSEUR_CROIX:
-        cursor_name = "not-allowed";
+        strcpy(cursor_name, "not-allowed");
         break;
     }
     snprintf(cursor_css, sizeof(cursor_css), "  cursor: %s;\n", cursor_name);
@@ -122,8 +125,10 @@ void bouton_initialiser(Bouton *config)
     if (!config)
         return;
     memset(config, 0, sizeof(Bouton));
-    config->id_css = "btn_defaut";
-    config->texte = "Bouton";
+    config->id_css = malloc(strlen("btn_defaut") + 1);
+    strcpy(config->id_css, "btn_defaut");
+    config->texte = malloc(strlen("Bouton") + 1);
+    strcpy(config->texte, "Bouton");
     config->pos_icone = ICONE_GAUCHE;
     config->espacement_icone = 8;
 
@@ -135,13 +140,18 @@ void bouton_initialiser(Bouton *config)
     config->taille.hauteur_min = -1;
 
     // Initialiser TOUS les styles par défaut
-    config->style.bg_normal = "#E0E0E0"; // Light neutral gray
-    config->style.bg_hover = "#D5D5D5";  // Slightly darker on hover
-    config->style.fg_normal = "#1E1E1E"; // Near-black text
-    config->style.fg_hover = "#000000";  // Full black on hover
+    config->style.bg_normal = malloc(strlen("#E0E0E0") + 1); // Light neutral gray
+    strcpy(config->style.bg_normal, "#E0E0E0");
+    config->style.bg_hover = malloc(strlen("#D5D5D5") + 1); // Slightly darker on hover
+    strcpy(config->style.bg_hover, "#D5D5D5");
+    config->style.fg_normal = malloc(strlen("#1E1E1E") + 1); // Near-black text
+    strcpy(config->style.fg_normal, "#1E1E1E");
+    config->style.fg_hover = malloc(strlen("#000000") + 1); // Full black on hover
+    strcpy(config->style.fg_hover, "#000000");
     config->style.rayon_arrondi = 5;
     config->style.epaisseur_bordure = 0;
-    config->style.couleur_bordure = "transparent";
+    config->style.couleur_bordure = malloc(strlen("transparent") + 1);
+    strcpy(config->style.couleur_bordure, "transparent");
     config->style.gras = false;
     config->style.italique = false;
     config->style.taille_texte_px = 0;
@@ -201,7 +211,9 @@ void bouton_set_texte(Bouton *config, const char *nouveau_texte)
 {
     if (!config || !config->widget || !nouveau_texte)
         return;
-    config->texte = (char *)nouveau_texte;
+    g_free(config->texte);
+    config->texte = malloc(strlen(nouveau_texte) + 1);
+    strcpy(config->texte, nouveau_texte);
     // La mise à jour du texte nécessiterait de recréer le contenu du bouton
 }
 

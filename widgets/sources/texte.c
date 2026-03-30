@@ -1,4 +1,5 @@
 #include "../headers/texte.h"
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -40,33 +41,33 @@ static GtkJustification _convertir_text_align(TexteAlignement alignement)
 /* Génère le markup Pango basé sur le type de heading */
 static void _generer_markup_heading(char *buffer, size_t buffer_size, const char *texte, TexteType type)
 {
-   const char *format = NULL;
+   char format[128];
 
    switch (type)
    {
    case TEXTE_H1:
-      format = "<span size='xx-large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='xx-large' weight='bold'>%s</span>");
       break;
    case TEXTE_H2:
-      format = "<span size='x-large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='x-large' weight='bold'>%s</span>");
       break;
    case TEXTE_H3:
-      format = "<span size='large' weight='bold'>%s</span>";
+      strcpy(format, "<span size='large' weight='bold'>%s</span>");
       break;
    case TEXTE_H4:
-      format = "<span size='medium' weight='bold'>%s</span>";
+      strcpy(format, "<span size='medium' weight='bold'>%s</span>");
       break;
    case TEXTE_H5:
-      format = "<span size='small' weight='bold'>%s</span>";
+      strcpy(format, "<span size='small' weight='bold'>%s</span>");
       break;
    case TEXTE_H6:
-      format = "<span size='x-small' weight='bold'>%s</span>";
+      strcpy(format, "<span size='x-small' weight='bold'>%s</span>");
       break;
    case TEXTE_SUBTITLE:
-      format = "<span size='large' weight='normal' style='italic'>%s</span>";
+      strcpy(format, "<span size='large' weight='normal' style='italic'>%s</span>");
       break;
    case TEXTE_CAPTION:
-      format = "<span size='small' weight='normal' style='italic'>%s</span>";
+      strcpy(format, "<span size='small' weight='normal' style='italic'>%s</span>");
       break;
    case TEXTE_NORMAL:
    default:
@@ -345,7 +346,16 @@ void texte_set_text(Texte *config, const char *nouveau_texte)
    if (!config || !config->widget)
       return;
 
-   config->texte = (char *)nouveau_texte;
+   g_free(config->texte);
+   if (nouveau_texte)
+   {
+      config->texte = malloc(strlen(nouveau_texte) + 1);
+      strcpy(config->texte, nouveau_texte);
+   }
+   else
+   {
+      config->texte = NULL;
+   }
 
    if (config->type != TEXTE_NORMAL)
    {
@@ -365,7 +375,16 @@ void texte_set_markup(Texte *config, const char *markup)
    if (!config || !config->widget)
       return;
 
-   config->texte_markup = (char *)markup;
+   g_free(config->texte_markup);
+   if (markup)
+   {
+      config->texte_markup = malloc(strlen(markup) + 1);
+      strcpy(config->texte_markup, markup);
+   }
+   else
+   {
+      config->texte_markup = NULL;
+   }
    config->use_markup = true;
    gtk_label_set_markup(GTK_LABEL(config->widget), markup);
 }
@@ -418,7 +437,16 @@ void texte_set_police(Texte *config, const char *famille, int taille, gboolean g
    if (!config)
       return;
 
-   config->famille_police = (char *)famille;
+   g_free(config->famille_police);
+   if (famille)
+   {
+      config->famille_police = malloc(strlen(famille) + 1);
+      strcpy(config->famille_police, famille);
+   }
+   else
+   {
+      config->famille_police = NULL;
+   }
    config->taille_police = taille;
    config->gras = gras;
    config->italique = italique;
@@ -434,8 +462,27 @@ void texte_set_couleurs(Texte *config, const char *couleur_texte, const char *co
    if (!config)
       return;
 
-   config->couleur_texte = (char *)couleur_texte;
-   config->couleur_fond = (char *)couleur_fond;
+   g_free(config->couleur_texte);
+   if (couleur_texte)
+   {
+      config->couleur_texte = malloc(strlen(couleur_texte) + 1);
+      strcpy(config->couleur_texte, couleur_texte);
+   }
+   else
+   {
+      config->couleur_texte = NULL;
+   }
+
+   g_free(config->couleur_fond);
+   if (couleur_fond)
+   {
+      config->couleur_fond = malloc(strlen(couleur_fond) + 1);
+      strcpy(config->couleur_fond, couleur_fond);
+   }
+   else
+   {
+      config->couleur_fond = NULL;
+   }
 
    if (config->widget)
    {

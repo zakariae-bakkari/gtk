@@ -1,7 +1,9 @@
 #include "../../widgets/headers/champ_texte.h"
 #include "../../widgets/headers/conteneur.h"
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // -------------------- Enhanced Callback Test Functions ----------------
 static void cb_change(GtkEditable *editable, gpointer user_data)
@@ -82,14 +84,18 @@ static void activate(GtkApplication *app, gpointer user_data)
 
    ChampTexte cfg1;
    champtexte_initialiser(&cfg1);
-   cfg1.css_class = g_strdup("test-field-1");
-   cfg1.placeholder = g_strdup("Type here to test all callbacks");
+   cfg1.css_class = malloc(strlen("test-field-1") + 1);
+   strcpy(cfg1.css_class, "test-field-1");
+   cfg1.placeholder = malloc(strlen("Type here to test all callbacks") + 1);
+   strcpy(cfg1.placeholder, "Type here to test all callbacks");
    cfg1.required = TRUE;
 
    // Set style
-   cfg1.style.bg_normal = g_strdup("#f8f9fa");
+   cfg1.style.bg_normal = malloc(strlen("#f8f9fa") + 1);
+   strcpy(cfg1.style.bg_normal, "#f8f9fa");
    cfg1.style.epaisseur_bordure = 2;
-   cfg1.style.couleur_bordure = g_strdup("#007bff");
+   cfg1.style.couleur_bordure = malloc(strlen("#007bff") + 1);
+   strcpy(cfg1.style.couleur_bordure, "#007bff");
    cfg1.style.rayon_arrondi = 8;
 
    GtkWidget *widget1 = champtexte_creer(&cfg1);
@@ -116,8 +122,10 @@ static void activate(GtkApplication *app, gpointer user_data)
 
    ChampTexte cfg2;
    champtexte_initialiser(&cfg2);
-   cfg2.css_class = g_strdup("test-field-2");
-   cfg2.placeholder = g_strdup("Email validation test");
+   cfg2.css_class = malloc(strlen("test-field-2") + 1);
+   strcpy(cfg2.css_class, "test-field-2");
+   cfg2.placeholder = malloc(strlen("Email validation test") + 1);
+   strcpy(cfg2.placeholder, "Email validation test");
    cfg2.required = TRUE;
 
    // Set email regex
@@ -129,9 +137,11 @@ static void activate(GtkApplication *app, gpointer user_data)
    }
 
    // Set style
-   cfg2.style.bg_normal = g_strdup("#fff3cd");
+   cfg2.style.bg_normal = malloc(strlen("#fff3cd") + 1);
+   strcpy(cfg2.style.bg_normal, "#fff3cd");
    cfg2.style.epaisseur_bordure = 1;
-   cfg2.style.couleur_bordure = g_strdup("#ffc107");
+   cfg2.style.couleur_bordure = malloc(strlen("#ffc107") + 1);
+   strcpy(cfg2.style.couleur_bordure, "#ffc107");
    cfg2.style.rayon_arrondi = 12;
 
    GtkWidget *widget2 = champtexte_creer(&cfg2);

@@ -1,5 +1,7 @@
 #include "../headers/conteneur.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Convertisseur interne pour l'alignement GTK */
 static GtkAlign _convertir_align(ConteneurAlignement a)
@@ -107,7 +109,8 @@ void conteneur_initialiser(Conteneur *config)
     config->id_css = NULL;
     config->couleur_fond = NULL;
     config->bordure_largeur = 0;
-    config->bordure_couleur = "black";
+    config->bordure_couleur = malloc(strlen("black") + 1);
+    strcpy(config->bordure_couleur, "black");
     config->bordure_rayon = 0;
 
     // Scrolling defaults
@@ -167,11 +170,17 @@ GtkWidget *conteneur_creer(Conteneur *config)
                                                   config->scroll_overlay);
 
         // Définir la taille minimale de la zone de défilement si spécifiée
-        if (config->scroll_min_width > 0 || config->scroll_min_height > 0)
+        if (config->scroll_min_width > 0)
         {
-            gtk_widget_set_size_request(config->scroll_widget,
-                                        config->scroll_min_width > 0 ? config->scroll_min_width : -1,
-                                        config->scroll_min_height > 0 ? config->scroll_min_height : -1);
+            gtk_scrolled_window_set_min_content_width(
+                GTK_SCROLLED_WINDOW(config->scroll_widget),
+                config->scroll_min_width);
+        }
+        if (config->scroll_min_height > 0)
+        {
+            gtk_scrolled_window_set_min_content_height(
+                GTK_SCROLLED_WINDOW(config->scroll_widget),
+                config->scroll_min_height);
         }
 
         // Ajouter le conteneur dans la zone de défilement

@@ -1,4 +1,6 @@
 #include <gtk/gtk.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../../widgets/headers/fenetre.h"
 #include "../../widgets/headers/conteneur.h"
 #include "../../widgets/headers/texte.h"
@@ -9,7 +11,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // 1. Configuration de la fenêtre
    Fenetre fenetre_config;
    fenetre_initialiser(&fenetre_config);
-   fenetre_config.title = "Test du Widget Texte - Headings et Alignements";
+   fenetre_config.title = malloc(strlen("Test du Widget Texte - Headings et Alignements") + 1);
+   strcpy(fenetre_config.title, "Test du Widget Texte - Headings et Alignements");
    fenetre_config.taille.width = 900;
    fenetre_config.taille.height = 700;
    // fenetre_config.demarrer_maximisee = true;
@@ -36,10 +39,12 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ===== SECTION 1: HEADINGS H1 à H6 =====
    Texte titre_section1;
    texte_initialiser(&titre_section1);
-   titre_section1.texte = "DÉMONSTRATION DES HEADINGS";
+   titre_section1.texte = malloc(strlen("DÉMONSTRATION DES HEADINGS") + 1);
+   strcpy(titre_section1.texte, "DÉMONSTRATION DES HEADINGS");
    titre_section1.type = TEXTE_H1;
    titre_section1.alignement = TEXTE_ALIGN_CENTER;
-   titre_section1.couleur_texte = "#2196F3";
+   titre_section1.couleur_texte = malloc(strlen("#2196F3") + 1);
+   strcpy(titre_section1.couleur_texte, "#2196F3");
    titre_section1.marges.bas = 10;
 
    GtkWidget *widget_titre1 = texte_creer(&titre_section1);
@@ -50,9 +55,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    conteneur_initialiser(&section_headings);
    section_headings.orientation = CONTENEUR_VERTICAL;
    section_headings.espacement = 10;
-   section_headings.couleur_fond = "#F5F5F5";
+   section_headings.couleur_fond = malloc(strlen("#F5F5F5") + 1);
+   strcpy(section_headings.couleur_fond, "#F5F5F5");
    section_headings.bordure_largeur = 1;
-   section_headings.bordure_couleur = "#DDD";
+   section_headings.bordure_couleur = malloc(strlen("#DDD") + 1);
+   strcpy(section_headings.bordure_couleur, "#DDD");
    section_headings.bordure_rayon = 8;
    section_headings.padding.haut = 15;
    section_headings.padding.bas = 15;
@@ -64,9 +71,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // H1
    Texte h1;
    texte_initialiser(&h1);
-   h1.texte = "Heading H1 - Le plus grand titre";
+   h1.texte = malloc(strlen("Heading H1 - Le plus grand titre") + 1);
+   strcpy(h1.texte, "Heading H1 - Le plus grand titre");
    h1.type = TEXTE_H1;
-   h1.couleur_texte = "#1976D2";
+   h1.couleur_texte = malloc(strlen("#1976D2") + 1);
+   strcpy(h1.couleur_texte, "#1976D2");
 
    GtkWidget *widget_h1 = texte_creer(&h1);
    conteneur_ajouter(&section_headings, widget_h1);
@@ -74,9 +83,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // H2
    Texte h2;
    texte_initialiser(&h2);
-   h2.texte = "Heading H2 - Titre de section";
+   h2.texte = malloc(strlen("Heading H2 - Titre de section") + 1);
+   strcpy(h2.texte, "Heading H2 - Titre de section");
    h2.type = TEXTE_H2;
-   h2.couleur_texte = "#388E3C";
+   h2.couleur_texte = malloc(strlen("#388E3C") + 1);
+   strcpy(h2.couleur_texte, "#388E3C");
 
    GtkWidget *widget_h2 = texte_creer(&h2);
    conteneur_ajouter(&section_headings, widget_h2);
@@ -84,9 +95,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // H3
    Texte h3;
    texte_initialiser(&h3);
-   h3.texte = "Heading H3 - Sous-section";
+   h3.texte = malloc(strlen("Heading H3 - Sous-section") + 1);
+   strcpy(h3.texte, "Heading H3 - Sous-section");
    h3.type = TEXTE_H3;
-   h3.couleur_texte = "#F57C00";
+   h3.couleur_texte = malloc(strlen("#F57C00") + 1);
+   strcpy(h3.couleur_texte, "#F57C00");
 
    GtkWidget *widget_h3 = texte_creer(&h3);
    conteneur_ajouter(&section_headings, widget_h3);
@@ -94,27 +107,33 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // H4, H5, H6
    Texte h4;
    texte_initialiser(&h4);
-   h4.texte = "Heading H4 - Titre moyen";
+   h4.texte = malloc(strlen("Heading H4 - Titre moyen") + 1);
+   strcpy(h4.texte, "Heading H4 - Titre moyen");
    h4.type = TEXTE_H4;
-   h4.couleur_texte = "#7B1FA2";
+   h4.couleur_texte = malloc(strlen("#7B1FA2") + 1);
+   strcpy(h4.couleur_texte, "#7B1FA2");
 
    GtkWidget *widget_h4 = texte_creer(&h4);
    conteneur_ajouter(&section_headings, widget_h4);
 
    Texte h5;
    texte_initialiser(&h5);
-   h5.texte = "Heading H5 - Petit titre";
+   h5.texte = malloc(strlen("Heading H5 - Petit titre") + 1);
+   strcpy(h5.texte, "Heading H5 - Petit titre");
    h5.type = TEXTE_H5;
-   h5.couleur_texte = "#C2185B";
+   h5.couleur_texte = malloc(strlen("#C2185B") + 1);
+   strcpy(h5.couleur_texte, "#C2185B");
 
    GtkWidget *widget_h5 = texte_creer(&h5);
    conteneur_ajouter(&section_headings, widget_h5);
 
    Texte h6;
    texte_initialiser(&h6);
-   h6.texte = "Heading H6 - Le plus petit titre";
+   h6.texte = malloc(strlen("Heading H6 - Le plus petit titre") + 1);
+   strcpy(h6.texte, "Heading H6 - Le plus petit titre");
    h6.type = TEXTE_H6;
-   h6.couleur_texte = "#5D4037";
+   h6.couleur_texte = malloc(strlen("#5D4037") + 1);
+   strcpy(h6.couleur_texte, "#5D4037");
 
    GtkWidget *widget_h6 = texte_creer(&h6);
    conteneur_ajouter(&section_headings, widget_h6);
@@ -124,10 +143,12 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ===== SECTION 2: ALIGNEMENTS =====
    Texte titre_section2;
    texte_initialiser(&titre_section2);
-   titre_section2.texte = "ALIGNEMENTS DU TEXTE";
+   titre_section2.texte = malloc(strlen("ALIGNEMENTS DU TEXTE") + 1);
+   strcpy(titre_section2.texte, "ALIGNEMENTS DU TEXTE");
    titre_section2.type = TEXTE_H2;
    titre_section2.alignement = TEXTE_ALIGN_CENTER;
-   titre_section2.couleur_texte = "#E91E63";
+   titre_section2.couleur_texte = malloc(strlen("#E91E63") + 1);
+   strcpy(titre_section2.couleur_texte, "#E91E63");
    titre_section2.marges.haut = 20;
    titre_section2.marges.bas = 10;
 
@@ -139,9 +160,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    conteneur_initialiser(&section_alignements);
    section_alignements.orientation = CONTENEUR_VERTICAL;
    section_alignements.espacement = 15;
-   section_alignements.couleur_fond = "#E8F5E8";
+   section_alignements.couleur_fond = malloc(strlen("#E8F5E8") + 1);
+   strcpy(section_alignements.couleur_fond, "#E8F5E8");
    section_alignements.bordure_largeur = 2;
-   section_alignements.bordure_couleur = "#4CAF50";
+   section_alignements.bordure_couleur = malloc(strlen("#4CAF50") + 1);
+   strcpy(section_alignements.bordure_couleur, "#4CAF50");
    section_alignements.bordure_rayon = 8;
    section_alignements.padding.haut = 15;
    section_alignements.padding.bas = 15;
@@ -153,11 +176,14 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte aligné à gauche
    Texte texte_gauche;
    texte_initialiser(&texte_gauche);
-   texte_gauche.texte = "Ce texte est aligné à GAUCHE (par défaut)";
+   texte_gauche.texte = malloc(strlen("Ce texte est aligné à GAUCHE (par défaut)") + 1);
+   strcpy(texte_gauche.texte, "Ce texte est aligné à GAUCHE (par défaut)");
    texte_gauche.alignement = TEXTE_ALIGN_LEFT;
-   texte_gauche.couleur_fond = "#FFEB3B";
+   texte_gauche.couleur_fond = malloc(strlen("#FFEB3B") + 1);
+   strcpy(texte_gauche.couleur_fond, "#FFEB3B");
    texte_gauche.bordure_largeur = 1;
-   texte_gauche.bordure_couleur = "#F57F17";
+   texte_gauche.bordure_couleur = malloc(strlen("#F57F17") + 1);
+   strcpy(texte_gauche.bordure_couleur, "#F57F17");
    texte_gauche.bordure_rayon = 4;
    texte_gauche.marges.haut = 5;
    texte_gauche.marges.bas = 5;
@@ -168,11 +194,14 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte centré
    Texte texte_centre;
    texte_initialiser(&texte_centre);
-   texte_centre.texte = "Ce texte est CENTRÉ";
+   texte_centre.texte = malloc(strlen("Ce texte est CENTRÉ") + 1);
+   strcpy(texte_centre.texte, "Ce texte est CENTRÉ");
    texte_centre.alignement = TEXTE_ALIGN_CENTER;
-   texte_centre.couleur_fond = "#E1F5FE";
+   texte_centre.couleur_fond = malloc(strlen("#E1F5FE") + 1);
+   strcpy(texte_centre.couleur_fond, "#E1F5FE");
    texte_centre.bordure_largeur = 1;
-   texte_centre.bordure_couleur = "#0277BD";
+   texte_centre.bordure_couleur = malloc(strlen("#0277BD") + 1);
+   strcpy(texte_centre.bordure_couleur, "#0277BD");
    texte_centre.bordure_rayon = 4;
    texte_centre.marges.haut = 5;
    texte_centre.marges.bas = 5;
@@ -183,11 +212,14 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte aligné à droite
    Texte texte_droite;
    texte_initialiser(&texte_droite);
-   texte_droite.texte = "Ce texte est aligné à DROITE";
+   texte_droite.texte = malloc(strlen("Ce texte est aligné à DROITE") + 1);
+   strcpy(texte_droite.texte, "Ce texte est aligné à DROITE");
    texte_droite.alignement = TEXTE_ALIGN_RIGHT;
-   texte_droite.couleur_fond = "#FCE4EC";
+   texte_droite.couleur_fond = malloc(strlen("#FCE4EC") + 1);
+   strcpy(texte_droite.couleur_fond, "#FCE4EC");
    texte_droite.bordure_largeur = 1;
-   texte_droite.bordure_couleur = "#C2185B";
+   texte_droite.bordure_couleur = malloc(strlen("#C2185B") + 1);
+   strcpy(texte_droite.bordure_couleur, "#C2185B");
    texte_droite.bordure_rayon = 4;
    texte_droite.marges.haut = 5;
    texte_droite.marges.bas = 5;
@@ -198,13 +230,16 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte justifié avec wrap
    Texte texte_justifie;
    texte_initialiser(&texte_justifie);
-   texte_justifie.texte = "Ce texte est JUSTIFIÉ et utilise le retour à la ligne automatique. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+   texte_justifie.texte = malloc(strlen("Ce texte est JUSTIFIÉ et utilise le retour à la ligne automatique. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.") + 1);
+   strcpy(texte_justifie.texte, "Ce texte est JUSTIFIÉ et utilise le retour à la ligne automatique. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.");
    texte_justifie.alignement = TEXTE_ALIGN_JUSTIFY;
    texte_justifie.wrap = true;
    texte_justifie.wrap_width = 60;
-   texte_justifie.couleur_fond = "#F3E5F5";
+   texte_justifie.couleur_fond = malloc(strlen("#F3E5F5") + 1);
+   strcpy(texte_justifie.couleur_fond, "#F3E5F5");
    texte_justifie.bordure_largeur = 1;
-   texte_justifie.bordure_couleur = "#9C27B0";
+   texte_justifie.bordure_couleur = malloc(strlen("#9C27B0") + 1);
+   strcpy(texte_justifie.bordure_couleur, "#9C27B0");
    texte_justifie.bordure_rayon = 4;
    texte_justifie.marges.haut = 5;
    texte_justifie.marges.bas = 5;
@@ -217,10 +252,12 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ===== SECTION 3: STYLES ET DÉCORATIONS =====
    Texte titre_section3;
    texte_initialiser(&titre_section3);
-   titre_section3.texte = "STYLES ET DÉCORATIONS";
+   titre_section3.texte = malloc(strlen("STYLES ET DÉCORATIONS") + 1);
+   strcpy(titre_section3.texte, "STYLES ET DÉCORATIONS");
    titre_section3.type = TEXTE_H2;
    titre_section3.alignement = TEXTE_ALIGN_CENTER;
-   titre_section3.couleur_texte = "#FF5722";
+   titre_section3.couleur_texte = malloc(strlen("#FF5722") + 1);
+   strcpy(titre_section3.couleur_texte, "#FF5722");
    titre_section3.marges.haut = 20;
    titre_section3.marges.bas = 10;
 
@@ -232,9 +269,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    conteneur_initialiser(&section_styles);
    section_styles.orientation = CONTENEUR_VERTICAL;
    section_styles.espacement = 12;
-   section_styles.couleur_fond = "#FFF3E0";
+   section_styles.couleur_fond = malloc(strlen("#FFF3E0") + 1);
+   strcpy(section_styles.couleur_fond, "#FFF3E0");
    section_styles.bordure_largeur = 2;
-   section_styles.bordure_couleur = "#FF9800";
+   section_styles.bordure_couleur = malloc(strlen("#FF9800") + 1);
+   strcpy(section_styles.bordure_couleur, "#FF9800");
    section_styles.bordure_rayon = 8;
    section_styles.padding.haut = 15;
    section_styles.padding.bas = 15;
@@ -246,12 +285,15 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte gras et italique
    Texte texte_gras_italique;
    texte_initialiser(&texte_gras_italique);
-   texte_gras_italique.texte = "Texte en GRAS et ITALIQUE avec police personnalisée";
+   texte_gras_italique.texte = malloc(strlen("Texte en GRAS et ITALIQUE avec police personnalisée") + 1);
+   strcpy(texte_gras_italique.texte, "Texte en GRAS et ITALIQUE avec police personnalisée");
    texte_gras_italique.gras = true;
    texte_gras_italique.italique = true;
-   texte_gras_italique.famille_police = "Arial";
+   texte_gras_italique.famille_police = malloc(strlen("Arial") + 1);
+   strcpy(texte_gras_italique.famille_police, "Arial");
    texte_gras_italique.taille_police = 14;
-   texte_gras_italique.couleur_texte = "#1565C0";
+   texte_gras_italique.couleur_texte = malloc(strlen("#1565C0") + 1);
+   strcpy(texte_gras_italique.couleur_texte, "#1565C0");
 
    GtkWidget *widget_gras_italique = texte_creer(&texte_gras_italique);
    conteneur_ajouter(&section_styles, widget_gras_italique);
@@ -259,9 +301,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte souligné
    Texte texte_souligne;
    texte_initialiser(&texte_souligne);
-   texte_souligne.texte = "Ce texte est SOULIGNÉ";
+   texte_souligne.texte = malloc(strlen("Ce texte est SOULIGNÉ") + 1);
+   strcpy(texte_souligne.texte, "Ce texte est SOULIGNÉ");
    texte_souligne.decoration = TEXTE_DECORATION_UNDERLINE;
-   texte_souligne.couleur_texte = "#2E7D32";
+   texte_souligne.couleur_texte = malloc(strlen("#2E7D32") + 1);
+   strcpy(texte_souligne.couleur_texte, "#2E7D32");
    texte_souligne.taille_police = 12;
 
    GtkWidget *widget_souligne = texte_creer(&texte_souligne);
@@ -270,9 +314,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte barré
    Texte texte_barre;
    texte_initialiser(&texte_barre);
-   texte_barre.texte = "Ce texte est BARRÉ";
+   texte_barre.texte = malloc(strlen("Ce texte est BARRÉ") + 1);
+   strcpy(texte_barre.texte, "Ce texte est BARRÉ");
    texte_barre.decoration = TEXTE_DECORATION_STRIKETHROUGH;
-   texte_barre.couleur_texte = "#D32F2F";
+   texte_barre.couleur_texte = malloc(strlen("#D32F2F") + 1);
+   strcpy(texte_barre.couleur_texte, "#D32F2F");
 
    GtkWidget *widget_barre = texte_creer(&texte_barre);
    conteneur_ajouter(&section_styles, widget_barre);
@@ -280,18 +326,22 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Sous-titre et caption
    Texte sous_titre;
    texte_initialiser(&sous_titre);
-   sous_titre.texte = "Ceci est un sous-titre";
+   sous_titre.texte = malloc(strlen("Ceci est un sous-titre") + 1);
+   strcpy(sous_titre.texte, "Ceci est un sous-titre");
    sous_titre.type = TEXTE_SUBTITLE;
-   sous_titre.couleur_texte = "#6A1B9A";
+   sous_titre.couleur_texte = malloc(strlen("#6A1B9A") + 1);
+   strcpy(sous_titre.couleur_texte, "#6A1B9A");
 
    GtkWidget *widget_sous_titre = texte_creer(&sous_titre);
    conteneur_ajouter(&section_styles, widget_sous_titre);
 
    Texte caption;
    texte_initialiser(&caption);
-   caption.texte = "Ceci est une légende/caption";
+   caption.texte = malloc(strlen("Ceci est une légende/caption") + 1);
+   strcpy(caption.texte, "Ceci est une légende/caption");
    caption.type = TEXTE_CAPTION;
-   caption.couleur_texte = "#424242";
+   caption.couleur_texte = malloc(strlen("#424242") + 1);
+   strcpy(caption.couleur_texte, "#424242");
 
    GtkWidget *widget_caption = texte_creer(&caption);
    conteneur_ajouter(&section_styles, widget_caption);
@@ -301,10 +351,12 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // ===== SECTION 4: TEXTE SÉLECTIONNABLE =====
    Texte titre_section4;
    texte_initialiser(&titre_section4);
-   titre_section4.texte = "TEXTE SÉLECTIONNABLE";
+   titre_section4.texte = malloc(strlen("TEXTE SÉLECTIONNABLE") + 1);
+   strcpy(titre_section4.texte, "TEXTE SÉLECTIONNABLE");
    titre_section4.type = TEXTE_H2;
    titre_section4.alignement = TEXTE_ALIGN_CENTER;
-   titre_section4.couleur_texte = "#795548";
+   titre_section4.couleur_texte = malloc(strlen("#795548") + 1);
+   strcpy(titre_section4.couleur_texte, "#795548");
    titre_section4.marges.haut = 20;
    titre_section4.marges.bas = 10;
 
@@ -314,11 +366,14 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Texte sélectionnable
    Texte texte_selectionnable;
    texte_initialiser(&texte_selectionnable);
-   texte_selectionnable.texte = "Ce texte peut être SÉLECTIONNÉ avec la souris. Essayez de le sélectionner!";
+   texte_selectionnable.texte = malloc(strlen("Ce texte peut être SÉLECTIONNÉ avec la souris. Essayez de le sélectionner!") + 1);
+   strcpy(texte_selectionnable.texte, "Ce texte peut être SÉLECTIONNÉ avec la souris. Essayez de le sélectionner!");
    texte_selectionnable.selectable = true;
-   texte_selectionnable.couleur_fond = "#E8EAF6";
+   texte_selectionnable.couleur_fond = malloc(strlen("#E8EAF6") + 1);
+   strcpy(texte_selectionnable.couleur_fond, "#E8EAF6");
    texte_selectionnable.bordure_largeur = 1;
-   texte_selectionnable.bordure_couleur = "#3F51B5";
+   texte_selectionnable.bordure_couleur = malloc(strlen("#3F51B5") + 1);
+   strcpy(texte_selectionnable.bordure_couleur, "#3F51B5");
    texte_selectionnable.bordure_rayon = 4;
    texte_selectionnable.marges.haut = 10;
    texte_selectionnable.marges.bas = 10;
@@ -330,11 +385,15 @@ static void on_activate(GtkApplication *app, gpointer user_data)
    // Instructions
    Texte instructions;
    texte_initialiser(&instructions);
-   instructions.texte = "💡 Instructions: Explorez les différents styles de texte ci-dessus. Le texte de la dernière section peut être sélectionné!";
-   instructions.couleur_fond = "#E0F2F1";
-   instructions.couleur_texte = "#00695C";
+   instructions.texte = malloc(strlen("💡 Instructions: Explorez les différents styles de texte ci-dessus. Le texte de la dernière section peut être sélectionné!") + 1);
+   strcpy(instructions.texte, "💡 Instructions: Explorez les différents styles de texte ci-dessus. Le texte de la dernière section peut être sélectionné!");
+   instructions.couleur_fond = malloc(strlen("#E0F2F1") + 1);
+   strcpy(instructions.couleur_fond, "#E0F2F1");
+   instructions.couleur_texte = malloc(strlen("#00695C") + 1);
+   strcpy(instructions.couleur_texte, "#00695C");
    instructions.bordure_largeur = 1;
-   instructions.bordure_couleur = "#009688";
+   instructions.bordure_couleur = malloc(strlen("#009688") + 1);
+   strcpy(instructions.bordure_couleur, "#009688");
    instructions.bordure_rayon = 6;
    instructions.marges.haut = 20;
    instructions.wrap = true;

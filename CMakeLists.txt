@@ -24,22 +24,25 @@ add_executable(gtk
         widgets/sources/slider.c
         widgets/sources/menu.c
         widgets/sources/dialog.c
+        widgets/sources/xml_parser.c
         # App
-        src/main.c
-        widgets/headers/export_xml.h
-        widgets/sources/export_xml.c
+        # src/main.c
+        src/main_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
         #        src/tests/test_callbacks.c
-        # src/tests/test_conteneur.c
+        #        src/tests/test_conteneur.c
         #        src/tests/test_buttons.c
         #        src/tests/test_texte.c
         #        src/tests/test_image.c
         #        src/tests/test_champ_nombre.c
         #        src/tests/test_slider.c
         #        src/tests/test_menu.c
+        #  src/tests/test_fenetre.c
         # src/tests/test_dialog.c
+        
 )
 
 target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
 target_include_directories(gtk PRIVATE widgets/headers)
+target_compile_definitions(gtk PRIVATE UI_EXEMPLE_PATH="${CMAKE_SOURCE_DIR}/ui_exemple.txt")

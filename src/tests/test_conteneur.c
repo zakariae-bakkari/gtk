@@ -3,6 +3,8 @@
 #include "../../widgets/headers/conteneur.h"
 #include "../../widgets/headers/bouton.h"
 #include "../../widgets/headers/texte.h"
+#include <stdlib.h>
+#include <string.h>
 
 /* Helper : crée un label de titre de section */
 static GtkWidget *make_title(const char *markup)
@@ -11,7 +13,8 @@ static GtkWidget *make_title(const char *markup)
     texte_initialiser(&t);
     t.texte = (char *)markup;
     t.type = TEXTE_H2;
-    t.couleur_texte = "#1A237E";
+    t.couleur_texte = malloc(strlen("#1A237E") + 1);
+    strcpy(t.couleur_texte, "#1A237E");
     t.marges.haut = 18;
     t.marges.bas = 4;
     return texte_creer(&t);
@@ -24,7 +27,8 @@ static GtkWidget *make_desc(const char *text)
     texte_initialiser(&t);
     t.texte = (char *)text;
     t.type = TEXTE_SUBTITLE;
-    t.couleur_texte = "#546E7A";
+    t.couleur_texte = malloc(strlen("#546E7A") + 1);
+    strcpy(t.couleur_texte, "#546E7A");
     t.wrap = TRUE;
     t.alignement = TEXTE_ALIGN_LEFT;
     return texte_creer(&t);
@@ -59,8 +63,10 @@ static GtkWidget *make_colored_btn(const char *label_text, const char *color)
     bouton_initialiser(&b);
     b.texte = (char *)label_text;
     b.style.bg_normal = (char *)color;
-    b.style.bg_hover = "#555555";
-    b.style.fg_normal = "white";
+    b.style.bg_hover = malloc(strlen("#555555") + 1);
+    strcpy(b.style.bg_hover, "#555555");
+    b.style.fg_normal = malloc(strlen("white") + 1);
+    strcpy(b.style.fg_normal, "white");
     b.taille.mode = TAILLE_AUTO;
     return bouton_creer(&b);
 }
@@ -72,8 +78,10 @@ static GtkWidget *make_expanded_btn(const char *label_text, const char *color)
     bouton_initialiser(&b);
     b.texte = (char *)label_text;
     b.style.bg_normal = (char *)color;
-    b.style.bg_hover = "#555555";
-    b.style.fg_normal = "white";
+    b.style.bg_hover = malloc(strlen("#555555") + 1);
+    strcpy(b.style.bg_hover, "#555555");
+    b.style.fg_normal = malloc(strlen("white") + 1);
+    strcpy(b.style.fg_normal, "white");
     b.taille.mode = TAILLE_FIXE; // ← TAILLE_FIXE pour occuper l'espace
     b.taille.largeur = 200;      // ← largeur fixe large
     b.taille.hauteur = -1;       // ← hauteur automatique
@@ -87,7 +95,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
      * ================================================================ */
     Fenetre win;
     fenetre_initialiser(&win);
-    win.title = "Test complet des attributs Conteneur";
+    win.title = malloc(strlen("Test complet des attributs Conteneur") + 1);
+    strcpy(win.title, "Test complet des attributs Conteneur");
     win.taille.width = 750;
     win.taille.height = 600;
     fenetre_set_scrollable(&win, SCROLL_VERTICAL); // Activer le défilement vertical cette fonction exist dans fenetre.c et utilise l'enum partagé WidgetScrollMode pour configurer le défilement de la fenêtre
@@ -104,7 +113,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     root.padding.bas = 20;
     root.padding.gauche = 20;
     root.padding.droite = 20;
-    root.couleur_fond = "#FAFAFA";
+    root.couleur_fond = malloc(strlen("#FAFAFA") + 1);
+    strcpy(root.couleur_fond, "#FAFAFA");
     GtkWidget *root_widget = conteneur_creer(&root);
 
     /* ----------------------------------------------------------------
@@ -118,9 +128,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&c_vert);
     c_vert.orientation = CONTENEUR_VERTICAL; // ← orientation = VERTICAL
     c_vert.espacement = 6;
-    c_vert.couleur_fond = "#E3F2FD";
+    c_vert.couleur_fond = malloc(strlen("#E3F2FD") + 1);
+    strcpy(c_vert.couleur_fond, "#E3F2FD");
     c_vert.bordure_largeur = 1;
-    c_vert.bordure_couleur = "#1565C0";
+    c_vert.bordure_couleur = malloc(strlen("#1565C0") + 1);
+    strcpy(c_vert.bordure_couleur, "#1565C0");
     c_vert.bordure_rayon = 6;
     c_vert.padding.haut = c_vert.padding.bas =
         c_vert.padding.gauche = c_vert.padding.droite = 8;
@@ -135,9 +147,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&c_horiz);
     c_horiz.orientation = CONTENEUR_HORIZONTAL; // ← orientation = HORIZONTAL
     c_horiz.espacement = 12;
-    c_horiz.couleur_fond = "#E8F5E9";
+    c_horiz.couleur_fond = malloc(strlen("#E8F5E9") + 1);
+    strcpy(c_horiz.couleur_fond, "#E8F5E9");
     c_horiz.bordure_largeur = 1;
-    c_horiz.bordure_couleur = "#2E7D32";
+    c_horiz.bordure_couleur = malloc(strlen("#2E7D32") + 1);
+    strcpy(c_horiz.bordure_couleur, "#2E7D32");
     c_horiz.bordure_rayon = 6;
     c_horiz.padding.haut = c_horiz.padding.bas =
         c_horiz.padding.gauche = c_horiz.padding.droite = 8;
@@ -163,9 +177,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&esp0);
     esp0.orientation = CONTENEUR_HORIZONTAL;
     esp0.espacement = 0; // ← espacement = 0
-    esp0.couleur_fond = "#FFF9C4";
+    esp0.couleur_fond = malloc(strlen("#FFF9C4") + 1);
+    strcpy(esp0.couleur_fond, "#FFF9C4");
     esp0.bordure_largeur = 1;
-    esp0.bordure_couleur = "#F9A825";
+    esp0.bordure_couleur = malloc(strlen("#F9A825") + 1);
+    strcpy(esp0.bordure_couleur, "#F9A825");
     esp0.bordure_rayon = 4;
     esp0.padding.haut = esp0.padding.bas = esp0.padding.gauche = esp0.padding.droite = 6;
     GtkWidget *w_esp0 = conteneur_creer(&esp0);
@@ -177,9 +193,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&esp30);
     esp30.orientation = CONTENEUR_HORIZONTAL;
     esp30.espacement = 30; // ← espacement = 30
-    esp30.couleur_fond = "#FCE4EC";
+    esp30.couleur_fond = malloc(strlen("#FCE4EC") + 1);
+    strcpy(esp30.couleur_fond, "#FCE4EC");
     esp30.bordure_largeur = 1;
-    esp30.bordure_couleur = "#C62828";
+    esp30.bordure_couleur = malloc(strlen("#C62828") + 1);
+    strcpy(esp30.bordure_couleur, "#C62828");
     esp30.bordure_rayon = 4;
     esp30.padding.haut = esp30.padding.bas = esp30.padding.gauche = esp30.padding.droite = 6;
     GtkWidget *w_esp30 = conteneur_creer(&esp30);
@@ -208,9 +226,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     hom_false.orientation = CONTENEUR_HORIZONTAL;
     hom_false.homogene = FALSE; // ← homogene = FALSE
     hom_false.espacement = 4;
-    hom_false.couleur_fond = "#E8EAF6";
+    hom_false.couleur_fond = malloc(strlen("#E8EAF6") + 1);
+    strcpy(hom_false.couleur_fond, "#E8EAF6");
     hom_false.bordure_largeur = 1;
-    hom_false.bordure_couleur = "#3949AB";
+    hom_false.bordure_couleur = malloc(strlen("#3949AB") + 1);
+    strcpy(hom_false.bordure_couleur, "#3949AB");
     hom_false.bordure_rayon = 4;
     hom_false.padding.haut = hom_false.padding.bas =
         hom_false.padding.gauche = hom_false.padding.droite = 6;
@@ -223,9 +243,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     hom_true.orientation = CONTENEUR_HORIZONTAL;
     hom_true.homogene = TRUE; // ← homogene = TRUE
     hom_true.espacement = 4;
-    hom_true.couleur_fond = "#EDE7F6";
+    hom_true.couleur_fond = malloc(strlen("#EDE7F6") + 1);
+    strcpy(hom_true.couleur_fond, "#EDE7F6");
     hom_true.bordure_largeur = 1;
-    hom_true.bordure_couleur = "#6A1B9A";
+    hom_true.bordure_couleur = malloc(strlen("#6A1B9A") + 1);
+    strcpy(hom_true.bordure_couleur, "#6A1B9A");
     hom_true.bordure_rayon = 4;
     hom_true.padding.haut = hom_true.padding.bas =
         hom_true.padding.gauche = hom_true.padding.droite = 6;
@@ -248,9 +270,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_taille.orientation = CONTENEUR_VERTICAL;
     c_taille.taille.largeur = 300; // ← taille.largeur
     c_taille.taille.hauteur = 80;  // ← taille.hauteur
-    c_taille.couleur_fond = "#FFF3E0";
+    c_taille.couleur_fond = malloc(strlen("#FFF3E0") + 1);
+    strcpy(c_taille.couleur_fond, "#FFF3E0");
     c_taille.bordure_largeur = 2;
-    c_taille.bordure_couleur = "#E65100";
+    c_taille.bordure_couleur = malloc(strlen("#E65100") + 1);
+    strcpy(c_taille.bordure_couleur, "#E65100");
     c_taille.bordure_rayon = 6;
     GtkWidget *w_taille = conteneur_creer(&c_taille);
     conteneur_ajouter(&c_taille, make_label("300 × 80 px"));
@@ -275,7 +299,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         ca.align_x = align_vals[i];     // ← align_x
         ca.align_y = ALIGNEMENT_CENTRE; // ← align_y
         ca.taille.hauteur = 40;
-        ca.couleur_fond = "#FAFAFA";
+        ca.couleur_fond = malloc(strlen("#FAFAFA") + 1);
+        strcpy(ca.couleur_fond, "#FAFAFA");
         ca.bordure_largeur = 1;
         ca.bordure_couleur = align_colors[i];
         ca.bordure_rayon = 4;
@@ -302,9 +327,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     exp_false.orientation = CONTENEUR_HORIZONTAL;
     exp_false.enfants_hexpand = FALSE; // ← enfants_hexpand = FALSE
     exp_false.espacement = 4;
-    exp_false.couleur_fond = "#E0F2F1";
+    exp_false.couleur_fond = malloc(strlen("#E0F2F1") + 1);
+    strcpy(exp_false.couleur_fond, "#E0F2F1");
     exp_false.bordure_largeur = 1;
-    exp_false.bordure_couleur = "#00695C";
+    exp_false.bordure_couleur = malloc(strlen("#00695C") + 1);
+    strcpy(exp_false.bordure_couleur, "#00695C");
     exp_false.bordure_rayon = 4;
     exp_false.padding.haut = exp_false.padding.bas =
         exp_false.padding.gauche = exp_false.padding.droite = 6;
@@ -317,9 +344,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     exp_true.orientation = CONTENEUR_HORIZONTAL;
     exp_true.enfants_hexpand = TRUE; // ← enfants_hexpand = TRUE
     exp_true.espacement = 4;
-    exp_true.couleur_fond = "#E8F5E9";
+    exp_true.couleur_fond = malloc(strlen("#E8F5E9") + 1);
+    strcpy(exp_true.couleur_fond, "#E8F5E9");
     exp_true.bordure_largeur = 1;
-    exp_true.bordure_couleur = "#1B5E20";
+    exp_true.bordure_couleur = malloc(strlen("#1B5E20") + 1);
+    strcpy(exp_true.bordure_couleur, "#1B5E20");
     exp_true.bordure_rayon = 4;
     exp_true.padding.haut = exp_true.padding.bas =
         exp_true.padding.gauche = exp_true.padding.droite = 6;
@@ -344,9 +373,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_marges.marges.bas = 5;     // ← marges.bas
     c_marges.marges.gauche = 60; // ← marges.gauche
     c_marges.marges.droite = 5;  // ← marges.droite
-    c_marges.couleur_fond = "#E1F5FE";
+    c_marges.couleur_fond = malloc(strlen("#E1F5FE") + 1);
+    strcpy(c_marges.couleur_fond, "#E1F5FE");
     c_marges.bordure_largeur = 2;
-    c_marges.bordure_couleur = "#0277BD";
+    c_marges.bordure_couleur = malloc(strlen("#0277BD") + 1);
+    strcpy(c_marges.bordure_couleur, "#0277BD");
     c_marges.bordure_rayon = 4;
     GtkWidget *w_marges = conteneur_creer(&c_marges);
     conteneur_ajouter(&c_marges, make_label("marge haut=30 | gauche=60"));
@@ -365,9 +396,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     c_pad.padding.bas = 5;     // ← padding.bas
     c_pad.padding.gauche = 50; // ← padding.gauche
     c_pad.padding.droite = 5;  // ← padding.droite
-    c_pad.couleur_fond = "#F3E5F5";
+    c_pad.couleur_fond = malloc(strlen("#F3E5F5") + 1);
+    strcpy(c_pad.couleur_fond, "#F3E5F5");
     c_pad.bordure_largeur = 2;
-    c_pad.bordure_couleur = "#7B1FA2";
+    c_pad.bordure_couleur = malloc(strlen("#7B1FA2") + 1);
+    strcpy(c_pad.bordure_couleur, "#7B1FA2");
     c_pad.bordure_rayon = 4;
     GtkWidget *w_pad = conteneur_creer(&c_pad);
     conteneur_ajouter(&c_pad, make_label("padding haut=30 | gauche=50"));
@@ -389,8 +422,10 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     Conteneur s1;
     conteneur_initialiser(&s1);
     s1.orientation = CONTENEUR_VERTICAL;
-    s1.id_css = "box_s1";        // ← id_css
-    s1.couleur_fond = "#FFEB3B"; // ← couleur_fond
+    s1.id_css = malloc(strlen("box_s1") + 1);
+    strcpy(s1.id_css, "box_s1");        // ← id_css
+    s1.couleur_fond = malloc(strlen("#FFEB3B") + 1);
+    strcpy(s1.couleur_fond, "#FFEB3B"); // ← couleur_fond
     s1.bordure_largeur = 0;      // ← bordure_largeur = 0 (aucune)
     s1.padding.haut = s1.padding.bas =
         s1.padding.gauche = s1.padding.droite = 10;
@@ -402,10 +437,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     Conteneur s2;
     conteneur_initialiser(&s2);
     s2.orientation = CONTENEUR_VERTICAL;
-    s2.id_css = "box_s2";
-    s2.couleur_fond = "#FFFFFF";
+    s2.id_css = malloc(strlen("box_s2") + 1);
+    strcpy(s2.id_css, "box_s2");
+    s2.couleur_fond = malloc(strlen("#FFFFFF") + 1);
+    strcpy(s2.couleur_fond, "#FFFFFF");
     s2.bordure_largeur = 5;         // ← bordure_largeur = 5
-    s2.bordure_couleur = "#E91E63"; // ← bordure_couleur
+    s2.bordure_couleur = malloc(strlen("#E91E63") + 1);
+    strcpy(s2.bordure_couleur, "#E91E63"); // ← bordure_couleur
     s2.bordure_rayon = 0;           // ← bordure_rayon = 0
     s2.padding.haut = s2.padding.bas =
         s2.padding.gauche = s2.padding.droite = 10;
@@ -417,10 +455,13 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     Conteneur s3;
     conteneur_initialiser(&s3);
     s3.orientation = CONTENEUR_VERTICAL;
-    s3.id_css = "box_s3";
-    s3.couleur_fond = "#B2EBF2";
+    s3.id_css = malloc(strlen("box_s3") + 1);
+    strcpy(s3.id_css, "box_s3");
+    s3.couleur_fond = malloc(strlen("#B2EBF2") + 1);
+    strcpy(s3.couleur_fond, "#B2EBF2");
     s3.bordure_largeur = 2;
-    s3.bordure_couleur = "#00838F";
+    s3.bordure_couleur = malloc(strlen("#00838F") + 1);
+    strcpy(s3.bordure_couleur, "#00838F");
     s3.bordure_rayon = 30; // ← bordure_rayon = 30
     s3.padding.haut = s3.padding.bas =
         s3.padding.gauche = s3.padding.droite = 14;
@@ -442,9 +483,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&sv);
     sv.orientation = CONTENEUR_VERTICAL;
     sv.espacement = 6;
-    sv.couleur_fond = "#E8F5E9";
+    sv.couleur_fond = malloc(strlen("#E8F5E9") + 1);
+    strcpy(sv.couleur_fond, "#E8F5E9");
     sv.bordure_largeur = 2;
-    sv.bordure_couleur = "#388E3C";
+    sv.bordure_couleur = malloc(strlen("#388E3C") + 1);
+    strcpy(sv.bordure_couleur, "#388E3C");
     sv.bordure_rayon = 6;
     sv.padding.haut = sv.padding.bas = sv.padding.gauche = sv.padding.droite = 6;
     conteneur_set_scrollable(&sv, SCROLL_VERTICAL); // ← scroll_mode = VERTICAL
@@ -466,9 +509,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&sh);
     sh.orientation = CONTENEUR_HORIZONTAL;
     sh.espacement = 10;
-    sh.couleur_fond = "#E3F2FD";
+    sh.couleur_fond = malloc(strlen("#E3F2FD") + 1);
+    strcpy(sh.couleur_fond, "#E3F2FD");
     sh.bordure_largeur = 2;
-    sh.bordure_couleur = "#1565C0";
+    sh.bordure_couleur = malloc(strlen("#1565C0") + 1);
+    strcpy(sh.bordure_couleur, "#1565C0");
     sh.bordure_rayon = 6;
     sh.padding.haut = sh.padding.bas = sh.padding.gauche = sh.padding.droite = 6;
     conteneur_set_scrollable(&sh, SCROLL_HORIZONTAL); // ← scroll_mode = HORIZONTAL
@@ -481,7 +526,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         snprintf(t, sizeof(t), "Colonne %d (large)", i);
         Texte tx;
         texte_initialiser(&tx);
-        tx.texte = g_strdup(t);
+        tx.texte = malloc(strlen(t) + 1);
+        strcpy(tx.texte, t);
         tx.type = TEXTE_NORMAL;
         tx.alignement = TEXTE_ALIGN_CENTER;
         tx.taille.largeur = 90;
@@ -497,9 +543,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_initialiser(&sb);
     sb.orientation = CONTENEUR_VERTICAL;
     sb.espacement = 6;
-    sb.couleur_fond = "#FFF3E0";
+    sb.couleur_fond = malloc(strlen("#FFF3E0") + 1);
+    strcpy(sb.couleur_fond, "#FFF3E0");
     sb.bordure_largeur = 2;
-    sb.bordure_couleur = "#E65100";
+    sb.bordure_couleur = malloc(strlen("#E65100") + 1);
+    strcpy(sb.bordure_couleur, "#E65100");
     sb.bordure_rayon = 6;
     sb.padding.haut = sb.padding.bas = sb.padding.gauche = sb.padding.droite = 6;
     conteneur_set_scrollable(&sb, SCROLL_BOTH); // ← scroll_mode = BOTH
@@ -512,7 +560,8 @@ static void on_activate(GtkApplication *app, gpointer user_data)
         snprintf(t, sizeof(t), "Ligne %d — texte très large pour forcer le défilement horizontal aussi", i);
         Texte tx;
         texte_initialiser(&tx);
-        tx.texte = g_strdup(t);
+        tx.texte = malloc(strlen(t) + 1);
+        strcpy(tx.texte, t);
         tx.type = TEXTE_NORMAL;
         tx.alignement = TEXTE_ALIGN_LEFT;
         tx.taille.largeur = 700;

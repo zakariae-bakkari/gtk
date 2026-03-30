@@ -5,7 +5,9 @@
 #include "../../widgets/headers/champ_select.h"
 #include "../../widgets/headers/champ_zone_texte.h"
 #include "../../widgets/headers/champ_texte.h"
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 /* --- Callbacks pour les evenements --- */
 
@@ -63,9 +65,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     /* ========== FENETRE PRINCIPALE ========== */
     Fenetre main_window;
     fenetre_initialiser(&main_window);
-    main_window.title = "Input Components Size Test";
-    main_window.color_bg = "#f5f5f5";
-    main_window.icon_path = "computer-symbolic";
+    main_window.title = malloc(strlen("Input Components Size Test") + 1);
+    strcpy(main_window.title, "Input Components Size Test");
+    main_window.color_bg = malloc(strlen("#f5f5f5") + 1);
+    strcpy(main_window.color_bg, "#f5f5f5");
+    main_window.icon_path = malloc(strlen("computer-symbolic") + 1);
+    strcpy(main_window.icon_path, "computer-symbolic");
     main_window.scroll_mode = SCROLL_VERTICAL;
     // fenetre_set_scrollable(&main_window, SCROLL_VERTICAL);
     // fenetre_set_scroll_content_size(&main_window, -1, 1100); // Augmenté pour le nouveau contenu
@@ -83,7 +88,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     main_container.marges.bas = 20;
     main_container.marges.gauche = 20;
     main_container.marges.droite = 20;
-    main_container.couleur_fond = "#ffffff";
+    main_container.couleur_fond = malloc(strlen("#ffffff") + 1);
+    strcpy(main_container.couleur_fond, "#ffffff");
     main_container.enfants_hexpand = false;
 
     GtkWidget *main_box = conteneur_creer(&main_container);
@@ -98,8 +104,10 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte *ct_nom = g_new0(ChampTexte, 1);
     champ_texte_initialiser(ct_nom);
-    ct_nom->id_css = "input_nom";
-    ct_nom->placeholder = "Entrez votre nom...";
+    ct_nom->id_css = malloc(strlen("input_nom") + 1);
+    strcpy(ct_nom->id_css, "input_nom");
+    ct_nom->placeholder = malloc(strlen("Entrez votre nom...") + 1);
+    strcpy(ct_nom->placeholder, "Entrez votre nom...");
     ct_nom->size.width = 250;
     ct_nom->size.height = 0;
     ct_nom->required = true;
@@ -107,12 +115,14 @@ static void activate(GtkApplication *app, gpointer user_data)
     ct_nom->policy.min_len = 2;
     ct_nom->policy.no_digits = true;
     ct_nom->style.epaisseur_bordure = 2;
-    ct_nom->style.couleur_bordure = g_strdup("#3498db");
+    ct_nom->style.couleur_bordure = malloc(strlen("#3498db") + 1);
+    strcpy(ct_nom->style.couleur_bordure, "#3498db");
     ct_nom->style.rayon_arrondi = 8;
     ct_nom->on_change = on_input_text_changed;
     ct_nom->on_activate = on_input_text_activate;
     ct_nom->on_invalid = on_input_invalid;
-    ct_nom->user_data = "nom";
+    ct_nom->user_data = malloc(strlen("nom") + 1);
+    strcpy(ct_nom->user_data, "nom");
 
     GtkWidget *w_nom = champ_texte_creer(ct_nom);
     g_signal_connect_swapped(w_nom, "destroy", G_CALLBACK(champ_texte_free), ct_nom);
@@ -126,21 +136,26 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte *ct_email = g_new0(ChampTexte, 1);
     champ_texte_initialiser(ct_email);
-    ct_email->id_css = "input_email";
-    ct_email->placeholder = "exemple@domaine.com";
+    ct_email->id_css = malloc(strlen("input_email") + 1);
+    strcpy(ct_email->id_css, "input_email");
+    ct_email->placeholder = malloc(strlen("exemple@domaine.com") + 1);
+    strcpy(ct_email->placeholder, "exemple@domaine.com");
     ct_email->size.width = 0; // Largeur complète
     ct_email->size.height = 40;
     ct_email->required = true;
     ct_email->type = CHAMP_TEXTE_TYPE_EMAIL;
-    ct_email->icon_primary = "mail-send-symbolic";
+    ct_email->icon_primary = malloc(strlen("mail-send-symbolic") + 1);
+    strcpy(ct_email->icon_primary, "mail-send-symbolic");
     ct_email->show_error_label = false;
     ct_email->style.epaisseur_bordure = 1;
-    ct_email->style.couleur_bordure = g_strdup("#2ecc71");
+    ct_email->style.couleur_bordure = malloc(strlen("#2ecc71") + 1);
+    strcpy(ct_email->style.couleur_bordure, "#2ecc71");
     ct_email->style.rayon_arrondi = 5;
     ct_email->on_change = on_input_text_changed;
     ct_email->on_activate = on_input_text_activate;
     ct_email->on_invalid = on_input_invalid;
-    ct_email->user_data = "email";
+    ct_email->user_data = malloc(strlen("email") + 1);
+    strcpy(ct_email->user_data, "email");
 
     GtkWidget *w_email = champ_texte_creer(ct_email);
     g_signal_connect_swapped(w_email, "destroy", G_CALLBACK(champ_texte_free), ct_email);
@@ -154,19 +169,24 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte *ct_url = g_new0(ChampTexte, 1);
     champ_texte_initialiser(ct_url);
-    ct_url->id_css = "input_url";
-    ct_url->placeholder = "https://exemple.com";
+    ct_url->id_css = malloc(strlen("input_url") + 1);
+    strcpy(ct_url->id_css, "input_url");
+    ct_url->placeholder = malloc(strlen("https://exemple.com") + 1);
+    strcpy(ct_url->placeholder, "https://exemple.com");
     ct_url->size.width = 300;
     ct_url->size.height = 0;
     ct_url->required = false;
     ct_url->type = CHAMP_TEXTE_TYPE_URL;
-    ct_url->icon_primary = "web-browser-symbolic";
+    ct_url->icon_primary = malloc(strlen("web-browser-symbolic") + 1);
+    strcpy(ct_url->icon_primary, "web-browser-symbolic");
     ct_url->style.epaisseur_bordure = 2;
-    ct_url->style.couleur_bordure = g_strdup("#9b59b6");
+    ct_url->style.couleur_bordure = malloc(strlen("#9b59b6") + 1);
+    strcpy(ct_url->style.couleur_bordure, "#9b59b6");
     ct_url->style.rayon_arrondi = 6;
     ct_url->on_change = on_input_text_changed;
     ct_url->on_invalid = on_input_invalid;
-    ct_url->user_data = "url";
+    ct_url->user_data = malloc(strlen("url") + 1);
+    strcpy(ct_url->user_data, "url");
 
     GtkWidget *w_url = champ_texte_creer(ct_url);
     g_signal_connect_swapped(w_url, "destroy", G_CALLBACK(champ_texte_free), ct_url);
@@ -180,21 +200,27 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampTexte *ct_search = g_new0(ChampTexte, 1);
     champ_texte_initialiser(ct_search);
-    ct_search->id_css = "input_search";
-    ct_search->placeholder = "Rechercher...";
+    ct_search->id_css = malloc(strlen("input_search") + 1);
+    strcpy(ct_search->id_css, "input_search");
+    ct_search->placeholder = malloc(strlen("Rechercher...") + 1);
+    strcpy(ct_search->placeholder, "Rechercher...");
     ct_search->size.width = 0; // Largeur complète
     ct_search->size.height = 38;
     ct_search->required = false;
     ct_search->type = CHAMP_TEXTE_TYPE_SEARCH;
     ct_search->max_length = 100;
-    ct_search->icon_primary = "edit-find-symbolic";
-    ct_search->icon_secondary = "edit-clear-symbolic";
+    ct_search->icon_primary = malloc(strlen("edit-find-symbolic") + 1);
+    strcpy(ct_search->icon_primary, "edit-find-symbolic");
+    ct_search->icon_secondary = malloc(strlen("edit-clear-symbolic") + 1);
+    strcpy(ct_search->icon_secondary, "edit-clear-symbolic");
     ct_search->style.epaisseur_bordure = 1;
-    ct_search->style.couleur_bordure = g_strdup("#bdc3c7");
+    ct_search->style.couleur_bordure = malloc(strlen("#bdc3c7") + 1);
+    strcpy(ct_search->style.couleur_bordure, "#bdc3c7");
     ct_search->style.rayon_arrondi = 20; // Arrondi prononcé style barre de recherche
     ct_search->on_change = on_input_text_changed;
     ct_search->on_invalid = on_input_invalid;
-    ct_search->user_data = "search";
+    ct_search->user_data = malloc(strlen("search") + 1);
+    strcpy(ct_search->user_data, "search");
 
     GtkWidget *w_search = champ_texte_creer(ct_search);
     g_signal_connect_swapped(w_search, "destroy", G_CALLBACK(champ_texte_free), ct_search);
@@ -208,8 +234,10 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampMotDePasse *pwd1 = g_new0(ChampMotDePasse, 1);
     champ_motdepasse_initialiser(pwd1);
-    pwd1->id_css = "input_password_fixed";
-    pwd1->placeholder = "Enter password...";
+    pwd1->id_css = malloc(strlen("input_password_fixed") + 1);
+    strcpy(pwd1->id_css, "input_password_fixed");
+    pwd1->placeholder = malloc(strlen("Enter password...") + 1);
+    strcpy(pwd1->placeholder, "Enter password...");
     pwd1->size.width = 250;
     pwd1->size.height = 0;
     pwd1->required = true;
@@ -217,12 +245,14 @@ static void activate(GtkApplication *app, gpointer user_data)
     pwd1->policy.min_len = 6;
     pwd1->policy.require_digit = true;
     pwd1->style.epaisseur_bordure = 2;
-    pwd1->style.couleur_bordure = g_strdup("#e74c3c");
+    pwd1->style.couleur_bordure = malloc(strlen("#e74c3c") + 1);
+    strcpy(pwd1->style.couleur_bordure, "#e74c3c");
     pwd1->style.rayon_arrondi = 8;
     pwd1->on_change = on_input_text_changed;
     pwd1->on_activate = on_input_text_activate;
     pwd1->on_invalid = on_input_invalid;
-    pwd1->user_data = "password_fixed";
+    pwd1->user_data = malloc(strlen("password_fixed") + 1);
+    strcpy(pwd1->user_data, "password_fixed");
 
     GtkWidget *w_pwd1 = champ_motdepasse_creer(pwd1);
     g_signal_connect_swapped(w_pwd1, "destroy", G_CALLBACK(champ_motdepasse_free), pwd1);
@@ -236,17 +266,21 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampMotDePasse *pwd2 = g_new0(ChampMotDePasse, 1);
     champ_motdepasse_initialiser(pwd2);
-    pwd2->id_css = "input_password_full";
-    pwd2->placeholder = "Confirm your password...";
+    pwd2->id_css = malloc(strlen("input_password_full") + 1);
+    strcpy(pwd2->id_css, "input_password_full");
+    pwd2->placeholder = malloc(strlen("Confirm your password...") + 1);
+    strcpy(pwd2->placeholder, "Confirm your password...");
     pwd2->size.width = 0;
     pwd2->size.height = 40;
     pwd2->required = true;
     pwd2->style.epaisseur_bordure = 1;
-    pwd2->style.couleur_bordure = g_strdup("#3498db");
+    pwd2->style.couleur_bordure = malloc(strlen("#3498db") + 1);
+    strcpy(pwd2->style.couleur_bordure, "#3498db");
     pwd2->style.rayon_arrondi = 5;
     pwd2->on_change = on_input_text_changed;
     pwd2->on_invalid = on_input_invalid;
-    pwd2->user_data = "password_full";
+    pwd2->user_data = malloc(strlen("password_full") + 1);
+    strcpy(pwd2->user_data, "password_full");
 
     GtkWidget *w_pwd2 = champ_motdepasse_creer(pwd2);
     g_signal_connect_swapped(w_pwd2, "destroy", G_CALLBACK(champ_motdepasse_free), pwd2);
@@ -260,7 +294,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampNombre *age = g_new0(ChampNombre, 1);
     champ_nombre_initialiser(age);
-    age->id_css = "input_age";
+    age->id_css = malloc(strlen("input_age") + 1);
+    strcpy(age->id_css, "input_age");
     age->min = 0;
     age->max = 120;
     age->step = 1;
@@ -270,11 +305,13 @@ static void activate(GtkApplication *app, gpointer user_data)
     age->size.height = 35;
     age->required = true;
     age->style.epaisseur_bordure = 2;
-    age->style.couleur_bordure = g_strdup("#2ecc71");
+    age->style.couleur_bordure = malloc(strlen("#2ecc71") + 1);
+    strcpy(age->style.couleur_bordure, "#2ecc71");
     age->style.rayon_arrondi = 6;
     age->on_change = on_input_number_changed;
     age->on_invalid = on_input_invalid;
-    age->user_data = "age";
+    age->user_data = malloc(strlen("age") + 1);
+    strcpy(age->user_data, "age");
 
     GtkWidget *w_age = champ_nombre_creer(age);
     g_signal_connect_swapped(w_age, "destroy", G_CALLBACK(champ_nombre_free), age);
@@ -288,7 +325,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampNombre *salary = g_new0(ChampNombre, 1);
     champ_nombre_initialiser(salary);
-    salary->id_css = "input_salary";
+    salary->id_css = malloc(strlen("input_salary") + 1);
+    strcpy(salary->id_css, "input_salary");
     salary->min = 0;
     salary->max = 999999;
     salary->step = 100;
@@ -297,10 +335,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     salary->size.width = 200;
     salary->size.height = 0;
     salary->style.epaisseur_bordure = 1;
-    salary->style.couleur_bordure = g_strdup("#f39c12");
+    salary->style.couleur_bordure = malloc(strlen("#f39c12") + 1);
+    strcpy(salary->style.couleur_bordure, "#f39c12");
     salary->style.rayon_arrondi = 4;
     salary->on_change = on_input_number_changed;
-    salary->user_data = "salary";
+    salary->user_data = malloc(strlen("salary") + 1);
+    strcpy(salary->user_data, "salary");
 
     GtkWidget *w_salary = champ_nombre_creer(salary);
     g_signal_connect_swapped(w_salary, "destroy", G_CALLBACK(champ_nombre_free), salary);
@@ -314,16 +354,19 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampSelect *country = g_new0(ChampSelect, 1);
     champ_select_initialiser(country);
-    country->id_css = "input_country";
+    country->id_css = malloc(strlen("input_country") + 1);
+    strcpy(country->id_css, "input_country");
     country->size.width = 180;
     country->size.height = 0;
     country->required = true;
     country->style.epaisseur_bordure = 2;
-    country->style.couleur_bordure = g_strdup("#9b59b6");
+    country->style.couleur_bordure = malloc(strlen("#9b59b6") + 1);
+    strcpy(country->style.couleur_bordure, "#9b59b6");
     country->style.rayon_arrondi = 7;
     country->on_change = on_select_changed;
     country->on_invalid = on_input_invalid;
-    country->user_data = "country";
+    country->user_data = malloc(strlen("country") + 1);
+    strcpy(country->user_data, "country");
 
     champ_select_add_item(country, "Select a country...");
     champ_select_add_item(country, "France");
@@ -345,15 +388,18 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampSelect *language = g_new0(ChampSelect, 1);
     champ_select_initialiser(language);
-    language->id_css = "input_language";
+    language->id_css = malloc(strlen("input_language") + 1);
+    strcpy(language->id_css, "input_language");
     language->size.width = 0;
     language->size.height = 45;
     language->required = false;
     language->style.epaisseur_bordure = 1;
-    language->style.couleur_bordure = g_strdup("#34495e");
+    language->style.couleur_bordure = malloc(strlen("#34495e") + 1);
+    strcpy(language->style.couleur_bordure, "#34495e");
     language->style.rayon_arrondi = 3;
     language->on_change = on_select_changed;
-    language->user_data = "language";
+    language->user_data = malloc(strlen("language") + 1);
+    strcpy(language->user_data, "language");
 
     champ_select_add_item(language, "Choose your favorite...");
     champ_select_add_item(language, "C");
@@ -376,7 +422,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampZoneTexte *czt = g_new0(ChampZoneTexte, 1);
     champ_zone_texte_initialiser(czt);
-    czt->id_css = "input_zone_texte";
+    czt->id_css = malloc(strlen("input_zone_texte") + 1);
+    strcpy(czt->id_css, "input_zone_texte");
     czt->max_length = 200;
     czt->size.width = 0;
     czt->size.height = 90;
@@ -384,15 +431,18 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt->sensitive = true;
     czt->required = false;
     czt->style.epaisseur_bordure = 2;
-    czt->style.couleur_bordure = g_strdup("purple");
+    czt->style.couleur_bordure = malloc(strlen("purple") + 1);
+    strcpy(czt->style.couleur_bordure, "purple");
     czt->style.rayon_arrondi = 5;
     czt->style.gras = false;
     czt->style.italique = false;
     czt->style.taille_texte_px = 12;
     czt->on_change = on_zone_texte_changed;
     czt->on_invalid = on_input_invalid;
-    czt->user_data = "zone_texte";
-    czt->texte = g_strdup("this is a comment");
+    czt->user_data = malloc(strlen("zone_texte") + 1);
+    strcpy(czt->user_data, "zone_texte");
+    czt->texte = malloc(strlen("this is a comment") + 1);
+    strcpy(czt->texte, "this is a comment");
 
     GtkWidget *w_zone = champ_zone_texte_creer(czt);
     g_signal_connect_swapped(w_zone, "destroy", G_CALLBACK(champ_zone_texte_free), czt);
@@ -407,7 +457,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     ChampZoneTexte *czt2 = g_new0(ChampZoneTexte, 1);
     champ_zone_texte_initialiser(czt2);
-    czt2->id_css = "input_bio";
+    czt2->id_css = malloc(strlen("input_bio") + 1);
+    strcpy(czt2->id_css, "input_bio");
     czt2->required = true;
     czt2->max_length = 300;
     czt2->size.width = 100;
@@ -415,8 +466,10 @@ static void activate(GtkApplication *app, gpointer user_data)
     czt2->wrap_word = true;
     czt2->on_change = NULL;
     czt2->on_invalid = on_input_invalid;
-    czt2->user_data = "bio";
-    czt2->texte = g_strdup("Short bio...");
+    czt2->user_data = malloc(strlen("bio") + 1);
+    strcpy(czt2->user_data, "bio");
+    czt2->texte = malloc(strlen("Short bio...") + 1);
+    strcpy(czt2->texte, "Short bio...");
 
     GtkWidget *w_bio = champ_zone_texte_creer(czt2);
     g_signal_connect_swapped(w_bio, "destroy", G_CALLBACK(champ_zone_texte_free), czt2);

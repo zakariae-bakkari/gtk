@@ -1,4 +1,6 @@
 #include <gtk/gtk.h>
+#include <stdlib.h>
+#include <string.h>
 #include "../../widgets/headers/image.h"
 
 static void activate(GtkApplication *app, gpointer user_data)
@@ -34,12 +36,14 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Image img1;
     image_initialiser(&img1);
-    img1.id_css = "img_fichier";
+    img1.id_css = malloc(strlen("img_fichier") + 1);
+    strcpy(img1.id_css, "img_fichier");
     img1.width = 300;
     img1.height = 200;
     img1.fit_mode = IMAGE_FIT_CONTAIN;
     img1.rayon_arrondi = 12;
-    img1.legende = "Logo zcode — mode CONTAIN";
+    img1.legende = malloc(strlen("Logo zcode — mode CONTAIN") + 1);
+    strcpy(img1.legende, "Logo zcode — mode CONTAIN");
     img1.legende_taille_px = 12;
     image_set_from_file(&img1, "resources/images/zcode.png");
     gtk_box_append(GTK_BOX(vbox), image_creer(&img1));
@@ -54,13 +58,16 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Image img2;
     image_initialiser(&img2);
-    img2.id_css = "img_cover";
+    img2.id_css = malloc(strlen("img_cover") + 1);
+    strcpy(img2.id_css, "img_cover");
     img2.width = 200;
     img2.height = 200;
     img2.fit_mode = IMAGE_FIT_COVER;
     img2.rayon_arrondi = 100;
-    img2.legende = "Mode COVER — coins arrondis 100px";
-    img2.legende_couleur = "#8e44ad";
+    img2.legende = malloc(strlen("Mode COVER — coins arrondis 100px") + 1);
+    strcpy(img2.legende, "Mode COVER — coins arrondis 100px");
+    img2.legende_couleur = malloc(strlen("#8e44ad") + 1);
+    strcpy(img2.legende_couleur, "#8e44ad");
     image_set_from_file(&img2, "resources/images/zcode.png");
     gtk_box_append(GTK_BOX(vbox), image_creer(&img2));
 
@@ -74,11 +81,13 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Image img3;
     image_initialiser(&img3);
-    img3.id_css = "img_fill";
+    img3.id_css = malloc(strlen("img_fill") + 1);
+    strcpy(img3.id_css, "img_fill");
     img3.width = 400;
     img3.height = 120;
     img3.fit_mode = IMAGE_FIT_FILL;
-    img3.legende = "Mode FILL";
+    img3.legende = malloc(strlen("Mode FILL") + 1);
+    strcpy(img3.legende, "Mode FILL");
     image_set_from_file(&img3, "resources/images/zcode.png");
     gtk_box_append(GTK_BOX(vbox), image_creer(&img3));
 
@@ -92,7 +101,8 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Image img4;
     image_initialiser(&img4);
-    img4.id_css = "img_icon";
+    img4.id_css = malloc(strlen("img_icon") + 1);
+    strcpy(img4.id_css, "img_icon");
     img4.width = 48;
     img4.height = 48;
     img4.halign = WIDGET_ALIGN_START;
@@ -109,13 +119,15 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     Image img5;
     image_initialiser(&img5);
-    img5.id_css = "img_dynamic";
+    img5.id_css = malloc(strlen("img_dynamic") + 1);
+    strcpy(img5.id_css, "img_dynamic");
     img5.width = 250;
     img5.height = 150;
     img5.fit_mode = IMAGE_FIT_CONTAIN;
     img5.rayon_arrondi = 6;
     img5.style.epaisseur_bordure = 2;
-    img5.style.couleur_bordure = "#3498db";
+    img5.style.couleur_bordure = malloc(strlen("#3498db") + 1);
+    strcpy(img5.style.couleur_bordure, "#3498db");
     image_set_from_file(&img5, "resources/images/zcode.png");
     GtkWidget *w5 = image_creer(&img5);
 
