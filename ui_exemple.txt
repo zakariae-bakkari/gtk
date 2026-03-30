@@ -1,11 +1,11 @@
 <fenetre
     title="demo xml"
     width="900"
-    height="600"
+    height="800"
     resizable="true"
     maximisee="false"
     scroll="vertical"
-    scroll_min_height="1000"
+    scroll_min_height="800"
     bgcolor="#f0f0f0">
 
     <!-- ═══════════════════════════════════════════

@@ -26,7 +26,7 @@ add_executable(gtk
         widgets/sources/dialog.c
         widgets/sources/xml_parser.c
         # App
-        # src/main.c
+        #src/main.c
         src/main_xml.c
         widgets/sources/export_xml.c
         #        src/tests/test_champ_text.c
