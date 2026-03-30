@@ -122,21 +122,11 @@ static void on_dialog_reponse(int r, gpointer data)
     char *s = (char *)malloc(20); // allouer string avec la taille 20
     switch (r)
     {
-    case DIALOG_REPONSE_OK:
-        strcpy(s, "OK");
-        break;
-    case DIALOG_REPONSE_ANNULER:
-        strcpy(s, "ANNULER");
-        break;
-    case DIALOG_REPONSE_OUI:
-        strcpy(s, "OUI");
-        break;
-    case DIALOG_REPONSE_NON:
-        strcpy(s, "NON");
-        break;
-    case DIALOG_REPONSE_FERMER:
-        strcpy(s, "FERMER");
-        break;
+    case DIALOG_REPONSE_OK:strcpy(s, "OK");break;
+    case DIALOG_REPONSE_ANNULER:strcpy(s, "ANNULER");break;
+    case DIALOG_REPONSE_OUI:strcpy(s, "OUI");break;
+    case DIALOG_REPONSE_NON:strcpy(s, "NON");break;
+    case DIALOG_REPONSE_FERMER:strcpy(s, "FERMER");break;
     }
     printf("[DIALOG]    '%s' → %s\n", (char *)data, s);
 }

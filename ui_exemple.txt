@@ -1,11 +1,11 @@
 <fenetre
     title="demo xml"
     width="900"
-    height="600"
+    height="800"
     resizable="true"
     maximisee="false"
     scroll="vertical"
-    scroll_min_height="1000"
+    scroll_min_height="800"
     bgcolor="#f0f0f0">
 
     <!-- ═══════════════════════════════════════════
@@ -169,7 +169,7 @@ menu_principal     → HORIZONTAL
 
 <slider id="volume" min="0" max="100" valeur="50" step="1" afficher_valeur="true" width="250"/>
 
-<image src="assets/logo.png" width="200" height="150" fit="contain" legende="Logo"/>
+<image src="resources/images/zcode.png" width="200" height="150" fit="contain" legende="Logo"/>
 
             <!-- Bouton submit -->
             <bouton
@@ -248,6 +248,10 @@ menu_principal     → HORIZONTAL
                 color="#e67e22"
                 italic="true"
                 wrap="true"/>
+        <image src="resources/images/zakariae.png" width="50" height="20" fit="contain" legende="zakariae"/>
+        <image src="resources/images/rafaa.png" width="200" height="150" fit="contain" legende="rafaa"/>
+        <image src="resources/images/noureddine.png" width="200" height="150" fit="contain" legende="noureddine"/>
+        <image src="resources/images/meriem.png" width="450" height="350" fit="contain" legende="meriem"/>
 
         </conteneur>
 

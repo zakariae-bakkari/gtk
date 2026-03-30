@@ -323,47 +323,144 @@ static XmlAttr *parse_attrs(Lexer *l, int *self_closing)
 /* Prototype anticipé */
 static XmlNode *parse_node(Lexer *l);
 
+// static XmlNode *parse_node(Lexer *l)
+// {
+//     lex_skip_spaces(l);
+//     while (l->pos < l->len && lex_peek(l) != '<')
+//         lex_next(l);
+//     if (l->pos >= l->len)
+//         return NULL;
+//     lex_next(l); /* '<' */
+//
+//     /* Commentaire <!-- */
+//     if (l->pos + 2 < l->len && l->src[l->pos] == '!' && l->src[l->pos + 1] == '-' && l->src[l->pos + 2] == '-')
+//     {
+//         l->pos += 3;
+//         lex_skip_comment(l);
+//         return parse_node(l);
+//     }
+//
+//     /* Prologue <?xml ?> */
+//     if (lex_peek(l) == '?')
+//     {
+//         while (l->pos < l->len && !(l->src[l->pos] == '?' && l->src[l->pos + 1] == '>'))
+//             l->pos++;
+//         l->pos += 2;
+//         return parse_node(l);
+//     }
+//
+//     /* Balise fermante </tag> */
+//     if (lex_peek(l) == '/')
+//     {
+//         while (l->pos < l->len && l->src[l->pos] != '>')
+//             l->pos++;
+//         if (lex_peek(l) == '>')
+//             lex_next(l);
+//         return NULL;
+//     }
+//
+//     char *tag = lex_read_ident(l);
+//     if (!tag)
+//         return NULL;
+//     XmlNode *node = node_new(tag);
+//     free(tag);
+//
+//     int self_closing = 0;
+//     node->attrs = parse_attrs(l, &self_closing);
+//
+//     if (!self_closing)
+//     {
+//         XmlNode *ch_head = NULL, *ch_tail = NULL;
+//         while (1)
+//         {
+//             lex_skip_spaces(l);
+//             if (l->pos + 1 < l->len && l->src[l->pos] == '<' && l->src[l->pos + 1] == '/')
+//             {
+//                 while (l->pos < l->len && l->src[l->pos] != '>')
+//                     l->pos++;
+//                 if (lex_peek(l) == '>')
+//                     lex_next(l);
+//                 break;
+//             }
+//             if (l->pos >= l->len)
+//                 break;
+//             XmlNode *child = parse_node(l);
+//             if (!child)
+//                 break;
+//             if (!ch_head)
+//                 ch_head = ch_tail = child;
+//             else
+//             {
+//                 ch_tail->next = child;
+//                 ch_tail = child;
+//             }
+//         }
+//         node->children = ch_head;
+//     }
+//     return node;
+// }
+
 static XmlNode *parse_node(Lexer *l)
 {
     lex_skip_spaces(l);
+
+    /* Avance jusqu'au prochain '<', en ignorant silencieusement le texte brut.
+       Attention : les nœuds texte entre balises sont perdus (non capturés). */
     while (l->pos < l->len && lex_peek(l) != '<')
         lex_next(l);
+
+    /* Fin de flux : rien à parser. */
     if (l->pos >= l->len)
         return NULL;
-    lex_next(l); /* '<' */
 
-    /* Commentaire <!-- */
-    if (l->pos + 2 < l->len && l->src[l->pos] == '!' && l->src[l->pos + 1] == '-' && l->src[l->pos + 2] == '-')
+    lex_next(l); /* consomme '<' */
+
+    /* ── Commentaire <!-- ... --> ────────────────────────────────────────── */
+    if (l->pos + 2 < l->len && l->src[l->pos] == '!' && l->src[l->pos + 1] == '-' &&l->src[l->pos + 2] == '-')
     {
-        l->pos += 3;
+        l->pos += 3; /* saute '!--' */
         lex_skip_comment(l);
-        return parse_node(l);
+        return parse_node(l); /* continue vers le nœud suivant */
     }
 
-    /* Prologue <?xml ?> */
+    /* ── Prologue <?xml ... ?> ───────────────────────────────────────────── */
     if (lex_peek(l) == '?')
     {
-        while (l->pos < l->len && !(l->src[l->pos] == '?' && l->src[l->pos + 1] == '>'))
+        /* ERREUR : l->src[l->pos + 1] est accédé sans vérifier que
+           l->pos + 1 < l->len → débordement possible en fin de flux.
+           CORRECTION : ajouter la garde sur la borne. */
+        /* while (l->pos < l->len && !(l->src[l->pos] == '?' && l->src[l->pos + 1] == '>')) */
+        while (l->pos + 1 < l->len &&
+               !(l->src[l->pos] == '?' && l->src[l->pos + 1] == '>'))
             l->pos++;
-        l->pos += 2;
+        l->pos += 2; /* saute '?>' */
         return parse_node(l);
     }
 
-    /* Balise fermante </tag> */
+    /* ── Balise fermante </tag> ──────────────────────────────────────────── */
     if (lex_peek(l) == '/')
     {
+        /* Saute jusqu'au '>' de la balise fermante. */
         while (l->pos < l->len && l->src[l->pos] != '>')
             l->pos++;
-        if (lex_peek(l) == '>')
-            lex_next(l);
+
+        /* REMARQUE : le if ici est redondant — la boucle s'arrête exactement
+           sur '>' ou sur la fin de flux. On peut remplacer par un lex_next
+           inconditionnel protégé par la vérification de fin de flux. */
+        if (l->pos < l->len && lex_peek(l) == '>')
+            lex_next(l); /* consomme '>' */
+
+        /* Retourne NULL comme sentinelle pour signaler une balise fermante. */
         return NULL;
     }
 
+    /* ── Balise ouvrante <tag ...> ──────────────────────────────────────── */
     char *tag = lex_read_ident(l);
     if (!tag)
-        return NULL;
+        return NULL; /* REMARQUE : aucune mémoire allouée ici, le return est sûr. */
+
     XmlNode *node = node_new(tag);
-    free(tag);
+    free(tag); /* node_new a dû copier le nom ; on libère la copie temporaire. */
 
     int self_closing = 0;
     node->attrs = parse_attrs(l, &self_closing);
@@ -371,22 +468,36 @@ static XmlNode *parse_node(Lexer *l)
     if (!self_closing)
     {
         XmlNode *ch_head = NULL, *ch_tail = NULL;
+
         while (1)
         {
             lex_skip_spaces(l);
-            if (l->pos + 1 < l->len && l->src[l->pos] == '<' && l->src[l->pos + 1] == '/')
+
+            /* Détection anticipée de </tag> pour éviter un appel récursif inutile. */
+            if (l->pos + 1 < l->len &&
+                l->src[l->pos]     == '<' &&
+                l->src[l->pos + 1] == '/')
             {
+                /* REMARQUE : le nom de la balise fermante n'est pas vérifié.
+                   Un XML mal formé comme <a><b></a> serait accepté sans erreur. */
                 while (l->pos < l->len && l->src[l->pos] != '>')
                     l->pos++;
-                if (lex_peek(l) == '>')
-                    lex_next(l);
+                if (l->pos < l->len && lex_peek(l) == '>')
+                    lex_next(l); /* consomme '>' */
                 break;
             }
+
             if (l->pos >= l->len)
-                break;
+                break; /* Fin de flux inattendue (XML mal formé). */
+
             XmlNode *child = parse_node(l);
+
+            /* parse_node retourne NULL sur balise fermante ou erreur :
+               on sort de la boucle dans les deux cas. */
             if (!child)
                 break;
+
+            /* Ajout du fils en queue de liste chaînée. */
             if (!ch_head)
                 ch_head = ch_tail = child;
             else
