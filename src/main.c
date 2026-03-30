@@ -256,7 +256,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     m_menu->sous_menu_orientation = MENU_VERTICAL;
 
     // ── Item "sous menu >" — sous-menu HORIZONTAL ─────────────────────────
-    MenuItem *m_sousmenu = menu_item_creer("sousmenu", "sous menu >", NULL, MENU_ITEM_NORMAL);
+    MenuItem *m_sousmenu = menu_item_creer("sousmenu", "sous menu ", NULL, MENU_ITEM_NORMAL);
     m_sousmenu->sous_menu_orientation = MENU_HORIZONTAL; // ← horizontal
 
     MenuItem *sm1 = menu_item_creer("sm1", "sous item 1", NULL, MENU_ITEM_NORMAL);
@@ -264,6 +264,15 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     MenuItem *sm2 = menu_item_creer("sm2", "sous item 2", NULL, MENU_ITEM_NORMAL);
     sm2->sous_menu_orientation = MENU_VERTICAL;
+
+    MenuItem *sm21 = menu_item_creer("sm2", "sous item 21", NULL, MENU_ITEM_NORMAL);
+    sm2->sous_menu_orientation = MENU_VERTICAL;
+
+    MenuItem *sm22 = menu_item_creer("sm2", "sous item 22", NULL, MENU_ITEM_NORMAL);
+    sm2->sous_menu_orientation = MENU_VERTICAL;
+
+    menu_item_ajouter_sous_item(sm2, sm21);
+    menu_item_ajouter_sous_item(sm2, sm22);
 
     MenuItem *sm3 = menu_item_creer("sm3", "sous item 3", NULL, MENU_ITEM_NORMAL);
     sm3->sous_menu_orientation = MENU_VERTICAL;
@@ -281,7 +290,18 @@ static void activate(GtkApplication *app, gpointer user_data)
     sv1->sous_menu_orientation = MENU_VERTICAL;
 
     MenuItem *sv2 = menu_item_creer("sv2", "option B", NULL, MENU_ITEM_NORMAL);
-    sv2->sous_menu_orientation = MENU_VERTICAL;
+    sv2->sous_menu_orientation = MENU_HORIZONTAL;
+
+    MenuItem *sv21 = menu_item_creer("sv2", "option B b1", NULL, MENU_ITEM_NORMAL);
+    sv2->sous_menu_orientation = MENU_HORIZONTAL;
+
+    MenuItem *sv22 = menu_item_creer("sv2", "option B b2", NULL, MENU_ITEM_NORMAL);
+    sv2->sous_menu_orientation = MENU_HORIZONTAL;
+
+    menu_item_ajouter_sous_item(sv2, sv21);
+    menu_item_ajouter_sous_item(sv2, sv22);
+
+
 
     MenuItem *sv3 = menu_item_creer("sv3", "option C", NULL, MENU_ITEM_NORMAL);
     sv3->sous_menu_orientation = MENU_VERTICAL;
@@ -289,6 +309,18 @@ static void activate(GtkApplication *app, gpointer user_data)
     menu_item_ajouter_sous_item(m_vertical, sv1);
     menu_item_ajouter_sous_item(m_vertical, sv2);
     menu_item_ajouter_sous_item(m_vertical, sv3);
+
+
+
+
+
+
+
+
+
+
+
+
 
     // ── Item simple "item" ────────────────────────────────────────────────
     MenuItem *m_item = menu_item_creer("item", "item", NULL, MENU_ITEM_NORMAL);
