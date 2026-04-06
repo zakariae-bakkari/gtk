@@ -16,6 +16,7 @@
 #include "../widgets/headers/slider.h"
 #include "../widgets/headers/menu.h"
 #include "../widgets/headers/dialog.h"
+#include "../widgets/headers/export_xml.h"
 
 // =============================================================================
 // HELPER — crée un widget Texte simple (label de champ ou section)
@@ -702,6 +703,36 @@ static void activate(GtkApplication *app, gpointer user_data)
     g_signal_connect_swapped(w_sld, "destroy", G_CALLBACK(slider_free), sld);
     g_signal_connect(w_sld, "destroy", G_CALLBACK(g_free), sld);
     conteneur_ajouter(&col2_ct, w_sld);
+
+    // =========================================================================
+    // GENERER FICHIER
+    // =========================================================================
+    ExportContext ctx;
+    export_context_init(&ctx);
+
+    export_ajouter_fenetre  (&ctx, &win);
+    export_ajouter_menu     (&ctx, menu);
+    export_ajouter_texte    (&ctx, &t1);
+    export_ajouter_texte    (&ctx, &t1b);
+    export_ajouter_conteneur(&ctx, &col1_ct);
+    export_ajouter_champ_texte  (&ctx, ct_nom);
+    export_ajouter_champ_mdp    (&ctx, ct_mdp);
+    export_ajouter_champ_select (&ctx, ct_sel);
+    export_ajouter_zone_texte   (&ctx, ct_zt);
+    export_ajouter_checklist(&ctx, &chk_terms);
+    export_ajouter_bouton   (&ctx, &b_cond);
+    export_ajouter_bouton   (&ctx, &b_ann);
+    export_ajouter_bouton   (&ctx, &b_sub);
+    export_ajouter_texte    (&ctx, &t2);
+    export_ajouter_texte    (&ctx, &t2b);
+    export_ajouter_conteneur(&ctx, &col2_ct);
+    export_ajouter_radio    (&ctx, &rad1);
+    export_ajouter_radio    (&ctx, &rad2);
+    export_ajouter_radio    (&ctx, &rad3);
+    export_ajouter_slider   (&ctx, sld);
+
+    generer_fichier_interface(&ctx);
+
 
     // =========================================================================
     // AFFICHAGE
