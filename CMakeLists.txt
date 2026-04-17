@@ -27,6 +27,13 @@ add_executable(gtk
         widgets/sources/xml_parser.c
         # App
          src/main.c
+         src/bassin.c
+         src/draw.c
+         src/entities.c
+         src/game.c
+         src/screen_accueil.c
+         src/screen_createur.c
+         src/screen_jeux.c
         #src/main_xml.c
         widgets/sources/export_xml.c
         #        src/tests/test_champ_text.c

@@ -358,7 +358,7 @@ typedef struct {
 Avec ces **44 entités** réparties en 5 catégories, le projet couvre tous les modes de jeu et offre une grande richesse d'interactions. Chaque entité peut être représentée en **Cairo** avec ses propres fonctions de dessin et son comportement défini dans une struct `EntityConfig`.
 
 
-
+### pour les poisson en peux cree un guideurs du groupe
 
 
 
