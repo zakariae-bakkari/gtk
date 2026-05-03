@@ -17,6 +17,8 @@
 #include "menu.h"
 #include "texte.h"
 #include "image.h"
+#include "video.h"
+
 
 /* ------------------------------------------------------------------ */
 /* Contexte d'export — accumule les widgets avant génération           */
@@ -39,6 +41,7 @@ typedef struct
     Slider          *sliders[32];         int nb_sliders;
     Dialog          *dialogs[32];         int nb_dialogs;
     Image           *images[32];          int nb_images;
+    Video           *videos[32];          int nb_videos;
 } ExportContext;
 
 /* ------------------------------------------------------------------ */
@@ -61,7 +64,8 @@ void export_ajouter_zone_texte   (ExportContext *ctx, ChampZoneTexte  *w);
 void export_ajouter_slider   (ExportContext *ctx, Slider          *w);
 void export_ajouter_dialog   (ExportContext *ctx, Dialog          *w);
 void export_ajouter_image    (ExportContext *ctx, Image           *w);
+void export_ajouter_video    (ExportContext *ctx, Video           *w);
 
-void generer_fichier_interface(ExportContext *ctx);
+void generer_fichier_interface(ExportContext *ctx, const char *chemin);
 
 #endif // EXPORT_XML_H

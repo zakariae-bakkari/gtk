@@ -731,8 +731,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     export_ajouter_radio    (&ctx, &rad3);
     export_ajouter_slider   (&ctx, sld);
 
-    generer_fichier_interface(&ctx);
-
+    generer_fichier_interface(&ctx, "interface.txt");
 
     // =========================================================================
     // AFFICHAGE
