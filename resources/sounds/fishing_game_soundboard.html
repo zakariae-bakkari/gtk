@@ -1,0 +1,281 @@
+
+<h2 class="sr-only">Fishing game sound effects board — play and download game audio</h2>
+<style>
+  .sb-wrap { padding: 1.5rem 0; }
+  .sb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 1.5rem; }
+  .sound-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 1.2rem 1rem; border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+    cursor: pointer; transition: transform 0.1s, background 0.15s;
+    font-family: var(--font-sans); width: 100%;
+  }
+  .sound-btn:hover { background: var(--color-background-secondary); }
+  .sound-btn:active { transform: scale(0.97); }
+  .sound-btn .icon { font-size: 28px; }
+  .sound-btn .label { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .sound-btn .desc { font-size: 12px; color: var(--color-text-secondary); text-align: center; line-height: 1.4; }
+  .sound-btn .tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; margin-top: 2px; }
+  .tag-lose { background: #FCEBEB; color: #A32D2D; }
+  .tag-win  { background: #EAF3DE; color: #3B6D11; }
+  .tag-warn { background: #FAEEDA; color: #854F0B; }
+  .tag-ambient { background: #E6F1FB; color: #185FA5; }
+  .tag-action { background: #EEEDFE; color: #534AB7; }
+  .playing { background: var(--color-background-secondary) !important; }
+  .dl-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; padding: 4px 12px; border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-secondary);
+    background: transparent; cursor: pointer; color: var(--color-text-secondary);
+    font-family: var(--font-sans); margin-top: 6px;
+  }
+  .dl-btn:hover { background: var(--color-background-secondary); }
+  .section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin: 1.2rem 0 0.5rem; letter-spacing: 0.04em; text-transform: uppercase; }
+</style>
+
+<div class="sb-wrap">
+  <div class="section-title">defeat &amp; danger</div>
+  <div class="sb-grid" id="lose-group"></div>
+  <div class="section-title">victory &amp; success</div>
+  <div class="sb-grid" id="win-group"></div>
+  <div class="section-title">escape &amp; tension</div>
+  <div class="sb-grid" id="escape-group"></div>
+  <div class="section-title">underwater ambience &amp; actions</div>
+  <div class="sb-grid" id="ambient-group"></div>
+</div>
+
+<script>
+const AC = window.AudioContext || window.webkitAudioContext;
+let ctx;
+function getCtx() { if (!ctx) ctx = new AC(); return ctx; }
+
+function playAndReturn(fn) {
+  const ac = getCtx();
+  if (ac.state === 'suspended') ac.resume();
+  return fn(ac);
+}
+
+const sounds = {
+  lose: [
+    {
+      id: 'game_over', label: 'Game over', desc: 'Heavy defeat sting', tag: 'lose',
+      icon: '💀',
+      fn(ac) {
+        const t = ac.currentTime;
+        [220,196,174,155].forEach((f,i) => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.connect(g); g.connect(ac.destination);
+          o.type = 'sawtooth'; o.frequency.setValueAtTime(f, t + i*0.18);
+          g.gain.setValueAtTime(0.18, t + i*0.18);
+          g.gain.exponentialRampToValueAtTime(0.001, t + i*0.18 + 0.35);
+          o.start(t + i*0.18); o.stop(t + i*0.18 + 0.36);
+        });
+      }
+    },
+    {
+      id: 'fish_escaped', label: 'Fish escaped', desc: 'Hook miss & splash', tag: 'lose',
+      icon: '🐟',
+      fn(ac) {
+        const t = ac.currentTime;
+        const buf = ac.createBuffer(1, ac.sampleRate*0.4, ac.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(ac.sampleRate*0.08));
+        const src = ac.createBufferSource(); src.buffer = buf;
+        const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 0.8;
+        const g = ac.createGain(); g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+        src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+        const o = ac.createOscillator(); const g2 = ac.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(440,t); o.frequency.exponentialRampToValueAtTime(200,t+0.3);
+        g2.gain.setValueAtTime(0.12,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        o.connect(g2); g2.connect(ac.destination); o.start(t); o.stop(t+0.31);
+      }
+    },
+    {
+      id: 'time_up', label: 'Time up', desc: 'Buzzer / alarm', tag: 'lose',
+      icon: '⏱️',
+      fn(ac) {
+        const t = ac.currentTime;
+        [0,0.22,0.44].forEach(d => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'square'; o.frequency.value = 180;
+          g.gain.setValueAtTime(0.15,t+d); g.gain.setValueAtTime(0.001,t+d+0.18);
+          o.connect(g); g.connect(ac.destination); o.start(t+d); o.stop(t+d+0.19);
+        });
+      }
+    }
+  ],
+  win: [
+    {
+      id: 'victory', label: 'Victory!', desc: 'Big catch fanfare', tag: 'win',
+      icon: '🏆',
+      fn(ac) {
+        const t = ac.currentTime;
+        const notes = [523,659,784,1047];
+        notes.forEach((f,i) => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'triangle'; o.frequency.value = f;
+          g.gain.setValueAtTime(0,t+i*0.13);
+          g.gain.linearRampToValueAtTime(0.2,t+i*0.13+0.05);
+          g.gain.exponentialRampToValueAtTime(0.001,t+i*0.13+0.5);
+          o.connect(g); g.connect(ac.destination); o.start(t+i*0.13); o.stop(t+i*0.13+0.51);
+        });
+      }
+    },
+    {
+      id: 'level_up', label: 'Level up', desc: 'Score bonus jingle', tag: 'win',
+      icon: '⭐',
+      fn(ac) {
+        const t = ac.currentTime;
+        [[392,0],[494,0.1],[587,0.2],[784,0.3]].forEach(([f,d]) => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'sine'; o.frequency.value = f;
+          g.gain.setValueAtTime(0.18,t+d); g.gain.exponentialRampToValueAtTime(0.001,t+d+0.25);
+          o.connect(g); g.connect(ac.destination); o.start(t+d); o.stop(t+d+0.26);
+        });
+      }
+    },
+    {
+      id: 'coin', label: 'Coin / point', desc: 'Collect reward', tag: 'win',
+      icon: '🪙',
+      fn(ac) {
+        const t = ac.currentTime;
+        const o = ac.createOscillator(); const g = ac.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(880,t); o.frequency.exponentialRampToValueAtTime(1760,t+0.1);
+        g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+0.21);
+      }
+    }
+  ],
+  escape: [
+    {
+      id: 'shark_alert', label: 'Shark alert!', desc: 'Danger approaching', tag: 'warn',
+      icon: '🦈',
+      fn(ac) {
+        const t = ac.currentTime;
+        [0,0.3,0.55,0.72,0.84,0.92].forEach((d,i) => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'sawtooth'; o.frequency.value = 80 + i*15;
+          g.gain.setValueAtTime(0.14+i*0.025,t+d); g.gain.exponentialRampToValueAtTime(0.001,t+d+0.22);
+          o.connect(g); g.connect(ac.destination); o.start(t+d); o.stop(t+d+0.23);
+        });
+      }
+    },
+    {
+      id: 'worry', label: 'Worry / tension', desc: 'Low warning pulse', tag: 'warn',
+      icon: '😰',
+      fn(ac) {
+        const t = ac.currentTime;
+        for(let i=0;i<6;i++){
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type = 'sine'; o.frequency.value = i%2===0 ? 110 : 120;
+          g.gain.setValueAtTime(0.12,t+i*0.16); g.gain.exponentialRampToValueAtTime(0.001,t+i*0.16+0.14);
+          o.connect(g); g.connect(ac.destination); o.start(t+i*0.16); o.stop(t+i*0.16+0.15);
+        }
+      }
+    },
+    {
+      id: 'escape_swim', label: 'Escape swim', desc: 'Rapid bubble rush', tag: 'warn',
+      icon: '💨',
+      fn(ac) {
+        const t = ac.currentTime;
+        for(let i=0;i<8;i++){
+          const buf = ac.createBuffer(1,ac.sampleRate*0.05,ac.sampleRate);
+          const d2 = buf.getChannelData(0);
+          for(let j=0;j<d2.length;j++) d2[j]=(Math.random()*2-1)*Math.exp(-j/(ac.sampleRate*0.015));
+          const src = ac.createBufferSource(); src.buffer=buf;
+          const filt = ac.createBiquadFilter(); filt.type='highpass'; filt.frequency.value=1200+i*80;
+          const g = ac.createGain(); g.gain.value=0.3;
+          src.connect(filt); filt.connect(g); g.connect(ac.destination); src.start(t+i*0.07);
+        }
+      }
+    }
+  ],
+  ambient: [
+    {
+      id: 'bubbles', label: 'Bubbles', desc: 'Underwater ambience', tag: 'ambient',
+      icon: '🫧',
+      fn(ac) {
+        const t = ac.currentTime;
+        for(let i=0;i<12;i++){
+          const o = ac.createOscillator(); const g = ac.createGain();
+          const freq = 300 + Math.random()*400;
+          const delay = Math.random()*1.2;
+          o.type='sine'; o.frequency.setValueAtTime(freq,t+delay);
+          o.frequency.exponentialRampToValueAtTime(freq*1.5,t+delay+0.08);
+          g.gain.setValueAtTime(0.06,t+delay); g.gain.exponentialRampToValueAtTime(0.001,t+delay+0.12);
+          o.connect(g); g.connect(ac.destination); o.start(t+delay); o.stop(t+delay+0.13);
+        }
+      }
+    },
+    {
+      id: 'hook_cast', label: 'Hook cast', desc: 'Line throw sound', tag: 'action',
+      icon: '🎣',
+      fn(ac) {
+        const t = ac.currentTime;
+        const buf = ac.createBuffer(1,ac.sampleRate*0.3,ac.sampleRate);
+        const d = buf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2)*0.6;
+        const src = ac.createBufferSource(); src.buffer=buf;
+        const f = ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2000; f.Q.value=1;
+        const g = ac.createGain(); g.gain.setValueAtTime(0.4,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+        const o = ac.createOscillator(); const g2 = ac.createGain();
+        o.type='sine'; o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(100,t+0.25);
+        g2.gain.setValueAtTime(0.08,t); g2.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+        o.connect(g2); g2.connect(ac.destination); o.start(t); o.stop(t+0.26);
+      }
+    },
+    {
+      id: 'splash', label: 'Splash', desc: 'Water entry sound', tag: 'ambient',
+      icon: '💦',
+      fn(ac) {
+        const t = ac.currentTime;
+        const buf = ac.createBuffer(1,ac.sampleRate*0.5,ac.sampleRate);
+        const d = buf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(ac.sampleRate*0.06))*(i<ac.sampleRate*0.05?i/(ac.sampleRate*0.05):1);
+        const src = ac.createBufferSource(); src.buffer=buf;
+        const f = ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2200;
+        const g = ac.createGain(); g.gain.setValueAtTime(0.5,t); g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+        src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t);
+      }
+    },
+    {
+      id: 'bite', label: 'Fish bite!', desc: 'Line tug notification', tag: 'action',
+      icon: '🔔',
+      fn(ac) {
+        const t = ac.currentTime;
+        [0,0.15].forEach(d => {
+          const o = ac.createOscillator(); const g = ac.createGain();
+          o.type='triangle'; o.frequency.value=660;
+          g.gain.setValueAtTime(0.22,t+d); g.gain.exponentialRampToValueAtTime(0.001,t+d+0.3);
+          o.connect(g); g.connect(ac.destination); o.start(t+d); o.stop(t+d+0.31);
+        });
+      }
+    }
+  ]
+};
+
+function makeBtn(s, group) {
+  const btn = document.createElement('button');
+  btn.className = 'sound-btn';
+  btn.innerHTML = `
+    <span class="icon" aria-hidden="true">${s.icon}</span>
+    <span class="label">${s.label}</span>
+    <span class="desc">${s.desc}</span>
+    <span class="tag tag-${s.tag === 'ambient' || s.tag === 'action' ? (s.tag==='action'?'action':'ambient') : s.tag}">${s.tag}</span>
+  `;
+  btn.setAttribute('aria-label', `Play ${s.label} sound`);
+  btn.addEventListener('click', () => {
+    btn.classList.add('playing');
+    playAndReturn(s.fn);
+    setTimeout(() => btn.classList.remove('playing'), 600);
+  });
+  group.appendChild(btn);
+}
+
+['lose','win','escape','ambient'].forEach(cat => {
+  const el = document.getElementById(cat+'-group');
+  sounds[cat].forEach(s => makeBtn(s, el));
+});
+</script>
