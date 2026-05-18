@@ -65,5 +65,6 @@ void fenetre_set_scrollable(Fenetre *config, WidgetScrollMode mode);
 void fenetre_set_scroll_content_size(Fenetre *config, int min_width, int min_height);
 void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay);
 GtkWidget *fenetre_get_content_container(Fenetre *config);
+void fenetre_ajouter(Fenetre *config, GtkWidget *enfant);
 
 #endif
