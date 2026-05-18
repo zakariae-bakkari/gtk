@@ -202,7 +202,9 @@ static void activate(GtkApplication *app, gpointer user_data)
     win.taille.width = 720;
     win.taille.height = 540;
     win.resizable = TRUE;
-    win.demarrer_maximisee = TRUE;
+    // win.demarrer_maximisee = TRUE;
+    win.position=WIN_POS_MOUSE;
+
 
     GtkWidget *window = fenetre_creer(&win, app);
 

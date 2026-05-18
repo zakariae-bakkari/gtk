@@ -1,0 +1,2 @@
+<fenetre title="meriem" width="800" height="600" resizable="true" maximisee="false">
+</fenetre>
