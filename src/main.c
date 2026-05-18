@@ -2,6 +2,8 @@
 #include "screen_accueil.h"
 #include "screen_createur.h"
 #include "screen_jeux.h"
+#include "assets.h"
+#include "sound.h"
 
 typedef struct {
     GtkWidget *stack;
@@ -23,6 +25,8 @@ static void activate(GtkApplication *gapp, gpointer user_data) {
     GtkWidget *window = gtk_application_window_new(gapp);
     gtk_window_set_title(GTK_WINDOW(window), "Banc de Poisson");
     gtk_window_set_default_size(GTK_WINDOW(window), 1024, 700);
+
+    assets_init();
 
     app.stack = gtk_stack_new();
     gtk_stack_set_transition_type(GTK_STACK(app.stack),

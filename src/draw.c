@@ -1,4 +1,6 @@
 #include "draw.h"
+#include "assets.h"
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <math.h>
 
 /* ── Utilitaires ─────────────────────────────────── */
@@ -151,6 +153,40 @@ void draw_rock(cairo_t *cr, double x, double y, double size) {
     cairo_curve_to(cr, x - size * 0.1, y - size * 0.9, x + size * 0.2, y - size * 0.7, x + size * 0.3, y - size * 0.5);
     cairo_set_line_width(cr, 1.5);
     cairo_stroke(cr);
+    cairo_restore(cr);
+}
+
+void draw_entity_sprite(cairo_t *cr, EntityType type, double x, double y, double size, double angle) {
+    AssetId asset_id = assets_map_entity_type(type);
+    GdkPixbuf *pb = assets_get_pixbuf(asset_id);
+
+    if (!pb) return;
+
+    int w = gdk_pixbuf_get_width(pb);
+    int h = gdk_pixbuf_get_height(pb);
+
+    cairo_save(cr);
+    cairo_translate(cr, x, y);
+
+    /* Si on bouge vers la gauche, on flip horizontalement */
+    gboolean moving_left = (cos(angle) < 0);
+    
+    if (moving_left) {
+        cairo_scale(cr, -1.0, 1.0);
+        /* On ajuste l'angle pour qu'il reste dans un range naturel (-45 to 45 deg) */
+        /* car le flip a déjà fait 180 deg */
+        double flipped_angle = angle > 0 ? G_PI - angle : -G_PI - angle;
+        cairo_rotate(cr, -flipped_angle);
+    } else {
+        cairo_rotate(cr, angle);
+    }
+
+    /* On centre le sprite */
+    double scale = (size * 50.0) / (double)w;
+    cairo_scale(cr, scale, scale);
+    gdk_cairo_set_source_pixbuf(cr, pb, -w / 2.0, -h / 2.0);
+    cairo_paint(cr);
+
     cairo_restore(cr);
 }
 

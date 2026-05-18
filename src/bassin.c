@@ -1,5 +1,6 @@
 #include "bassin.h"
 #include "draw.h"
+#include "sound.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -51,6 +52,11 @@ GtkWidget *bassin_get_widget(Bassin *b) { return b->drawing_area; }
 void bassin_add_entity(Bassin *b, Entity *e) {
     if (b->nb_entities >= BASSIN_MAX_ENTITIES) return;
     b->entities[b->nb_entities++] = e;
+    
+    /* Petit son de splash quand on ajoute un poisson */
+    if (!entity_is_object(e->type)) {
+        sound_play(SOUND_SPLASH);
+    }
 }
 
 void bassin_remove_entity(Bassin *b, Entity *e) {
@@ -98,6 +104,11 @@ static gboolean on_tick(gpointer data) {
         if (b->bubbles_y[i] < -20) {
             b->bubbles_y[i] = b->height + 10;
             b->bubbles_x[i] = rand() % b->width;
+            
+            /* Jouer un son de bulle de temps en temps (10% de chance) */
+            if (rand() % 10 == 0) {
+                sound_play(SOUND_BUBBLES);
+            }
         }
     }
 
@@ -175,7 +186,7 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
     /* Bulles */
     for (int i = 0; i < b->nb_bubbles; i++) {
         double wave_x = b->bubbles_x[i] + sin(b->bubbles_phase[i]) * 8.0;
-        draw_bubble(cr, wave_x, b->bubbles_y[i], b->bubbles_r[i], 0.5);
+        draw_entity_sprite(cr, FISH_BUBBLE, wave_x, b->bubbles_y[i], b->bubbles_r[i] / 10.0, 0);
     }
 
     /* Entités */
@@ -202,10 +213,10 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
                 draw_dolphin(cr, e->x, e->y, sz, e->angle);
                 break;
             case OBJ_ROCK:
-                draw_rock(cr, e->x, e->y, sz * 12);
+                draw_entity_sprite(cr, OBJ_ROCK, e->x, e->y, sz * 2.0, 0);
                 break;
             case OBJ_ALGAE:
-                draw_algae(cr, e->x, e->y, sz * 30, sin(b->time * 1.5) * 0.5);
+                draw_entity_sprite(cr, OBJ_ALGAE, e->x, e->y, sz * 1.5, sin(b->time * 1.5) * 0.1);
                 break;
             case OBJ_CORAL:
                 draw_coral(cr, e->x, e->y, 0, er, eg, eb_c);
@@ -213,7 +224,10 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
             default:
                 if (e->alpha < 0.99)
                     cairo_push_group(cr);
-                draw_fish(cr, e->x, e->y, sz, er, eg, eb_c, e->angle, e->anim_phase);
+                
+                /* Utiliser le sprite Kenney par défaut */
+                draw_entity_sprite(cr, e->type, e->x, e->y, sz, e->angle);
+                
                 if (e->alpha < 0.99) {
                     cairo_pop_group_to_source(cr);
                     cairo_paint_with_alpha(cr, e->alpha);

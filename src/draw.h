@@ -20,6 +20,8 @@ void draw_coral   (cairo_t *cr, double x, double y, int type, double r, double g
 void draw_rock    (cairo_t *cr, double x, double y, double size);
 
 /* ── Entités ─────────────────────────────────────────── */
+void draw_entity_sprite(cairo_t *cr, EntityType type, double x, double y, double size, double angle);
+
 void draw_fish    (cairo_t *cr, double x, double y, double size,
                    double r, double g, double b, double angle, double anim_phase);
 void draw_shark   (cairo_t *cr, double x, double y, double size,

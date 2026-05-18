@@ -26,15 +26,17 @@ add_executable(gtk
         widgets/sources/dialog.c
         widgets/sources/xml_parser.c
         # App
-         src/main.c
-         src/bassin.c
-         src/draw.c
-         src/entities.c
-         src/game.c
-         src/screen_accueil.c
-         src/screen_createur.c
-         src/screen_jeux.c
-        #src/main_xml.c
+        # src/main.c
+        #  src/bassin.c
+        #  src/draw.c
+        #  src/entities.c
+        #  src/game.c
+        #  src/screen_accueil.c
+        #  src/screen_createur.c
+        #  src/screen_jeux.c
+        #  src/assets.c
+        #  src/sound.c
+        # src/main_xml.c
         widgets/sources/export_xml.c
         #        src/tests/test_champ_text.c
         #        src/tests/test_inputs.c
@@ -45,12 +47,15 @@ add_executable(gtk
         #        src/tests/test_image.c
         #        src/tests/test_champ_nombre.c
         #        src/tests/test_slider.c
-        #        src/tests/test_menu.c
+                src/tests/test_menu.c
         #  src/tests/test_fenetre.c
         # src/tests/test_dialog.c
-        
+
 )
 
-target_link_libraries(gtk PRIVATE PkgConfig::GTK4)
+target_link_libraries(gtk PRIVATE PkgConfig::GTK4 winmm)
 target_include_directories(gtk PRIVATE widgets/headers)
-target_compile_definitions(gtk PRIVATE UI_EXEMPLE_PATH="${CMAKE_SOURCE_DIR}/ui_exemple.txt")
+target_compile_definitions(gtk PRIVATE
+    UI_EXEMPLE_PATH="${CMAKE_SOURCE_DIR}/ui_exemple.txt"
+    RESOURCES_PATH="${CMAKE_SOURCE_DIR}/resources"
+)
