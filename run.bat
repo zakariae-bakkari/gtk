@@ -26,16 +26,31 @@ if "%~1"=="" (
 )
 
 set "TARGET=%~1"
+set "IS_XML=0"
 
-:: If target does not contain "/" or "\", assume it is in src/tests/exams/
-echo %TARGET% | findstr /R /C:"[/\\]" >nul
-if errorlevel 1 (
-    set "TARGET=src/tests/exams/%TARGET%"
+:: Check if the input target ends in .xml or .txt (case-insensitive)
+if /i "%TARGET:~-4%"==".xml" set "IS_XML=1"
+if /i "%TARGET:~-4%"==".txt" set "IS_XML=1"
+
+:: If target does not contain "/" or "\", and does not exist in root, assume it is in src/tests/exams/
+if not exist "%TARGET%" (
+    echo %TARGET% | findstr /R /C:"[/\\]" >nul
+    if errorlevel 1 (
+        if "!IS_XML!"=="1" (
+            if exist "src/tests/exams/%TARGET%" (
+                set "TARGET=src/tests/exams/%TARGET%"
+            )
+        ) else (
+            set "TARGET=src/tests/exams/%TARGET%"
+        )
+    )
 )
 
-:: Append .c extension if not present
-if /i not "%TARGET:~-2%"==".c" (
-    set "TARGET=%TARGET%.c"
+:: Append .c extension if not present and NOT an XML/TXT file
+if "!IS_XML!"=="0" (
+    if /i not "%TARGET:~-2%"==".c" (
+        set "TARGET=%TARGET%.c"
+    )
 )
 
 :: Replace forward slashes with backslashes for Windows file system operations
@@ -65,8 +80,13 @@ if %COUNT% gtr 0 (
 )
 if "!REL_PATH!"=="" set "REL_PATH=./"
 
-:: If file does not exist, create it with your custom widgets GTK4 boilerplate
+:: If file does not exist
 if not exist "!TARGET_WIN!" (
+    if "!IS_XML!"=="1" (
+        echo [ERROR] XML/TXT interface file '!TARGET!' does not exist.
+        exit /b 1
+    )
+    
     echo [INFO] File '!TARGET!' does not exist.
     echo [INFO] Creating directory '!TARGET_DIR!'...
     if not exist "!TARGET_DIR!" mkdir "!TARGET_DIR!"
@@ -79,41 +99,63 @@ if not exist "!TARGET_WIN!" (
         echo #include ^<string.h^>
         echo.
         echo #include "!REL_PATH!widgets/headers/fenetre.h"
+        echo #include "!REL_PATH!widgets/headers/export_xml.h"
         echo.
         echo static void on_activate^(GtkApplication *app, gpointer user_data^) {
-        echo     ^(void^)user_data;
-        echo.
-        echo     // 1. Initialize and Create the Custom Fenetre with title as file name
-        echo     Fenetre fenetre;
-        echo     fenetre_initialiser^(^&fenetre^);
-        echo     g_free^(fenetre.title^);
-        echo     fenetre.title = malloc^(strlen^("!TARGET_NAME!"^) + 1^);
-        echo     strcpy^(fenetre.title, "!TARGET_NAME!"^);
-        echo     fenetre.taille.width = 800;
-        echo     fenetre.taille.height = 600;
-        echo.
-        echo     GtkWidget *window = fenetre_creer^(^&fenetre, app^);
-        echo.
-        echo     // 2. Present the window
-        echo     gtk_window_present^(GTK_WINDOW^(window^)^);
+            echo     ^(void^)user_data;
+            echo.
+            echo     // 1. Initialize and Create the Custom Fenetre with title as file name
+            echo     Fenetre fenetre;
+            echo     fenetre_initialiser^(^&fenetre^);
+            echo     g_free^(fenetre.title^);
+            echo     fenetre.title = malloc^(strlen^("!TARGET_NAME!"^) + 1^);
+            echo     strcpy^(fenetre.title, "!TARGET_NAME!"^);
+            echo     fenetre.taille.width = 800;
+            echo     fenetre.taille.height = 600;
+            echo.
+            echo     GtkWidget *window = fenetre_creer^(^&fenetre, app^);
+            echo.
+            echo     // 2. XML export setup
+            echo     ExportContext ctx;
+            echo     export_context_init^(^&ctx^);
+            echo     export_ajouter_fenetre^(^&ctx, ^&fenetre^);
+            echo.
+            echo     // --- Place your other widgets here and add them to the export context:
+            echo     // export_ajouter_xxx^(^&ctx, ^&widget^);
+            echo.
+            echo     // 3. Generate XML interface file
+            echo     generer_fichier_interface^(^&ctx, "interface.txt"^);
+            echo.
+            echo     // 4. Present the window
+            echo     gtk_window_present^(GTK_WINDOW^(window^)^);
         echo }
         echo.
         echo int main^(int argc, char *argv[]^) {
-        echo     GtkApplication *app = gtk_application_new^("fr.exam.!TARGET_NAME!", G_APPLICATION_DEFAULT_FLAGS^);
-        echo     g_signal_connect^(app, "activate", G_CALLBACK^(on_activate^), NULL^);
-        echo     int status = g_application_run^(G_APPLICATION^(app^), argc, argv^);
-        echo     g_object_unref^(app^);
-        echo     return status;
+            echo     GtkApplication *app = gtk_application_new^("fr.exam.!TARGET_NAME!", G_APPLICATION_DEFAULT_FLAGS^);
+            echo     g_signal_connect^(app, "activate", G_CALLBACK^(on_activate^), NULL^);
+            echo     int status = g_application_run^(G_APPLICATION^(app^), argc, argv^);
+            echo     g_object_unref^(app^);
+            echo     return status;
         echo }
     ) > "!TARGET_WIN!"
     echo [OK] Boilerplate created successfully at '!TARGET!'.
 )
 
-:: Terminate any previously running instances of this executable to release the file lock
-taskkill /f /im "!TARGET_NAME!.exe" >nul 2>&1
+:: Determine compile and run configurations
+if "!IS_XML!"=="1" (
+    set "SRC_TO_COMPILE=src\xml_runner.c"
+    set "EXE_NAME=src\xml_runner.exe"
+    set "RUN_COMMAND="!EXE_NAME!" "!TARGET_WIN!""
+    taskkill /f /im "xml_runner.exe" >nul 2>&1
+) else (
+    set "SRC_TO_COMPILE=!TARGET_WIN!"
+    set "EXE_NAME=!TARGET_DIR!!TARGET_NAME!.exe"
+    set "RUN_COMMAND="!EXE_NAME!""
+    taskkill /f /im "!TARGET_NAME!.exe" >nul 2>&1
+)
 
 :: Compile the C file
-echo [INFO] Compiling '!TARGET!'...
+echo [INFO] Compiling '!SRC_TO_COMPILE!'...
 
 :: Fetch compiler flags and libs using pkg-config
 set "CFLAGS="
@@ -127,17 +169,15 @@ if "!CFLAGS!"=="" (
     echo [WARNING] Compiling using default guess paths...
 )
 
-set "EXE_NAME=!TARGET_DIR!!TARGET_NAME!.exe"
-
 :: Compile with GCC, combining target C file and custom widgets sources
-echo [COMMAND] gcc -o "!EXE_NAME!" "!TARGET_WIN!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
-gcc -o "!EXE_NAME!" "!TARGET_WIN!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
+echo [COMMAND] gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
+gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
 
 if %ERRORLEVEL% equ 0 (
     echo [OK] Compilation successful! Output binary: '!EXE_NAME!'
     echo [INFO] Running application...
     echo.
-    "!EXE_NAME!"
+    !RUN_COMMAND!
     echo.
     echo [INFO] Execution completed.
 ) else (

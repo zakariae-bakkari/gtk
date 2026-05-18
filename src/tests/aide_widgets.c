@@ -101,7 +101,7 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     f.taille.height = 600;
     f.color_bg = "#ffffff";
     f.background_image = NULL;
-    f.position = WIN_POS_CENTER;
+    f.position = WIN_POS_MOUSE;
     f.id = 1;
 
     GtkWidget *window = fenetre_creer(&f, app);
@@ -482,7 +482,7 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     MenuItem *mi1 = menu_item_creer("m1", "Fichier", NULL, MENU_ITEM_NORMAL);
     menu_ajouter_item(&m, mi1);
     GtkWidget *p_menu = menu_creer(&m);
-    gtk_box_prepend(GTK_BOX(p_main_box), p_menu);
+    gtk_box_prepend(GTK_BOX(p_main_box), p_menu);//! a changer
 
     Dialog dlg;
     dialog_initialiser(&dlg);
