@@ -739,14 +739,11 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_window_present(GTK_WINDOW(window));
 }
 
-// =============================================================================
-// MAIN
-// =============================================================================
-int main(int argc, char **argv)
-{
-    GtkApplication *app = gtk_application_new("org.zcode.demo", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
+int main(int argc, char *argv[]) {
+    GtkApplication *gapp = gtk_application_new("fr.banc_poisson.app",
+                                               G_APPLICATION_DEFAULT_FLAGS);
+    g_signal_connect(gapp, "activate", G_CALLBACK(activate), NULL);
+    int status = g_application_run(G_APPLICATION(gapp), argc, argv);
+    g_object_unref(gapp);
     return status;
 }

@@ -334,3 +334,13 @@ GtkWidget *fenetre_get_content_container(Fenetre *config) {
         return config->scroll_widget;
     return config->wind;
 }
+
+void fenetre_ajouter(Fenetre *config, GtkWidget *enfant) {
+    if (!config || !config->wind || !enfant) return;
+    if (config->scroll_mode != SCROLL_NONE && config->scroll_widget) {
+        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(config->scroll_widget), enfant);
+    } else {
+        gtk_window_set_child(GTK_WINDOW(config->wind), enfant);
+    }
+}
+
