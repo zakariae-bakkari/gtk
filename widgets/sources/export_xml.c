@@ -30,34 +30,113 @@ void export_ajouter_zone_texte  (ExportContext *ctx, ChampZoneTexte  *w) { ctx->
 void export_ajouter_slider  (ExportContext *ctx, Slider          *w) { ctx->sliders[ctx->nb_sliders++] = w; }
 void export_ajouter_dialog  (ExportContext *ctx, Dialog          *w) { ctx->dialogs[ctx->nb_dialogs++] = w; }
 void export_ajouter_image   (ExportContext *ctx, Image           *w) { ctx->images[ctx->nb_images++] = w; }
+void export_ajouter_video   (ExportContext *ctx, Video           *w) { ctx->videos[ctx->nb_videos++] = w; }
+
+/* ================================================================== */
+/* MENU ITEMS (recursif)                                                */
+/* ================================================================== */
+static void export_menu_item(FILE *f, MenuItem *item, int depth)
+{
+    if (!item) return;
+
+    char indent[64];
+    int spaces = (depth + 2) * 2;
+    if (spaces >= (int)sizeof(indent)) spaces = (int)sizeof(indent) - 1;
+    memset(indent, ' ', spaces);
+    indent[spaces] = '\0';
+
+    const char *type_str;
+    switch (item->type)
+    {
+        case MENU_ITEM_SEPARATEUR: type_str = "separateur"; break;
+        case MENU_ITEM_DESACTIVE:  type_str = "desactive";  break;
+        default:                   type_str = "normal";     break;
+    }
+
+    const char *sous_orient = item->sous_menu_orientation == MENU_VERTICAL ? "vertical" : "horizontal";
+
+    fprintf(f, "%s<menu_item id=\"%s\" texte=\"%s\"",
+            indent,
+            safe_str(item->id),
+            safe_str(item->texte));
+
+    if (item->nom_icone && item->nom_icone[0])
+        fprintf(f, " icone=\"%s\"", item->nom_icone);
+    if (item->tooltip && item->tooltip[0])
+        fprintf(f, " tooltip=\"%s\"", item->tooltip);
+    if (item->type != MENU_ITEM_NORMAL)
+        fprintf(f, " type=\"%s\"", type_str);
+    if (item->nb_sous_items > 0)
+        fprintf(f, " sous_menu_orientation=\"%s\"", sous_orient);
+
+    if (item->nb_sous_items > 0)
+    {
+        fprintf(f, ">\n");
+        for (int i = 0; i < item->nb_sous_items; i++)
+            export_menu_item(f, item->sous_items[i], depth + 1);
+        fprintf(f, "%s</menu_item>\n", indent);
+    }
+    else
+    {
+        fprintf(f, " />\n");
+    }
+}
 
 /* ================================================================== */
 /* GENERATION                                                           */
 /* ================================================================== */
-void generer_fichier_interface(ExportContext *ctx)
+void generer_fichier_interface(ExportContext *ctx, const char *chemin)
 {
-    FILE *f = fopen("interface.txt", "w");
+    FILE *f = fopen(chemin ? chemin : "interface.txt", "w");
     if (!f)
     {
-        printf("Erreur : impossible de creer le fichier interface.txt\n");
+        printf("Erreur : impossible de creer le fichier %s\n", chemin ? chemin : "interface.txt");
         return;
     }
 
-    fprintf(f, "<interface>\n");
-
     /* ------------------------------------------------------------------ */
-    /* FENETRE                                                              */
+    /* FENETRE (tag racine)                                                 */
     /* ------------------------------------------------------------------ */
     if (ctx->fenetre)
     {
+        Fenetre *win = ctx->fenetre;
+
+        const char *scroll_str = NULL;
+        switch (win->scroll_mode)
+        {
+            case SCROLL_VERTICAL:   scroll_str = "vertical";   break;
+            case SCROLL_HORIZONTAL: scroll_str = "horizontal"; break;
+            case SCROLL_BOTH:       scroll_str = "both";       break;
+            default:                scroll_str = NULL;         break;
+        }
+
         fprintf(f,
-                "  <fenetre title=\"%s\" width=\"%d\" height=\"%d\""
-                " resizable=\"%s\" maximized=\"%s\" />\n",
-                safe_str(ctx->fenetre->title),
-                ctx->fenetre->taille.width,
-                ctx->fenetre->taille.height,
-                ctx->fenetre->resizable          ? "true" : "false",
-                ctx->fenetre->demarrer_maximisee ? "true" : "false");
+                "<fenetre title=\"%s\" width=\"%d\" height=\"%d\""
+                " resizable=\"%s\" maximisee=\"%s\"",
+                safe_str(win->title),
+                win->taille.width,
+                win->taille.height,
+                win->resizable          ? "true" : "false",
+                win->demarrer_maximisee ? "true" : "false");
+
+        if (scroll_str)
+            fprintf(f, " scroll=\"%s\"", scroll_str);
+        if (win->content_min_width > 0)
+            fprintf(f, " scroll_min_width=\"%d\"", win->content_min_width);
+        if (win->content_min_height > 0)
+            fprintf(f, " scroll_min_height=\"%d\"", win->content_min_height);
+        if (win->color_bg && win->color_bg[0])
+            fprintf(f, " bgcolor=\"%s\"", win->color_bg);
+        if (win->background_image && win->background_image[0])
+            fprintf(f, " background_image=\"%s\"", win->background_image);
+        if (win->icon_path && win->icon_path[0])
+            fprintf(f, " icon_path=\"%s\"", win->icon_path);
+
+        fprintf(f, ">\n");
+    }
+    else
+    {
+        fprintf(f, "<fenetre>\n");
     }
 
     /* ------------------------------------------------------------------ */
@@ -69,13 +148,25 @@ void generer_fichier_interface(ExportContext *ctx)
         if (!m) continue;
         fprintf(f,
                 "  <menu id=\"%s\" orientation=\"%s\" espacement=\"%d\""
-                " bg_barre=\"%s\" fg_item=\"%s\" bg_item_hover=\"%s\" />\n",
+                " bg_barre=\"%s\" fg_item=\"%s\" bg_item_hover=\"%s\"",
                 safe_str(m->id_css),
                 m->orientation == MENU_HORIZONTAL ? "horizontal" : "vertical",
                 m->espacement,
                 safe_str(m->style.bg_barre),
                 safe_str(m->style.fg_item),
                 safe_str(m->style.bg_item_hover));
+
+        if (m->nb_items > 0)
+        {
+            fprintf(f, ">\n");
+            for (int j = 0; j < m->nb_items; j++)
+                export_menu_item(f, m->items[j], 0);
+            fprintf(f, "  </menu>\n");
+        }
+        else
+        {
+            fprintf(f, " />\n");
+        }
     }
 
     /* ------------------------------------------------------------------ */
@@ -113,7 +204,7 @@ void generer_fichier_interface(ExportContext *ctx)
                 type_str, safe_str(t->texte), align_str);
 
         if (t->couleur_texte && t->couleur_texte[0])
-            fprintf(f, " color=\"%s\"",  t->couleur_texte);
+            fprintf(f, " color=\"%s\"", t->couleur_texte);
         if (t->gras)
             fprintf(f, " bold=\"true\"");
         if (t->italique)
@@ -174,8 +265,8 @@ void generer_fichier_interface(ExportContext *ctx)
                 b->style.rayon_arrondi,
                 b->est_actif ? "true" : "false");
 
-        if (b->taille.largeur > 0) fprintf(f, " width=\"%d\"",   b->taille.largeur);
-        if (b->taille.hauteur > 0) fprintf(f, " height=\"%d\"",  b->taille.hauteur);
+        if (b->taille.largeur > 0) fprintf(f, " width=\"%d\"",  b->taille.largeur);
+        if (b->taille.hauteur > 0) fprintf(f, " height=\"%d\"", b->taille.hauteur);
         if (b->tooltip && b->tooltip[0]) fprintf(f, " tooltip=\"%s\"", b->tooltip);
 
         fprintf(f, " />\n");
@@ -216,14 +307,16 @@ void generer_fichier_interface(ExportContext *ctx)
         BoutonRadio *br = ctx->radios[i];
         if (!br) continue;
 
+        /* checked = selected state, sensible = interactive state */
         fprintf(f,
-                "  <bouton_radio id=\"%s\" label=\"%s\" actif=\"%s\" sensible=\"%s\"",
+                "  <bouton_radio id=\"%s\" label=\"%s\" checked=\"%s\" sensible=\"%s\"",
                 safe_str(br->id_css),
                 safe_str(br->label),
                 br->est_actif ? "true" : "false",
                 br->sensible  ? "true" : "false");
 
         if (br->tooltip && br->tooltip[0]) fprintf(f, " tooltip=\"%s\"", br->tooltip);
+        /* groupe_nom cannot be exported: the group name is not stored in BoutonRadio */
         fprintf(f, " />\n");
     }
 
@@ -234,11 +327,40 @@ void generer_fichier_interface(ExportContext *ctx)
     {
         ChampTexte *ct = ctx->champs_texte[i];
         if (!ct) continue;
+
+        const char *type_str;
+        switch (ct->type)
+        {
+            case CHAMP_TEXTE_TYPE_EMAIL:  type_str = "email";  break;
+            case CHAMP_TEXTE_TYPE_URL:    type_str = "url";    break;
+            case CHAMP_TEXTE_TYPE_SEARCH: type_str = "search"; break;
+            default:                      type_str = "text";   break;
+        }
+
         fprintf(f,
-                "  <champ_texte id=\"%s\" placeholder=\"%s\" required=\"%s\" />\n",
+                "  <champ_texte id=\"%s\" placeholder=\"%s\" type=\"%s\""
+                " required=\"%s\"",
                 safe_str(ct->id_css),
                 safe_str(ct->placeholder),
+                type_str,
                 ct->required ? "true" : "false");
+
+        if (ct->max_length > 0)
+            fprintf(f, " max_length=\"%d\"", ct->max_length);
+        if (ct->policy.min_len > 0)
+            fprintf(f, " min_len=\"%d\"", ct->policy.min_len);
+        if (ct->policy.max_len > 0)
+            fprintf(f, " max_len=\"%d\"", ct->policy.max_len);
+        if (ct->policy.only_digits)
+            fprintf(f, " only_digits=\"true\"");
+        if (ct->policy.no_whitespace)
+            fprintf(f, " no_whitespace=\"true\"");
+        if (ct->size.width > 0)
+            fprintf(f, " width=\"%d\"", ct->size.width);
+        if (ct->size.height > 0)
+            fprintf(f, " height=\"%d\"", ct->size.height);
+
+        fprintf(f, " />\n");
     }
 
     /* ------------------------------------------------------------------ */
@@ -381,14 +503,39 @@ void generer_fichier_interface(ExportContext *ctx)
         else if (img->source_type == IMAGE_SOURCE_ICON_NAME && img->icon_name && img->icon_name[0])
             fprintf(f, " icone=\"%s\"", img->icon_name);
         fprintf(f, " fit=\"%s\"", fit_str);
-        if (img->width > 0)  fprintf(f, " width=\"%d\"",   img->width);
-        if (img->height > 0) fprintf(f, " height=\"%d\"",  img->height);
+        if (img->width > 0)  fprintf(f, " width=\"%d\"",  img->width);
+        if (img->height > 0) fprintf(f, " height=\"%d\"", img->height);
         if (img->legende && img->legende[0])
             fprintf(f, " legende=\"%s\"", img->legende);
         fprintf(f, " />\n");
     }
 
-    fprintf(f, "</interface>\n");
+    /* ------------------------------------------------------------------ */
+    /* VIDEOS                                                               */
+    /* ------------------------------------------------------------------ */
+    for (int i = 0; i < ctx->nb_videos; i++)
+    {
+        Video *v = ctx->videos[i];
+        if (!v) continue;
+
+        fprintf(f, "  <video");
+        if (v->file_path && v->file_path[0])
+            fprintf(f, " src=\"%s\"", v->file_path);
+        else if (v->resource_path && v->resource_path[0])
+            fprintf(f, " src=\"resource://%s\"", v->resource_path);
+        if (v->width > 0)  fprintf(f, " width=\"%d\"",  v->width);
+        if (v->height > 0) fprintf(f, " height=\"%d\"", v->height);
+        fprintf(f, " autoplay=\"%s\"", v->autoplay  ? "true" : "false");
+        fprintf(f, " loop=\"%s\"",     v->loop      ? "true" : "false");
+        fprintf(f, " controls=\"%s\"", v->controles ? "true" : "false");
+        if (v->legende && v->legende[0])
+            fprintf(f, " legende=\"%s\"", v->legende);
+        if (v->id_css && v->id_css[0])
+            fprintf(f, " id=\"%s\"", v->id_css);
+        fprintf(f, " />\n");
+    }
+
+    fprintf(f, "</fenetre>\n");
     fclose(f);
-    printf("Fichier interface.txt genere avec succes.\n");
+    printf("Fichier interface genere : %s\n", chemin ? chemin : "interface.txt");
 }

@@ -14,6 +14,7 @@ add_executable(gtk
         widgets/sources/common.c
         widgets/sources/texte.c
         widgets/sources/image.c
+        widgets/sources/video.c
 
         # Inputs
         widgets/sources/champ_texte.c

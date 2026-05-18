@@ -35,6 +35,7 @@
 #include "../headers/champ_zone_texte.h"
 #include "../headers/slider.h"
 #include "../headers/image.h"
+#include "../headers/video.h"
 #include "../headers/menu.h"
 #include "../headers/dialog.h"
 
@@ -57,6 +58,40 @@ static char *xstrdup(const char *s)
     if (d)
         strcpy(d, s);
     return d;
+}
+
+static char *g_xml_base_dir = NULL;
+
+static void xml_set_base_dir(const char *xml_path)
+{
+    char *dirname;
+
+    g_free(g_xml_base_dir);
+    g_xml_base_dir = NULL;
+
+    if (!xml_path || !*xml_path)
+        return;
+
+    dirname = g_path_get_dirname(xml_path);
+    g_xml_base_dir = g_canonicalize_filename(dirname, NULL);
+    g_free(dirname);
+}
+
+static char *xml_resolve_path(const char *path)
+{
+    if (!path || !*path)
+        return NULL;
+
+    if (g_str_has_prefix(path, "file://") || g_str_has_prefix(path, "resource://"))
+        return g_strdup(path);
+
+    if (g_path_is_absolute(path))
+        return g_canonicalize_filename(path, NULL);
+
+    if (g_xml_base_dir)
+        return g_canonicalize_filename(path, g_xml_base_dir);
+
+    return g_canonicalize_filename(path, NULL);
 }
 
 /**
@@ -159,6 +194,8 @@ static XmlNodeType tag_to_type(const char *tag)
         return NODE_SLIDER;
     if (strcmp(tag, "image") == 0)
         return NODE_IMAGE;
+    if (strcmp(tag, "video") == 0)
+        return NODE_VIDEO;
     if (strcmp(tag, "menu") == 0)
         return NODE_MENU;
     if (strcmp(tag, "menu_item") == 0)
@@ -617,16 +654,28 @@ static GtkWidget *build_fenetre(const XmlNode *n, GtkApplication *app)
     if (!icon)
         icon = xml_attr_get(n, "icon_path");
     if (icon)
-        set_str(&win.icon_path, icon);
+    {
+        char *resolved_icon = xml_resolve_path(icon);
+        set_str(&win.icon_path, resolved_icon ? resolved_icon : icon);
+        g_free(resolved_icon);
+    }
 
     const char *ico = xml_attr_get(n, "ico_path");
     if (ico)
-        set_str(&win.ico_path, ico);
+    {
+        char *resolved_ico = xml_resolve_path(ico);
+        set_str(&win.ico_path, resolved_ico ? resolved_ico : ico);
+        g_free(resolved_ico);
+    }
 
     /* Image de fond */
     const char *bgimg = xml_attr_get(n, "background_image");
     if (bgimg)
-        set_str(&win.background_image, bgimg);
+    {
+        char *resolved_bg = xml_resolve_path(bgimg);
+        set_str(&win.background_image, resolved_bg ? resolved_bg : bgimg);
+        g_free(resolved_bg);
+    }
 
     /* Défilement */
     const char *scroll = xml_attr_get(n, "scroll");
@@ -1891,7 +1940,9 @@ static GtkWidget *build_image(const XmlNode *n, Conteneur *parent_ct)
         src = xml_attr_get(n, "file");
     if (src)
     {
-        image_set_from_file(cfg, src);
+        char *resolved_src = xml_resolve_path(src);
+        image_set_from_file(cfg, resolved_src ? resolved_src : src);
+        g_free(resolved_src);
     }
     else
     {
@@ -1967,6 +2018,90 @@ static GtkWidget *build_image(const XmlNode *n, Conteneur *parent_ct)
     g_signal_connect(container, "destroy", G_CALLBACK(g_free), cfg);
 
     return cfg->widget; /* GtkPicture */
+}
+
+/* ----------------------------------------------------------------
+ *  VIDEO (GtkVideo)
+ * ---------------------------------------------------------------- */
+static GtkWidget *build_video(const XmlNode *n, Conteneur *parent_ct)
+{
+    Video *cfg = g_new0(Video, 1);
+    video_initialiser(cfg);
+
+    /* ID CSS */
+    const char *id = xml_attr_get(n, "id");
+    if (id)
+        set_str(&cfg->id_css, id);
+
+    /* Source */
+    const char *src = xml_attr_get(n, "src");
+    if (!src)
+        src = xml_attr_get(n, "fichier");
+    if (!src)
+        src = xml_attr_get(n, "file");
+    if (src)
+    {
+        char *resolved_src = xml_resolve_path(src);
+        video_set_from_file(cfg, resolved_src ? resolved_src : src);
+        g_free(resolved_src);
+    }
+
+    const char *resource = xml_attr_get(n, "resource");
+    if (resource)
+        video_set_from_resource(cfg, resource);
+
+    /* Legende */
+    const char *leg = xml_attr_get(n, "legende");
+    if (!leg)
+        leg = xml_attr_get(n, "caption");
+    if (leg)
+        video_set_legende(cfg, leg);
+
+    /* Dimensions */
+    int w = attr_int(n, "width", 0);
+    int h = attr_int(n, "height", 0);
+    if (w || h)
+        video_set_size(cfg, w, h);
+
+    /* Comportement */
+    cfg->autoplay = attr_bool(n, "autoplay", TRUE);
+    cfg->loop = attr_bool(n, "loop", TRUE) || attr_bool(n, "boucle", FALSE);
+    cfg->controles = attr_bool(n, "controls", FALSE) || attr_bool(n, "controles", FALSE);
+    cfg->sensitive = attr_bool(n, "actif", TRUE);
+
+    /* Alignement */
+    const char *ha = xml_attr_get(n, "align");
+    if (!ha)
+        ha = xml_attr_get(n, "halign");
+    if (ha)
+    {
+        if (strcmp(ha, "centre") == 0 || strcmp(ha, "center") == 0)
+            video_set_halign(cfg, WIDGET_ALIGN_CENTER);
+        else if (strcmp(ha, "fin") == 0 || strcmp(ha, "end") == 0)
+            video_set_halign(cfg, WIDGET_ALIGN_END);
+        else if (strcmp(ha, "debut") == 0 || strcmp(ha, "start") == 0)
+            video_set_halign(cfg, WIDGET_ALIGN_START);
+        else
+            video_set_halign(cfg, WIDGET_ALIGN_FILL);
+    }
+
+    /* Style */
+    cfg->rayon_arrondi = attr_int(n, "radius", 0);
+
+    const char *lc = xml_attr_get(n, "legende_couleur");
+    if (lc)
+        cfg->legende_couleur = xstrdup(lc);
+    cfg->legende_taille_px = attr_int(n, "legende_taille", 0);
+
+    GtkWidget *container = video_creer(cfg);
+
+    if (parent_ct)
+        conteneur_ajouter(parent_ct, container);
+
+    g_signal_connect_swapped(container, "destroy", G_CALLBACK(video_free), cfg);
+    g_signal_connect(container, "destroy", G_CALLBACK(g_free), cfg);
+
+    return cfg->widget; /* GtkVideo */
 }
 
 /* ----------------------------------------------------------------
@@ -2289,6 +2424,9 @@ static GtkWidget *build_widget(const XmlNode *node, Conteneur *parent_ct,
     case NODE_IMAGE:
         return build_image(node, parent_ct);
 
+    case NODE_VIDEO:
+        return build_video(node, parent_ct);
+
     case NODE_MENU:
         return build_menu(node, parent_ct);
 
@@ -2331,10 +2469,17 @@ GtkWidget *xml_build_ui(XmlNode *root, GtkApplication *app)
 
 GtkWidget *xml_load_file(const char *path, GtkApplication *app)
 {
+    xml_set_base_dir(path);
     XmlNode *root = xml_parser_parse_file(path);
     if (!root)
+    {
+        g_free(g_xml_base_dir);
+        g_xml_base_dir = NULL;
         return NULL;
+    }
     GtkWidget *w = xml_build_ui(root, app);
     xml_node_free(root);
+    g_free(g_xml_base_dir);
+    g_xml_base_dir = NULL;
     return w;
 }

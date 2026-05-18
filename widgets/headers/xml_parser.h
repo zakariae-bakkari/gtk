@@ -20,6 +20,7 @@ typedef enum {
     NODE_CHAMP_ZONE_TEXTE,
     NODE_SLIDER,
     NODE_IMAGE,
+    NODE_VIDEO,
     NODE_MENU,
     NODE_MENU_ITEM,
     NODE_SEPARATEUR,
