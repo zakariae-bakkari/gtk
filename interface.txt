@@ -1,2 +1,47 @@
-<fenetre title="meriem" width="800" height="600" resizable="true" maximisee="false">
+<fenetre title="Test des fonctions GTK+" width="620" height="700" resizable="true" maximisee="false">
+  <menu id="menu" orientation="horizontal" espacement="2" bg_barre="#2c3e50" fg_item="#ecf0f1" bg_item_hover="#3d5166">
+    <menu_item id="mon_choix" texte="MonChoix" />
+    <menu_item id="votre_choix" texte="VotreChoix" sous_menu_orientation="vertical">
+      <menu_item id="sous_choix1" texte="Sous Choix1" />
+      <menu_item id="sous_choix2" texte="Sous Choix2" sous_menu_orientation="horizontal">
+        <menu_item id="choix221" texte="Choix221" />
+        <menu_item id="choix222" texte="Choix222" />
+        <menu_item id="choix223" texte="Choix223" />
+      </menu_item>
+      <menu_item id="sous_choix3" texte="Sous Choix3" />
+    </menu_item>
+    <menu_item id="leur_choix" texte="LeurChoix" />
+  </menu>
+  <texte type="normal" texte="Vos connaissances de GTK+" alignement="left" bold="true" />
+  <texte type="normal" texte="Vos Commentaires sur GTK+" alignement="left" bold="true" />
+  <texte type="normal" texte="Choix de date" alignement="left" bold="true" />
+  <texte type="normal" texte="Le CoronaVirus" alignement="left" bold="true" />
+  <conteneur id="" orientation="vertical" espacement="15" padding_top="15" padding_bottom="15" padding_left="20" padding_right="20" />
+  <conteneur id="" orientation="horizontal" espacement="20" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" />
+  <conteneur id="" orientation="horizontal" espacement="15" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" />
+  <conteneur id="" orientation="horizontal" espacement="15" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="8" padding_bottom="8" padding_left="12" padding_right="12" />
+  <conteneur id="" orientation="horizontal" espacement="20" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" />
+  <conteneur id="" orientation="horizontal" espacement="30" />
+  <bouton id="btn_defaut" texte="_OK" bgcolor="#E0E0E0" color="#1E1E1E" bgcolor_hover="#D5D5D5" radius="5" actif="true" width="200" height="45" />
+  <bouton id="btn_defaut" texte="_Quitter" bgcolor="#E0E0E0" color="#1E1E1E" bgcolor_hover="#D5D5D5" radius="5" actif="true" width="200" height="45" />
+  <bouton_checklist id="checklist_defaut" label="Convivial" etat="unchecked" actif="true" />
+  <bouton_checklist id="checklist_defaut" label="Intéressant" etat="checked" actif="true" />
+  <bouton_checklist id="checklist_defaut" label="Facile à utiliser" etat="unchecked" actif="true" />
+  <bouton_checklist id="checklist_defaut" label="Optimise le travail" etat="unchecked" actif="true" />
+  <bouton_radio id="radio_defaut" label="Faible" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Moyen" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Bien" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Très Bien" checked="true" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Malade" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Suspect" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Guéri" checked="false" sensible="true" />
+  <bouton_radio id="radio_defaut" label="Sain" checked="true" sensible="true" />
+  <champ_nombre id="champ_nombre" min="1.00" max="31.00" valeur="1.00" step="1.00" digits="0" wrap="false" required="false" width="65" />
+  <champ_nombre id="champ_nombre" min="0.00" max="12.00" valeur="0.00" step="1.00" digits="0" wrap="false" required="false" width="65" />
+  <champ_nombre id="champ_nombre" min="0.00" max="3000.00" valeur="0.00" step="1.00" digits="0" wrap="false" required="false" width="80" />
+  <champ_select id="champ_select" selected_index="0">
+    <option>Faire un choix</option>
+    <option>Option A</option>
+    <option>Option B</option>
+  </champ_select>
 </fenetre>

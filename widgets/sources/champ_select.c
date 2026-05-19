@@ -160,6 +160,9 @@ GtkWidget *champ_select_creer(ChampSelect *cfg)
    champ_select_apply_css(cfg);
    champ_select_validate(GTK_DROP_DOWN(cfg->widget), cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "ChampSelect");
+
    return cfg->widget;
 }
 

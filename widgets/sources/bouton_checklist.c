@@ -110,6 +110,9 @@ GtkWidget *bouton_checklist_creer(BoutonChecklist *config)
       g_signal_connect(config->widget, "toggled", G_CALLBACK(config->on_toggled), config->user_data);
    }
 
+   g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
+   g_object_set_data(G_OBJECT(config->widget), "custom_type", "BoutonChecklist");
+
    return config->widget;
 }
 

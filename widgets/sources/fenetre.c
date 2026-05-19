@@ -306,6 +306,9 @@ GtkWidget *fenetre_creer(Fenetre *config, GtkApplication *app)
         gtk_window_set_child(GTK_WINDOW(config->wind), config->scroll_widget);
     }
 
+    g_object_set_data(G_OBJECT(config->wind), "custom_struct", config);
+    g_object_set_data(G_OBJECT(config->wind), "custom_type", "Fenetre");
+
     return config->wind;
 }
 
@@ -343,4 +346,82 @@ void fenetre_ajouter(Fenetre *config, GtkWidget *enfant) {
         gtk_window_set_child(GTK_WINDOW(config->wind), enfant);
     }
 }
+
+/* Background management & action helpers */
+void fenetre_set_background_image(GtkWidget *window, const char *image_path) {
+    if (!window || !image_path) return;
+    GtkCssProvider *provider = gtk_css_provider_new();
+    char css[2048];
+    
+    char absolute_path[512];
+#ifdef _WIN32
+    _fullpath(absolute_path, image_path, sizeof(absolute_path));
+#else
+    if (realpath(image_path, absolute_path) == NULL) {
+        strncpy(absolute_path, image_path, sizeof(absolute_path));
+    }
+#endif
+    
+    /* Normalisation des slashes du chemin pour le moteur CSS */
+    for (int i = 0; absolute_path[i] != '\0'; i++) {
+        if (absolute_path[i] == '\\') {
+            absolute_path[i] = '/';
+        }
+    }
+    
+    snprintf(css, sizeof(css),
+        "window {\n"
+        "  background-image: url('file:///%s');\n"
+        "  background-size: cover;\n"
+        "  background-repeat: no-repeat;\n"
+        "  background-position: center;\n"
+        "}\n"
+        "box {\n"
+        "  background-color: transparent;\n"
+        "}\n"
+        "label {\n"
+        "  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);\n"
+        "}\n",
+        absolute_path
+    );
+    
+    gtk_css_provider_load_from_string(provider, css);
+    gtk_style_context_add_provider(
+        gtk_widget_get_style_context(window),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
+    g_object_unref(provider);
+}
+
+void fenetre_reset_background(GtkWidget *window) {
+    if (!window) return;
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_string(provider,
+        "window {\n"
+        "  background-image: none;\n"
+        "}\n"
+    );
+    gtk_style_context_add_provider(
+        gtk_widget_get_style_context(window),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
+    g_object_unref(provider);
+}
+
+void action_quitter(GtkWidget *widget, gpointer data) {
+    (void)widget;
+    GtkWidget *win = NULL;
+    if (data && GTK_IS_WIDGET(data)) {
+        win = GTK_WIDGET(data);
+    } else if (widget) {
+        win = gtk_widget_get_ancestor(widget, GTK_TYPE_WINDOW);
+    }
+    
+    if (win && GTK_IS_WINDOW(win)) {
+        gtk_window_close(GTK_WINDOW(win));
+    }
+}
+
 

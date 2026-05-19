@@ -170,8 +170,12 @@ if "!CFLAGS!"=="" (
 )
 
 :: Compile with GCC, combining target C file and custom widgets sources
-echo [COMMAND] gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
-gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
+set "EXTRA_SRCS="
+if /i "!TARGET_NAME!"=="main" (
+    set "EXTRA_SRCS=src/bassin.c src/draw.c src/entities.c src/screen_accueil.c src/screen_createur.c src/screen_jeux.c src/assets.c src/sound.c"
+)
+echo [COMMAND] gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
+gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
 
 if %ERRORLEVEL% equ 0 (
     echo [OK] Compilation successful! Output binary: '!EXE_NAME!'

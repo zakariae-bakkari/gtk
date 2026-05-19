@@ -534,6 +534,9 @@ GtkWidget *menu_creer(Menu *cfg)
    /* CSS */
    menu_apply_css(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "Menu");
+
    return cfg->widget;
 }
 

@@ -230,6 +230,12 @@ GtkWidget *video_creer(Video *cfg)
 
    video_apply_css(cfg);
    video_update_error_state(cfg);
+
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "Video");
+   g_object_set_data(G_OBJECT(cfg->container), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->container), "custom_type", "Video");
+
    return cfg->container;
 }
 

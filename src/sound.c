@@ -1,4 +1,8 @@
 #include "sound.h"
+
+#ifndef RESOURCES_PATH
+#define RESOURCES_PATH "resources"
+#endif
 #ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>

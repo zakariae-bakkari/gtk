@@ -65,3 +65,5 @@ resources.gresource.xml~
 *.tar
 *.tar.gz
 *.zip
+
+resources/kenney_fish-pack_2.0

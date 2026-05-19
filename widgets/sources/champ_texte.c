@@ -422,6 +422,11 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    champ_texte_apply_css(cfg);
    champ_texte_validate_internal(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "ChampTexte");
+   g_object_set_data(G_OBJECT(cfg->container), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->container), "custom_type", "ChampTexte");
+
    return cfg->container;
 }
 

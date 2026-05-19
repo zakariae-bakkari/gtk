@@ -539,3 +539,166 @@ void generer_fichier_interface(ExportContext *ctx, const char *chemin)
     fclose(f);
     printf("Fichier interface genere : %s\n", chemin ? chemin : "interface.txt");
 }
+
+static void traverser_et_enregistrer(GtkWidget *widget, ExportContext *ctx)
+{
+    if (!widget) return;
+
+    const char *custom_type = (const char *)g_object_get_data(G_OBJECT(widget), "custom_type");
+    void *custom_struct = g_object_get_data(G_OBJECT(widget), "custom_struct");
+
+    if (custom_type && custom_struct)
+    {
+        if (strcmp(custom_type, "Fenetre") == 0) {
+            ctx->fenetre = (Fenetre *)custom_struct;
+        } else if (strcmp(custom_type, "Menu") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_menus; i++) {
+                if (ctx->menus[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_menus < 32) {
+                export_ajouter_menu(ctx, (Menu *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Texte") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_textes; i++) {
+                if (ctx->textes[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_textes < 64) {
+                export_ajouter_texte(ctx, (Texte *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Conteneur") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_conteneurs; i++) {
+                if (ctx->conteneurs[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_conteneurs < 32) {
+                export_ajouter_conteneur(ctx, (Conteneur *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Bouton") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_boutons; i++) {
+                if (ctx->boutons[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_boutons < 32) {
+                export_ajouter_bouton(ctx, (Bouton *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "BoutonChecklist") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_checklists; i++) {
+                if (ctx->checklists[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_checklists < 32) {
+                export_ajouter_checklist(ctx, (BoutonChecklist *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "BoutonRadio") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_radios; i++) {
+                if (ctx->radios[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_radios < 32) {
+                export_ajouter_radio(ctx, (BoutonRadio *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "ChampTexte") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_champs_texte; i++) {
+                if (ctx->champs_texte[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_champs_texte < 32) {
+                export_ajouter_champ_texte(ctx, (ChampTexte *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "ChampMotDePasse") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_champs_mdp; i++) {
+                if (ctx->champs_mdp[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_champs_mdp < 32) {
+                export_ajouter_champ_mdp(ctx, (ChampMotDePasse *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "ChampNombre") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_champs_nombre; i++) {
+                if (ctx->champs_nombre[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_champs_nombre < 32) {
+                export_ajouter_champ_nombre(ctx, (ChampNombre *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "ChampSelect") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_champs_select; i++) {
+                if (ctx->champs_select[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_champs_select < 32) {
+                export_ajouter_champ_select(ctx, (ChampSelect *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "ChampZoneTexte") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_zones_texte; i++) {
+                if (ctx->zones_texte[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_zones_texte < 32) {
+                export_ajouter_zone_texte(ctx, (ChampZoneTexte *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Slider") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_sliders; i++) {
+                if (ctx->sliders[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_sliders < 32) {
+                export_ajouter_slider(ctx, (Slider *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Dialog") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_dialogs; i++) {
+                if (ctx->dialogs[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_dialogs < 32) {
+                export_ajouter_dialog(ctx, (Dialog *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Image") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_images; i++) {
+                if (ctx->images[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_images < 32) {
+                export_ajouter_image(ctx, (Image *)custom_struct);
+            }
+        } else if (strcmp(custom_type, "Video") == 0) {
+            int deja_la = 0;
+            for (int i = 0; i < ctx->nb_videos; i++) {
+                if (ctx->videos[i] == custom_struct) { deja_la = 1; break; }
+            }
+            if (!deja_la && ctx->nb_videos < 32) {
+                export_ajouter_video(ctx, (Video *)custom_struct);
+            }
+        }
+    }
+
+    // Parcourir récursivement les enfants
+    GtkWidget *child = gtk_widget_get_first_child(widget);
+    while (child)
+    {
+        traverser_et_enregistrer(child, ctx);
+        child = gtk_widget_get_next_sibling(child);
+    }
+}
+
+void xml_export_window(GtkWidget *window, const char *chemin_export)
+{
+    ExportContext ctx;
+    export_context_init(&ctx);
+
+    // Parcourir récursivement pour enregistrer les widgets dans le contexte
+    traverser_et_enregistrer(window, &ctx);
+
+    // Si on a trouvé la fenêtre principale mais qu'elle n'est pas encore enregistrée sous Fenetre
+    if (!ctx.fenetre) {
+        Fenetre *win_struct = (Fenetre *)g_object_get_data(G_OBJECT(window), "custom_struct");
+        if (win_struct) {
+            ctx.fenetre = win_struct;
+        }
+    }
+
+    // Générer le fichier XML
+    generer_fichier_interface(&ctx, chemin_export);
+}

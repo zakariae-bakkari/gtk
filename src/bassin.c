@@ -118,41 +118,199 @@ static gboolean on_tick(gpointer data) {
     return G_SOURCE_CONTINUE;
 }
 
-/* ── IA basique ──────────────────────────────────── */
+/* ── IA avancée (Prédateurs, Proies, Bancs, Fuite, Chasse, Repas) ──────────────── */
+gboolean g_creator_paused = FALSE;
+
 static void update_ai(Bassin *b, double dt) {
-    /* Mise à jour des phases d'animation */
+    /* Si le créateur est en pause, on n'actualise pas les mouvements */
+    if (g_creator_paused && b->mode == BASSIN_MODE_CREATEUR) {
+        return;
+    }
+
+    /* 1. Mise à jour de la phase d'animation de chaque entité active */
     for (int i = 0; i < b->nb_entities; i++) {
         Entity *e = b->entities[i];
         if (!e || !e->active) continue;
         if (entity_is_object(e->type)) continue;
 
-        e->anim_phase += dt * 2.0;
+        e->anim_phase += dt * 5.0; // vitesse d'animation
+    }
 
-        /* Nage simple */
-        if (e->state == STATE_SWIMMING || e->state == STATE_IDLE) {
+    /* 2. Mouvement et comportement IA */
+    for (int i = 0; i < b->nb_entities; i++) {
+        Entity *e = b->entities[i];
+        if (!e || !e->active) continue;
+        if (entity_is_object(e->type)) continue;
+
+        // Le joueur est contrôlé par l'utilisateur (souris ou clavier dans screen_jeux)
+        if (b->player == e) {
+            // Mais le joueur prédateur peut quand même MANGER les proies autonomes !
+            if (entity_is_predator(e->type)) {
+                for (int j = 0; j < b->nb_entities; j++) {
+                    Entity *other = b->entities[j];
+                    if (!other || !other->active || other == e) continue;
+                    if (entity_is_predator(other->type) || entity_is_object(other->type)) continue;
+
+                    double dx = other->x - e->x;
+                    double dy = other->y - e->y;
+                    double dist = sqrt(dx*dx + dy*dy);
+
+                    if (dist < 30.0) { // Distance d'ingestion (eating space)
+                        other->active = FALSE;
+                        sound_play(SOUND_BITE);
+                        if (b->on_entity_eaten) {
+                            b->on_entity_eaten(other, entity_get_config(other->type)->score_value, b->callback_data);
+                        }
+                    }
+                }
+            }
+            continue;
+        }
+
+        const EntityConfig *config = entity_get_config(e->type);
+        float base_speed = config->base_speed * e->speed_mult;
+
+        if (entity_is_predator(e->type)) {
+            /* === COMPORTEMENT DU PRÉDATEUR (REQUIN...) === */
+            Entity *nearest_prey = NULL;
+            double min_dist = 99999.0;
+
+            // Chercher la proie active la plus proche (qui n'est pas un prédateur ni un objet statique)
+            for (int j = 0; j < b->nb_entities; j++) {
+                Entity *other = b->entities[j];
+                if (!other || !other->active || other == e) continue;
+                if (entity_is_predator(other->type) || entity_is_object(other->type)) continue;
+
+                double dx = other->x - e->x;
+                double dy = other->y - e->y;
+                double dist = sqrt(dx*dx + dy*dy);
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    nearest_prey = other;
+                }
+            }
+
+            // Si une proie est détectée dans la zone de détection (180 px)
+            if (nearest_prey && min_dist < 180.0) {
+                e->state = STATE_CHASING;
+                double dx = nearest_prey->x - e->x;
+                double dy = nearest_prey->y - e->y;
+                double speed = base_speed * 1.4f; // Plus rapide en chasse
+
+                e->vx = (dx / min_dist) * speed;
+                e->vy = (dy / min_dist) * speed;
+                e->angle = atan2(e->vy, e->vx);
+
+                // Manger la proie si elle est dans la zone d'ingestion (30 px)
+                if (min_dist < 30.0) {
+                    nearest_prey->active = FALSE;
+                    sound_play(SOUND_BITE);
+                    if (b->on_entity_eaten) {
+                        b->on_entity_eaten(nearest_prey, nearest_prey->score_value, b->callback_data);
+                    }
+                }
+            } else {
+                // Errances aléatoires (STATE_SWIMMING)
+                e->state = STATE_SWIMMING;
+                if (e->vx == 0.0f && e->vy == 0.0f) {
+                    float a = (float)(rand() % 628) / 100.0f;
+                    e->vx = cosf(a) * base_speed;
+                    e->vy = sinf(a) * base_speed;
+                    e->angle = a;
+                }
+                // Changement de cap occasionnel (2% de chance par frame)
+                if (rand() % 100 == 0) {
+                    float a = (float)(rand() % 628) / 100.0f;
+                    e->vx = cosf(a) * base_speed;
+                    e->vy = sinf(a) * base_speed;
+                    e->angle = a;
+                }
+            }
+
             e->x += e->vx * dt * 60.0;
             e->y += e->vy * dt * 60.0;
 
-            /* Rebond sur les bords */
-            if (e->x < 20 || e->x > b->width - 20)  { e->vx = -e->vx; e->angle = atan2(e->vy, e->vx); }
-            if (e->y < 20 || e->y > b->height - 80)  { e->vy = -e->vy; e->angle = atan2(e->vy, e->vx); }
-        }
+        } else {
+            /* === COMPORTEMENT DE LA PROIE (POISSON...) === */
+            Entity *nearest_pred = NULL;
+            double min_pred_dist = 99999.0;
 
-        /* Comportement de banc : le follower suit le leader */
-        if (!e->is_leader && e->leader && e->leader->active) {
-            double dx = e->leader->x - e->x;
-            double dy = e->leader->y - e->y;
-            double dist = sqrt(dx * dx + dy * dy);
-            if (dist > 30.0) {
-                double speed = entity_get_config(e->type)->base_speed * e->speed_mult;
-                e->vx += (dx / dist) * speed * 0.1;
-                e->vy += (dy / dist) * speed * 0.1;
-                /* Limiter la vitesse */
-                double v = sqrt(e->vx * e->vx + e->vy * e->vy);
-                if (v > speed) { e->vx = e->vx / v * speed; e->vy = e->vy / v * speed; }
+            // Chercher le prédateur actif le plus proche
+            for (int j = 0; j < b->nb_entities; j++) {
+                Entity *other = b->entities[j];
+                if (!other || !other->active) continue;
+                if (!entity_is_predator(other->type)) continue;
+
+                double dx = other->x - e->x;
+                double dy = other->y - e->y;
+                double dist = sqrt(dx*dx + dy*dy);
+                if (dist < min_pred_dist) {
+                    min_pred_dist = dist;
+                    nearest_pred = other;
+                }
+            }
+
+            // Si un prédateur est dans la zone de sécurité (120 px), on fuit !
+            if (nearest_pred && min_pred_dist < 120.0) {
+                e->state = STATE_FLEEING;
+                double dx = e->x - nearest_pred->x;
+                double dy = e->y - nearest_pred->y;
+                double speed = base_speed * 1.8f; // Fuite rapide
+
+                e->vx = (dx / min_pred_dist) * speed;
+                e->vy = (dy / min_pred_dist) * speed;
                 e->angle = atan2(e->vy, e->vx);
+
+                // Rompre le banc s'il fuit un requin
+                e->leader = NULL;
+
+                e->x += e->vx * dt * 60.0;
+                e->y += e->vy * dt * 60.0;
+
+            } else {
+                // Pas de danger immédiat, vérifier si on fait partie d'un banc
+                if (e->leader && e->leader->active) {
+                    e->state = STATE_SWIMMING;
+                    double dx = e->leader->x - e->x;
+                    double dy = e->leader->y - e->y;
+                    double dist = sqrt(dx*dx + dy*dy);
+
+                    if (dist > 35.0) {
+                        double speed = base_speed * 1.2f;
+                        e->vx = (dx / dist) * speed;
+                        e->vy = (dy / dist) * speed;
+                        e->angle = atan2(e->vy, e->vx);
+                        
+                        e->x += e->vx * dt * 60.0;
+                        e->y += e->vy * dt * 60.0;
+                    }
+                } else {
+                    // Errance autonome simple
+                    e->state = STATE_SWIMMING;
+                    if (e->vx == 0.0f && e->vy == 0.0f) {
+                        float a = (float)(rand() % 628) / 100.0f;
+                        e->vx = cosf(a) * base_speed;
+                        e->vy = sinf(a) * base_speed;
+                        e->angle = a;
+                    }
+                    if (rand() % 100 == 0) {
+                        float a = (float)(rand() % 628) / 100.0f;
+                        e->vx = cosf(a) * base_speed;
+                        e->vy = sinf(a) * base_speed;
+                        e->angle = a;
+                    }
+
+                    e->x += e->vx * dt * 60.0;
+                    e->y += e->vy * dt * 60.0;
+                }
             }
         }
+
+        /* Rebond sur les limites de la fenêtre */
+        if (e->x < 20) { e->x = 20; e->vx = -e->vx; e->angle = atan2(e->vy, e->vx); }
+        if (e->x > b->width - 20) { e->x = b->width - 20; e->vx = -e->vx; e->angle = atan2(e->vy, e->vx); }
+        if (e->y < 20) { e->y = 20; e->vy = -e->vy; e->angle = atan2(e->vy, e->vx); }
+        if (e->y > b->height - 80) { e->y = b->height - 80; e->vy = -e->vy; e->angle = atan2(e->vy, e->vx); }
     }
 }
 
@@ -179,7 +337,11 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
             break;
     }
 
-    draw_ocean_background(cr, w, h, b->time, r1, g1, b1_c, r2, g2, b2_c);
+    if (b->mode == BASSIN_MODE_ACCUEIL) {
+        draw_ocean_background_ext(cr, w, h, b->time, r1, g1, b1_c, r2, g2, b2_c, 0.35);
+    } else {
+        draw_ocean_background(cr, w, h, b->time, r1, g1, b1_c, r2, g2, b2_c);
+    }
     draw_water_rays(cr, w, h, b->time);
     draw_sand_bottom(cr, w, h);
 
@@ -198,6 +360,7 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
         entity_color_to_rgb(e->color, &er, &eg, &eb_c);
         float sz = entity_get_config(e->type)->base_size * e->size_mult;
 
+        /* Rendu du sprite de l'entité */
         switch (e->type) {
             case SHARK_WHITE: case SHARK_MAKO: case SHARK_HAMMER:
             case SHARK_TIGER: case SHARK_GHOST: case ORCA:
@@ -225,22 +388,75 @@ static void draw_all(Bassin *b, cairo_t *cr, int w, int h) {
                 if (e->alpha < 0.99)
                     cairo_push_group(cr);
                 
-                /* Utiliser le sprite Kenney par défaut */
                 draw_entity_sprite(cr, e->type, e->x, e->y, sz, e->angle);
                 
                 if (e->alpha < 0.99) {
                     cairo_pop_group_to_source(cr);
                     cairo_paint_with_alpha(cr, e->alpha);
                 }
+                
                 /* Indicateur chef de banc */
                 if (e->is_leader) {
                     draw_glow(cr, e->x, e->y - sz * 18, sz * 8, 1.0, 0.9, 0.2, 0.4);
                 }
                 break;
         }
+
+        /* AFFICHAGE DEBUG F5 : Dessiner les zones d'espace et vecteur vitesse */
+        extern gboolean g_debug_mode;
+        if (g_debug_mode) {
+            cairo_save(cr);
+            
+            // Si c'est un prédateur, on dessine sa zone de détection (180px) et de repas (30px)
+            if (entity_is_predator(e->type)) {
+                // Zone de détection en rouge transparent
+                cairo_set_source_rgba(cr, 0.9, 0.2, 0.2, 0.1);
+                cairo_arc(cr, e->x, e->y, 180.0, 0, 2.0 * G_PI);
+                cairo_fill(cr);
+                
+                // Bordure de détection pointillée
+                cairo_set_source_rgba(cr, 0.9, 0.2, 0.2, 0.4);
+                cairo_set_line_width(cr, 1.5);
+                double dashed[] = {4.0, 4.0};
+                cairo_set_dash(cr, dashed, 2, 0.0);
+                cairo_arc(cr, e->x, e->y, 180.0, 0, 2.0 * G_PI);
+                cairo_stroke(cr);
+
+                // Zone d'attaque en rouge vif
+                cairo_set_source_rgba(cr, 0.9, 0.1, 0.1, 0.25);
+                cairo_arc(cr, e->x, e->y, 30.0, 0, 2.0 * G_PI);
+                cairo_fill(cr);
+            } 
+            // Si c'est un poisson normal, on dessine son espace de sécurité (120px)
+            else if (!entity_is_object(e->type)) {
+                // Zone de sécurité en bleu transparent
+                cairo_set_source_rgba(cr, 0.2, 0.6, 0.9, 0.1);
+                cairo_arc(cr, e->x, e->y, 120.0, 0, 2.0 * G_PI);
+                cairo_fill(cr);
+
+                // Bordure de sécurité pointillée
+                cairo_set_source_rgba(cr, 0.2, 0.6, 0.9, 0.4);
+                cairo_set_line_width(cr, 1.5);
+                double dashed[] = {4.0, 4.0};
+                cairo_set_dash(cr, dashed, 2, 0.0);
+                cairo_arc(cr, e->x, e->y, 120.0, 0, 2.0 * G_PI);
+                cairo_stroke(cr);
+            }
+
+            // Dessin du vecteur vitesse (trait jaune)
+            if (!entity_is_object(e->type)) {
+                cairo_set_source_rgb(cr, 1.0, 0.9, 0.0);
+                cairo_set_line_width(cr, 2.0);
+                cairo_move_to(cr, e->x, e->y);
+                cairo_line_to(cr, e->x + e->vx * 15.0, e->y + e->vy * 15.0);
+                cairo_stroke(cr);
+            }
+
+            cairo_restore(cr);
+        }
     }
 
-    /* Vignette pour mode prédateur */
+    /* Vignette pour le mode prédateur */
     if (b->mode == BASSIN_MODE_PREDATEUR)
         draw_vignette(cr, w, h, 0.4);
 }

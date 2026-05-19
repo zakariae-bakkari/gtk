@@ -204,6 +204,9 @@ GtkWidget *bouton_creer(Bouton *config)
 
     _bouton_appliquer_css(config);
 
+    g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
+    g_object_set_data(G_OBJECT(config->widget), "custom_type", "Bouton");
+
     return config->widget;
 }
 
