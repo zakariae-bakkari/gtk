@@ -259,6 +259,11 @@ GtkWidget *slider_creer(Slider *cfg)
    /* --- CSS --- */
    slider_apply_css(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "Slider");
+   g_object_set_data(G_OBJECT(cfg->container), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->container), "custom_type", "Slider");
+
    return cfg->container;
 }
 

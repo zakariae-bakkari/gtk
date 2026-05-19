@@ -174,6 +174,9 @@ GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
    champ_zt_apply_css(cfg);
    champ_zt_validate_now(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "ChampZoneTexte");
+
    return cfg->widget;
 }
 

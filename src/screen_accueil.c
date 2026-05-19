@@ -33,10 +33,28 @@ static GtkWidget *make_mode_button(const char *label, const char *color_hex,
     return btn;
 }
 
-GtkWidget *screen_accueil_create(void) {
-    /* Overlay : bassin animé en fond + UI par-dessus */
-    GtkWidget *overlay = gtk_overlay_new();
+static void on_accueil_destroy(GtkWidget *widget, gpointer data) {
+    (void)widget; (void)data;
+    if (s_bassin) {
+        bassin_destroy(s_bassin);
+        s_bassin = NULL;
+    }
+}
 
+GtkWidget *screen_accueil_create(void) {
+    /* Overlay : vidéo en arrière-plan + bassin transparent par-dessus + boutons UI */
+    GtkWidget *overlay = gtk_overlay_new();
+    g_signal_connect(overlay, "destroy", G_CALLBACK(on_accueil_destroy), NULL);
+
+    /* 1. Vidéo de fond pure, sans bordures, sans contrôles, loop & autoplay */
+    GtkWidget *video_widget = gtk_video_new_for_filename("resources/videos/7fla_ilisiya.mp4");
+    gtk_video_set_autoplay(GTK_VIDEO(video_widget), TRUE);
+    gtk_video_set_loop(GTK_VIDEO(video_widget), TRUE);
+    gtk_widget_set_hexpand(video_widget, TRUE);
+    gtk_widget_set_vexpand(video_widget, TRUE);
+    gtk_overlay_set_child(GTK_OVERLAY(overlay), video_widget);
+
+    /* 2. Bassin animé transparent au-dessus de la vidéo */
     s_bassin = bassin_create(BASSIN_MODE_ACCUEIL);
 
     /* Peupler le bassin décoratif avec un banc */
@@ -53,7 +71,7 @@ GtkWidget *screen_accueil_create(void) {
     }
     bassin_start(s_bassin);
 
-    gtk_overlay_set_child(GTK_OVERLAY(overlay), bassin_get_widget(s_bassin));
+    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), bassin_get_widget(s_bassin));
 
     /* UI par-dessus */
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 30);

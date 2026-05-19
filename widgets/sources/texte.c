@@ -336,6 +336,9 @@ GtkWidget *texte_creer(Texte *config)
    // Appliquer le style CSS
    _texte_appliquer_css(config->widget, config);
 
+   g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
+   g_object_set_data(G_OBJECT(config->widget), "custom_type", "Texte");
+
    return config->widget;
 }
 

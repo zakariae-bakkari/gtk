@@ -1,6 +1,10 @@
 #include "assets.h"
 #include <stdio.h>
 
+#ifndef RESOURCES_PATH
+#define RESOURCES_PATH "resources"
+#endif
+
 static GdkPixbuf *pixbufs[ASSET_COUNT] = {0};
 
 static const char *asset_paths[ASSET_COUNT] = {

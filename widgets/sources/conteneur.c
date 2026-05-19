@@ -220,6 +220,14 @@ GtkWidget *conteneur_creer(Conteneur *config)
     }
     // Style CSS (appliqué au conteneur principal, pas à la scrolled window)
     _conteneur_appliquer_css(config->widget, config);
+
+    g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
+    g_object_set_data(G_OBJECT(config->widget), "custom_type", "Conteneur");
+    if (top_widget != config->widget) {
+        g_object_set_data(G_OBJECT(top_widget), "custom_struct", config);
+        g_object_set_data(G_OBJECT(top_widget), "custom_type", "Conteneur");
+    }
+
     return top_widget;
 }
 

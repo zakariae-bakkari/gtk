@@ -112,17 +112,23 @@ GtkWidget *bouton_radio_creer(BoutonRadio *config)
       g_signal_connect(config->widget, "toggled", G_CALLBACK(config->on_toggled), config->user_data);
    }
 
+   g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
+   g_object_set_data(G_OBJECT(config->widget), "custom_type", "BoutonRadio");
+
    return config->widget;
 }
 
 void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader)
 {
-   if (!config || !config->widget || !group_leader)
+   if (!config || !group_leader)
       return;
 
-   // Ajouter ce bouton au groupe du leader
-   gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), group_leader);
    config->group_leader = group_leader;
+   if (config->widget)
+   {
+      // Ajouter ce bouton au groupe du leader
+      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), group_leader);
+   }
 }
 
 void bouton_radio_set_actif(BoutonRadio *config, gboolean actif)

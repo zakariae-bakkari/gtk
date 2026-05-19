@@ -338,6 +338,11 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    champ_pw_apply_css(cfg);
    champ_pw_validate(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "ChampMotDePasse");
+   g_object_set_data(G_OBJECT(cfg->container), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->container), "custom_type", "ChampMotDePasse");
+
    return cfg->container;
 }
 

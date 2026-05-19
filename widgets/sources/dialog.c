@@ -488,6 +488,9 @@ GtkWidget *dialog_creer(Dialog *cfg)
    /* CSS */
    dialog_apply_css(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->window), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->window), "custom_type", "Dialog");
+
    return cfg->window;
 }
 

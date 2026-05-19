@@ -199,6 +199,12 @@ GtkWidget *image_creer(Image *cfg)
    gtk_box_append(GTK_BOX(cfg->container), cfg->label_legende);
    /* --- CSS --- */
    image_apply_css(cfg);
+
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "Image");
+   g_object_set_data(G_OBJECT(cfg->container), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->container), "custom_type", "Image");
+
    return cfg->container;
 }
 

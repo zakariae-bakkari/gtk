@@ -67,4 +67,9 @@ void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay);
 GtkWidget *fenetre_get_content_container(Fenetre *config);
 void fenetre_ajouter(Fenetre *config, GtkWidget *enfant);
 
+/* Background & Common Action Helpers */
+void fenetre_set_background_image(GtkWidget *window, const char *image_path);
+void fenetre_reset_background(GtkWidget *window);
+void action_quitter(GtkWidget *widget, gpointer data);
+
 #endif

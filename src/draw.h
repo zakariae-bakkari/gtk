@@ -9,6 +9,10 @@
 void draw_ocean_background(cairo_t *cr, int w, int h, double time,
                             double r1, double g1, double b1,   /* couleur haut */
                             double r2, double g2, double b2);  /* couleur bas  */
+void draw_ocean_background_ext(cairo_t *cr, int w, int h, double time,
+                                double r1, double g1, double b1,
+                                double r2, double g2, double b2,
+                                double alpha);
 void draw_water_rays      (cairo_t *cr, int w, int h, double time);
 void draw_sand_bottom     (cairo_t *cr, int w, int h);
 void draw_vignette        (cairo_t *cr, int w, int h, double alpha);

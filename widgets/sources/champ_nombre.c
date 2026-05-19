@@ -172,6 +172,9 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
    champ_nombre_apply_css(cfg);
    champ_nombre_validate(cfg);
 
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_struct", cfg);
+   g_object_set_data(G_OBJECT(cfg->widget), "custom_type", "ChampNombre");
+
    return cfg->widget;
 }
 

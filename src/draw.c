@@ -19,17 +19,24 @@ void entity_color_to_rgb(EntityColor color, double *r, double *g, double *b) {
 }
 
 /* ── Fond océan ──────────────────────────────────── */
-void draw_ocean_background(cairo_t *cr, int w, int h, double time,
-                            double r1, double g1, double b1,
-                            double r2, double g2, double b2) {
+void draw_ocean_background_ext(cairo_t *cr, int w, int h, double time,
+                                double r1, double g1, double b1,
+                                double r2, double g2, double b2,
+                                double alpha) {
     cairo_pattern_t *pat = cairo_pattern_create_linear(0, 0, 0, h);
-    cairo_pattern_add_color_stop_rgb(pat, 0.0, r1, g1, b1);
-    cairo_pattern_add_color_stop_rgb(pat, 1.0, r2, g2, b2);
+    cairo_pattern_add_color_stop_rgba(pat, 0.0, r1, g1, b1, alpha);
+    cairo_pattern_add_color_stop_rgba(pat, 1.0, r2, g2, b2, alpha);
     cairo_set_source(cr, pat);
     cairo_rectangle(cr, 0, 0, w, h);
     cairo_fill(cr);
     cairo_pattern_destroy(pat);
     (void)time;
+}
+
+void draw_ocean_background(cairo_t *cr, int w, int h, double time,
+                            double r1, double g1, double b1,
+                            double r2, double g2, double b2) {
+    draw_ocean_background_ext(cr, w, h, time, r1, g1, b1, r2, g2, b2, 1.0);
 }
 
 void draw_water_rays(cairo_t *cr, int w, int h, double time) {
