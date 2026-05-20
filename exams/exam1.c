@@ -14,34 +14,47 @@
 #include "../widgets/headers/menu.h"
 #include "../widgets/headers/dialog.h"
 #include "../widgets/headers/texte.h"
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 /* ── Structure globale pour le contexte de l'application ───────────────── */
-typedef struct {
+typedef struct
+{
     GtkWidget *window;
     GtkWidget *main_box;
 } AppContext;
 
 static AppContext g_app_ctx;
 
-static void on_dialog_reponse(int reponse, gpointer data) {
+static void on_dialog_reponse(int reponse, gpointer data)
+{
     AppContext *ctx = (AppContext *)data;
-    if (!ctx || !ctx->window) return;
+    if (!ctx || !ctx->window)
+        return;
 
-    if (reponse == DIALOG_REPONSE_OUI) {
+    if (reponse == DIALOG_REPONSE_OUI)
+    {
         printf("[EXAM1] Réponse: Oui -> Affichage de l'image de fond.\n");
         fenetre_set_background_image(ctx->window, "resources/images/zakariae.png");
-    } else if (reponse == DIALOG_REPONSE_NON) {
+    }
+    else if (reponse == DIALOG_REPONSE_NON)
+    {
         printf("[EXAM1] Réponse: Non -> Réinitialisation du fond d'écran.\n");
         fenetre_reset_background(ctx->window);
-    } else {
+    }
+    else
+    {
         printf("[EXAM1] Réponse: Annuler ou Fermer\n");
     }
 }
 
-static void on_ok_clicked(GtkWidget *widget, gpointer data) {
+static void on_ok_clicked(GtkWidget *widget, gpointer data)
+{
     (void)widget;
     AppContext *ctx = (AppContext *)data;
-    if (!ctx || !ctx->window) return;
+    if (!ctx || !ctx->window)
+        return;
 
     Dialog *dlg = g_new0(Dialog, 1);
     dialog_initialiser(dlg);
@@ -65,14 +78,16 @@ static void on_ok_clicked(GtkWidget *widget, gpointer data) {
 }
 
 /* ── Menu OnClick Callback ───────────────────────────────────────── */
-static void on_menu_click(const char *id, gpointer data) {
+static void on_menu_click(const char *id, gpointer data)
+{
     (void)data;
     printf("[EXAM1] Item de menu cliqué : %s\n", id);
 }
 
 /* ── Initialisation GTK4 ──────────────────────────────────────────── */
 
-static void on_activate(GtkApplication *app, gpointer user_data) {
+static void on_activate(GtkApplication *app, gpointer user_data)
+{
     (void)user_data;
 
     /* 1. Fenêtre principale */
@@ -83,10 +98,15 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     fenetre.taille.width = 620;
     fenetre.taille.height = 700;
     fenetre.resizable = TRUE;
+    fenetre.scroll_mode = SCROLL_VERTICAL;
+    fenetre.scroll_overlay = TRUE;
     fenetre.icon_path = "resources/icons/zcode.png";
-    fenetre.ico_path = "resources/icons/zcode.png";
+    fenetre.ico_path = "resources/icons/zcode.ico";
     GtkWidget *window = fenetre_creer(&fenetre, app);
 
+#ifdef _WIN32
+    g_timeout_add(100, (GSourceFunc)fenetre_appliquer_icone_taskbar, &fenetre);
+#endif
     /* 2. Conteneur principal */
     static Conteneur main_box;
     conteneur_initialiser(&main_box);
@@ -96,6 +116,8 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     main_box.padding.bas = 15;
     main_box.padding.gauche = 20;
     main_box.padding.droite = 20;
+    main_box.enfants_hexpand = TRUE;
+    main_box.enfants_vexpand = TRUE;
     GtkWidget *p_main = conteneur_creer(&main_box);
     gtk_window_set_child(GTK_WINDOW(window), p_main);
 
@@ -117,7 +139,7 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     MenuItem *sous_choix1 = menu_item_creer("sous_choix1", "Sous Choix1", NULL, MENU_ITEM_NORMAL);
     MenuItem *sous_choix2 = menu_item_creer("sous_choix2", "Sous Choix2", NULL, MENU_ITEM_NORMAL);
     MenuItem *sous_choix3 = menu_item_creer("sous_choix3", "Sous Choix3", NULL, MENU_ITEM_NORMAL);
-    
+
     menu_item_ajouter_sous_item(votre_choix, sous_choix1);
     menu_item_ajouter_sous_item(votre_choix, sous_choix2);
     menu_item_ajouter_sous_item(votre_choix, sous_choix3);
@@ -383,7 +405,8 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     gtk_window_present(GTK_WINDOW(window));
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     GtkApplication *app = gtk_application_new("fr.exam.exam1", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);

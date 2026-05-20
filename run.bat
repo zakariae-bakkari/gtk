@@ -103,6 +103,7 @@ if not exist "!TARGET_WIN!" (
         echo #endif
         echo.
         echo #include "!REL_PATH!widgets/headers/fenetre.h"
+        echo #include "!REL_PATH!widgets/headers/conteneur.h"
         echo #include "!REL_PATH!widgets/headers/export_xml.h"
         echo.
         echo static void on_activate^(GtkApplication *app, gpointer user_data^) {
@@ -116,26 +117,11 @@ if not exist "!TARGET_WIN!" (
             echo     strcpy^(fenetre.title, "!TARGET_NAME!"^);
             echo     fenetre.taille.width = 800;
             echo     fenetre.taille.height = 600;
+            echo     fenetre.scroll_mode = SCROLL_VERTICAL;
+            echo     fenetre.scroll_overlay = TRUE;
             echo.
-            echo     #ifdef _WIN32
-            echo     char exe_dir[512] = {0};
-            echo     GetModuleFileNameA^(NULL, exe_dir, sizeof^(exe_dir^)^);
-            echo     char *last = strrchr^(exe_dir, '\\'^);
-            echo     if ^(last^) *last = '\0';
-            echo     last = strrchr^(exe_dir, '\\'^);
-            echo     if ^(last^) *last = '\0';
-            echo.
-            echo     static char icon_path[512];
-            echo     static char ico_path[512];
-            echo     snprintf^(icon_path, sizeof^(icon_path^), "%%s\\resources\\icons\\zcode.png", exe_dir^);
-            echo     snprintf^(ico_path, sizeof^(ico_path^), "%%s\\resources\\icons\\zcode.ico", exe_dir^);
-            echo.
-            echo     for ^(char *p = icon_path; *p; p++^)
-            echo         if ^(*p == '\\'^) *p = '/';
-            echo.
-            echo     fenetre.icon_path = icon_path;
-            echo     fenetre.ico_path = ico_path;
-            echo     #endif
+            echo     fenetre.icon_path = "resources/icons/zcode.png";
+            echo     fenetre.ico_path = "resources/icons/zcode.ico";
             echo.
             echo     GtkWidget *window = fenetre_creer^(^&fenetre, app^);
             echo.
@@ -143,18 +129,34 @@ if not exist "!TARGET_WIN!" (
             echo     g_timeout_add^(100, ^(GSourceFunc^)fenetre_appliquer_icone_taskbar, ^&fenetre^);
             echo     #endif
             echo.
-            echo     // 2. XML export setup
+            echo     // 2. Initialize and Create the Custom Conteneur main_box by default
+            echo     static Conteneur main_box;
+            echo     conteneur_initialiser^(^&main_box^);
+            echo     main_box.orientation = CONTENEUR_VERTICAL;
+            echo     main_box.espacement = 15;
+            echo     main_box.padding.haut = 15;
+            echo     main_box.padding.bas = 15;
+            echo     main_box.padding.gauche = 20;
+            echo     main_box.padding.droite = 20;
+            echo     main_box.enfants_hexpand = TRUE;
+            echo     main_box.enfants_vexpand = TRUE;
+            echo.
+            echo     GtkWidget *p_main_box = conteneur_creer^(^&main_box^);
+            echo     fenetre_ajouter^(^&fenetre, p_main_box^);
+            echo.
+            echo     // 3. XML export setup
             echo     ExportContext ctx;
             echo     export_context_init^(^&ctx^);
             echo     export_ajouter_fenetre^(^&ctx, ^&fenetre^);
+            echo     export_ajouter_conteneur^(^&ctx, ^&main_box^);
             echo.
             echo     // --- Place your other widgets here and add them to the export context:
             echo     // export_ajouter_xxx^(^&ctx, ^&widget^);
             echo.
-            echo     // 3. Generate XML interface file
+            echo     // 4. Generate XML interface file
             echo     generer_fichier_interface^(^&ctx, "interface.txt"^);
             echo.
-            echo     // 4. Present the window
+            echo     // 5. Present the window
             echo     gtk_window_present^(GTK_WINDOW^(window^)^);
         echo }
         echo.
@@ -199,20 +201,96 @@ if "!CFLAGS!"=="" (
 
 :: Compile with GCC, combining target C file and custom widgets sources
 set "EXTRA_SRCS="
-if /i "!TARGET_NAME!"=="main" (
+if /i "!TARGET_NAME!"=="game" (
     set "EXTRA_SRCS=src/bassin.c src/draw.c src/entities.c src/screen_accueil.c src/screen_createur.c src/screen_jeux.c src/assets.c src/sound.c"
 )
-echo [COMMAND] gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
-gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm
+:: Define ANSI Escape character for color and cursor manipulation
+for /f %%A in ('"prompt $E & echo on & for %%B in (1) do rem"') do set "ESC=%%A"
 
-if %ERRORLEVEL% equ 0 (
-    echo [OK] Compilation successful! Output binary: '!EXE_NAME!'
+echo !ESC![96m[INFO] Starting project compilation...!ESC![0m
+del compile_done.tmp >nul 2>&1
+del compile.log >nul 2>&1
+del compile_bg.bat >nul 2>&1
+
+:: Create a temporary helper batch file to handle background execution cleanly
+(
+    echo @echo off
+    echo gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm -Wno-deprecated-declarations ^> compile.log 2^>^&1
+    echo echo %%ERRORLEVEL%% ^> compile_done.tmp
+) > compile_bg.bat
+
+:: Start the helper batch file in the background
+start /B cmd /c compile_bg.bat
+
+set "BAR_WIDTH=30"
+set "PROGRESS=0"
+
+:loop
+if not exist compile_done.tmp (
+    set /a "NUM_BARS=(PROGRESS * BAR_WIDTH) / 100"
+    set /a "NUM_SPACES=BAR_WIDTH - NUM_BARS"
+    
+    set "BAR="
+    if !NUM_BARS! gtr 0 (
+        set /a "NUM_EQS=NUM_BARS - 1"
+        if !NUM_EQS! gtr 0 (
+            for /L %%i in (1,1,!NUM_EQS!) do set "BAR=!BAR!="
+        )
+        set "BAR=!BAR!>"
+    )
+    set "SPACES="
+    if !NUM_SPACES! gtr 0 (
+        for /L %%i in (1,1,!NUM_SPACES!) do set "SPACES=!SPACES! "
+    )
+    
+    echo | set /p="!ESC![1G!ESC![2K!ESC![94mBuilding: [!BAR!!SPACES!] !PROGRESS!%%!ESC![0m"
+    
+    if !PROGRESS! LSS 95 (
+        set /a PROGRESS+=5
+    )
+    
+    :: Tiny delay (approx 80-100ms)
+    for /L %%i in (1,1,5000) do rem
+    goto loop
+)
+
+set /p STATUS=<compile_done.tmp
+:: Trim any trailing spaces
+for /f "tokens=1" %%A in ("!STATUS!") do set "STATUS=%%A"
+
+if "!STATUS!"=="0" (
+    set "BAR="
+    for /L %%i in (1,1,%BAR_WIDTH%) do set "BAR=!BAR!="
+    echo | set /p="!ESC![1G!ESC![2K!ESC![92mBuilding: [!BAR!] 100%% [OK]!ESC![0m"
+    echo.
+    echo !ESC![92m[OK] Compilation successful! Output binary: '!EXE_NAME!'!ESC![0m
+    
+    del compile_done.tmp >nul 2>&1
+    del compile.log >nul 2>&1
+    del compile_bg.bat >nul 2>&1
+    
     echo [INFO] Running application...
     echo.
     !RUN_COMMAND!
     echo.
     echo [INFO] Execution completed.
 ) else (
-    echo [ERROR] Compilation failed. Please check compiler errors above.
-    exit /b %ERRORLEVEL%
+    set "BAR="
+    for /L %%i in (1,1,%BAR_WIDTH%) do set "BAR=!BAR!="
+    echo | set /p="!ESC![1G!ESC![2K!ESC![91mBuilding: [!BAR!] Failed! [ERROR]!ESC![0m"
+    echo.
+    echo.
+    echo !ESC![91m================================================================!ESC![0m
+    echo !ESC![91m                      COMPILATION ERRORS                        !ESC![0m
+    echo !ESC![91m================================================================!ESC![0m
+    
+    if exist compile.log (
+        powershell -Command "Get-Content compile.log | ForEach-Object { Write-Host $_ -ForegroundColor Red }"
+    )
+    echo !ESC![91m================================================================!ESC![0m
+    
+    del compile_done.tmp >nul 2>&1
+    del compile.log >nul 2>&1
+    del compile_bg.bat >nul 2>&1
+    exit /b !STATUS!
 )

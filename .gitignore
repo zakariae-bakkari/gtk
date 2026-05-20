@@ -32,7 +32,6 @@ meson-info/
 # =========================
 # Editor / IDE files
 # =========================
-.vscode/
 .idea/
 *.swp
 *.swo

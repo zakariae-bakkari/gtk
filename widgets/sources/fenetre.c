@@ -124,32 +124,38 @@ void fenetre_appliquer_icone_taskbar(Fenetre *config)
 static void _fenetre_appliquer_css(GtkWidget *window, Fenetre *config)
 {
     GtkCssProvider *provider = gtk_css_provider_new();
-    char css_data[2048];
+    char css_data[4096];
 
     if (config->background_image != NULL) {
-        // ✅ GTK4 CSS url() nécessite file:/// sur Windows
-        // Si le chemin commence déjà par file:/// on le garde tel quel
-        if (strncmp(config->background_image, "file:///", 8) == 0) {
-            snprintf(css_data, sizeof(css_data),
-                "window { "
-                "  background-image: url('%s'); "
-                "  background-size: cover; "
-                "  background-position: center; "
-                "  background-repeat: no-repeat; "
-                "}",
-                config->background_image);
+        char *uri = NULL;
+        if (g_str_has_prefix(config->background_image, "file://") ||
+            g_str_has_prefix(config->background_image, "resource://")) {
+            uri = g_strdup(config->background_image);
         } else {
-            // Construire le chemin file:///
-            snprintf(css_data, sizeof(css_data),
-                "window { "
-                "  background-image: url('file:///%s'); "
-                "  background-size: cover; "
-                "  background-position: center; "
-                "  background-repeat: no-repeat; "
-                "}",
-                config->background_image);
+            char *absolute_path = g_canonicalize_filename(config->background_image, NULL);
+            uri = g_filename_to_uri(absolute_path, NULL, NULL);
+            g_free(absolute_path);
         }
-        fprintf(stdout, "[CSS] background: %s\n", css_data);
+
+        if (uri != NULL) {
+            snprintf(css_data, sizeof(css_data),
+                "window {\n"
+                "  background-image: url('%s');\n"
+                "  background-size: cover;\n"
+                "  background-position: center;\n"
+                "  background-repeat: no-repeat;\n"
+                "}\n"
+                "scrolledwindow, viewport {\n"
+                "  background: transparent;\n"
+                "  background-color: transparent;\n"
+                "}\n",
+                uri);
+            g_free(uri);
+        } else {
+            snprintf(css_data, sizeof(css_data),
+                "window { background-color: #000000; }\n");
+        }
+        fprintf(stdout, "[CSS] background applied successfully: %s\n", config->background_image);
         fflush(stdout);
     } else if (config->color_bg != NULL) {
         snprintf(css_data, sizeof(css_data),

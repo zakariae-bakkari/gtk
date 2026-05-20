@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+
 #include "../widgets/headers/fenetre.h"
 #include "../widgets/headers/conteneur.h"
 #include "../widgets/headers/texte.h"
@@ -194,7 +199,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // FENETRE
     // =========================================================================
-    Fenetre win;
+    static Fenetre win;
     fenetre_initialiser(&win);
     g_free(win.title);
     win.title = malloc(strlen("Demo Widgets") + 1);
@@ -203,15 +208,22 @@ static void activate(GtkApplication *app, gpointer user_data)
     win.taille.height = 540;
     win.resizable = TRUE;
     // win.demarrer_maximisee = TRUE;
-    win.position=WIN_POS_MOUSE;
-
+    win.position = WIN_POS_MOUSE;
+    win.scroll_mode = SCROLL_VERTICAL;
+    win.scroll_overlay = TRUE;
+    win.icon_path = "resources/icons/zcode.png";
+    win.ico_path = "resources/icons/zcode.ico";
 
     GtkWidget *window = fenetre_creer(&win, app);
+
+#ifdef _WIN32
+    g_timeout_add(100, (GSourceFunc)fenetre_appliquer_icone_taskbar, &win);
+#endif
 
     // =========================================================================
     // CONTENEUR RACINE (vertical : menu + contenu)
     // =========================================================================
-    Conteneur root_ct;
+    static Conteneur root_ct;
     conteneur_initialiser(&root_ct);
     root_ct.orientation = CONTENEUR_VERTICAL;
     root_ct.espacement = 0;
@@ -294,26 +306,12 @@ static void activate(GtkApplication *app, gpointer user_data)
     menu_item_ajouter_sous_item(sv2, sv21);
     menu_item_ajouter_sous_item(sv2, sv22);
 
-
-
     MenuItem *sv3 = menu_item_creer("sv3", "option C", NULL, MENU_ITEM_NORMAL);
     sv3->sous_menu_orientation = MENU_VERTICAL;
 
     menu_item_ajouter_sous_item(m_vertical, sv1);
     menu_item_ajouter_sous_item(m_vertical, sv2);
     menu_item_ajouter_sous_item(m_vertical, sv3);
-
-
-
-
-
-
-
-
-
-
-
-
 
     // ── Item simple "item" ────────────────────────────────────────────────
     MenuItem *m_item = menu_item_creer("item", "item", NULL, MENU_ITEM_NORMAL);
@@ -331,7 +329,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // CONTAINER MAIN (horizontal : colonne gauche + colonne droite)
     // =========================================================================
-    Conteneur main_ct;
+    static Conteneur main_ct;
     conteneur_initialiser(&main_ct);
     main_ct.orientation = CONTENEUR_HORIZONTAL;
     main_ct.espacement = 0;
@@ -344,7 +342,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // COLONNE GAUCHE — container 1 (formulaire)
     // =========================================================================
-    Conteneur col1_ct;
+    static Conteneur col1_ct;
     conteneur_initialiser(&col1_ct);
     col1_ct.orientation = CONTENEUR_VERTICAL;
     col1_ct.espacement = 10;
@@ -365,14 +363,14 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&main_ct, col1_box);
 
     // Titre H1 "container 1 / text h1 : form1"
-    Texte t1;
+    static Texte t1;
     texte_initialiser(&t1);
     t1.type = TEXTE_H3;
     t1.texte = malloc(strlen("container 1") + 1);
     strcpy(t1.texte, "container 1");
     conteneur_ajouter(&col1_ct, texte_creer(&t1));
 
-    Texte t1b;
+    static Texte t1b;
     texte_initialiser(&t1b);
     t1b.type = TEXTE_H1;
     t1b.texte = malloc(strlen("text h1 : form1") + 1);
@@ -478,7 +476,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_hexpand(terms_row, TRUE);
     conteneur_ajouter(&col1_ct, terms_row);
 
-    BoutonChecklist chk_terms;
+    static BoutonChecklist chk_terms;
     bouton_checklist_initialiser(&chk_terms);
     g_free(chk_terms.label);
     chk_terms.label = malloc(strlen("accepter les termes") + 1);
@@ -492,7 +490,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_box_append(GTK_BOX(terms_row), w_chk);
 
     // Bouton "condition(dialog)"
-    Bouton b_cond;
+    static Bouton b_cond;
     bouton_initialiser(&b_cond);
     g_free(b_cond.id_css);
     b_cond.id_css = malloc(strlen("btn_cond") + 1);
@@ -520,7 +518,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     gtk_widget_set_hexpand(footer_row, TRUE);
     conteneur_ajouter(&col1_ct, footer_row);
 
-    Bouton b_ann;
+    static Bouton b_ann;
     bouton_initialiser(&b_ann);
     g_free(b_ann.id_css);
     b_ann.id_css = malloc(strlen("btn_ann") + 1);
@@ -541,7 +539,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     b_ann.on_clic = on_annuler;
     gtk_box_append(GTK_BOX(footer_row), bouton_creer(&b_ann));
 
-    Bouton b_sub;
+    static Bouton b_sub;
     bouton_initialiser(&b_sub);
     g_free(b_sub.id_css);
     b_sub.id_css = malloc(strlen("btn_sub") + 1);
@@ -565,7 +563,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // COLONNE DROITE — container 2 (radio / check / range)
     // =========================================================================
-    Conteneur col2_ct;
+    static Conteneur col2_ct;
     conteneur_initialiser(&col2_ct);
     col2_ct.orientation = CONTENEUR_VERTICAL;
     col2_ct.espacement = 12;
@@ -586,14 +584,14 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&main_ct, col2_box);
 
     // Titre "container 2 / text h1 : form2"
-    Texte t2;
+    static Texte t2;
     texte_initialiser(&t2);
     t2.type = TEXTE_H3;
     t2.texte = malloc(strlen("container 2") + 1);
     strcpy(t2.texte, "container 2");
     conteneur_ajouter(&col2_ct, texte_creer(&t2));
 
-    Texte t2b;
+    static Texte t2b;
     texte_initialiser(&t2b);
     t2b.type = TEXTE_H1;
     t2b.texte = malloc(strlen("text h1 : form2") + 1);
@@ -610,48 +608,48 @@ static void activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&col2_ct, lbl_radio_section);
 
     // --- BOUTONS RADIO ---
-    BoutonRadio rad1;
-    bouton_radio_initialiser(&rad1);
-    g_free(rad1.id_css);
-    rad1.id_css = malloc(strlen("r1") + 1);
-    strcpy(rad1.id_css, "r1");
-    g_free(rad1.label);
-    rad1.label = malloc(strlen("Option A") + 1);
-    strcpy(rad1.label, "Option A");
-    rad1.est_actif = TRUE;
-    rad1.on_toggled = on_radio;
-    rad1.user_data = malloc(strlen("Option A") + 1);
-    strcpy(rad1.user_data, "Option A");
-    GtkWidget *w_r1 = bouton_radio_creer(&rad1);
+    static BoutonRadio radio1;
+    bouton_radio_initialiser(&radio1);
+    g_free(radio1.id_css);
+    radio1.id_css = malloc(strlen("r1") + 1);
+    strcpy(radio1.id_css, "r1");
+    g_free(radio1.label);
+    radio1.label = malloc(strlen("Option A") + 1);
+    strcpy(radio1.label, "Option A");
+    radio1.est_actif = TRUE;
+    radio1.on_toggled = on_radio;
+    radio1.user_data = malloc(strlen("Option A") + 1);
+    strcpy(radio1.user_data, "Option A");
+    GtkWidget *w_r1 = bouton_radio_creer(&radio1);
     conteneur_ajouter(&col2_ct, w_r1);
 
-    BoutonRadio rad2;
-    bouton_radio_initialiser(&rad2);
-    g_free(rad2.id_css);
-    rad2.id_css = malloc(strlen("r2") + 1);
-    strcpy(rad2.id_css, "r2");
-    g_free(rad2.label);
-    rad2.label = malloc(strlen("Option B") + 1);
-    strcpy(rad2.label, "Option B");
-    rad2.group_leader = GTK_CHECK_BUTTON(w_r1);
-    rad2.on_toggled = on_radio;
-    rad2.user_data = malloc(strlen("Option B") + 1);
-    strcpy(rad2.user_data, "Option B");
-    conteneur_ajouter(&col2_ct, bouton_radio_creer(&rad2));
+    static BoutonRadio radio2;
+    bouton_radio_initialiser(&radio2);
+    g_free(radio2.id_css);
+    radio2.id_css = malloc(strlen("r2") + 1);
+    strcpy(radio2.id_css, "r2");
+    g_free(radio2.label);
+    radio2.label = malloc(strlen("Option B") + 1);
+    strcpy(radio2.label, "Option B");
+    radio2.group_leader = GTK_CHECK_BUTTON(w_r1);
+    radio2.on_toggled = on_radio;
+    radio2.user_data = malloc(strlen("Option B") + 1);
+    strcpy(radio2.user_data, "Option B");
+    conteneur_ajouter(&col2_ct, bouton_radio_creer(&radio2));
 
-    BoutonRadio rad3;
-    bouton_radio_initialiser(&rad3);
-    g_free(rad3.id_css);
-    rad3.id_css = malloc(strlen("r3") + 1);
-    strcpy(rad3.id_css, "r3");
-    g_free(rad3.label);
-    rad3.label = malloc(strlen("Option C") + 1);
-    strcpy(rad3.label, "Option C");
-    rad3.group_leader = GTK_CHECK_BUTTON(w_r1);
-    rad3.on_toggled = on_radio;
-    rad3.user_data = malloc(strlen("Option C") + 1);
-    strcpy(rad3.user_data, "Option C");
-    conteneur_ajouter(&col2_ct, bouton_radio_creer(&rad3));
+    static BoutonRadio radio3;
+    bouton_radio_initialiser(&radio3);
+    g_free(radio3.id_css);
+    radio3.id_css = malloc(strlen("r3") + 1);
+    strcpy(radio3.id_css, "r3");
+    g_free(radio3.label);
+    radio3.label = malloc(strlen("Option C") + 1);
+    strcpy(radio3.label, "Option C");
+    radio3.group_leader = GTK_CHECK_BUTTON(w_r1);
+    radio3.on_toggled = on_radio;
+    radio3.user_data = malloc(strlen("Option C") + 1);
+    strcpy(radio3.user_data, "Option C");
+    conteneur_ajouter(&col2_ct, bouton_radio_creer(&radio3));
 
     // Séparateur
     conteneur_ajouter(&col2_ct, gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
@@ -663,17 +661,17 @@ static void activate(GtkApplication *app, gpointer user_data)
     // --- CHECKLIST ---
     const char *chk_labels[] = {"Choix 1", "Choix 2", "Choix 3"};
     BoutonChecklistEtat chk_etats[] = {CHECKLIST_CHECKED, CHECKLIST_UNCHECKED, CHECKLIST_CHECKED};
+    static BoutonChecklist chk_items[3];
     for (int i = 0; i < 3; i++)
     {
-        BoutonChecklist chk;
-        bouton_checklist_initialiser(&chk);
-        g_free(chk.label);
-        chk.label = malloc(strlen(chk_labels[i]) + 1);
-        strcpy(chk.label, chk_labels[i]);
-        chk.etat = chk_etats[i];
-        chk.on_toggled = on_check;
-        chk.user_data = (gpointer)chk_labels[i];
-        conteneur_ajouter(&col2_ct, bouton_checklist_creer(&chk));
+        bouton_checklist_initialiser(&chk_items[i]);
+        g_free(chk_items[i].label);
+        chk_items[i].label = malloc(strlen(chk_labels[i]) + 1);
+        strcpy(chk_items[i].label, chk_labels[i]);
+        chk_items[i].etat = chk_etats[i];
+        chk_items[i].on_toggled = on_check;
+        chk_items[i].user_data = (gpointer)chk_labels[i];
+        conteneur_ajouter(&col2_ct, bouton_checklist_creer(&chk_items[i]));
     }
 
     // Séparateur
@@ -709,31 +707,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     // =========================================================================
     // GENERER FICHIER
     // =========================================================================
-    ExportContext ctx;
-    export_context_init(&ctx);
-
-    export_ajouter_fenetre  (&ctx, &win);
-    export_ajouter_menu     (&ctx, menu);
-    export_ajouter_texte    (&ctx, &t1);
-    export_ajouter_texte    (&ctx, &t1b);
-    export_ajouter_conteneur(&ctx, &col1_ct);
-    export_ajouter_champ_texte  (&ctx, ct_nom);
-    export_ajouter_champ_mdp    (&ctx, ct_mdp);
-    export_ajouter_champ_select (&ctx, ct_sel);
-    export_ajouter_zone_texte   (&ctx, ct_zt);
-    export_ajouter_checklist(&ctx, &chk_terms);
-    export_ajouter_bouton   (&ctx, &b_cond);
-    export_ajouter_bouton   (&ctx, &b_ann);
-    export_ajouter_bouton   (&ctx, &b_sub);
-    export_ajouter_texte    (&ctx, &t2);
-    export_ajouter_texte    (&ctx, &t2b);
-    export_ajouter_conteneur(&ctx, &col2_ct);
-    export_ajouter_radio    (&ctx, &rad1);
-    export_ajouter_radio    (&ctx, &rad2);
-    export_ajouter_radio    (&ctx, &rad3);
-    export_ajouter_slider   (&ctx, sld);
-
-    generer_fichier_interface(&ctx, "interface.txt");
+    xml_export_window(window, "interface.txt");
 
     // =========================================================================
     // AFFICHAGE
