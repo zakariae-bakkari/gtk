@@ -98,6 +98,10 @@ if not exist "!TARGET_WIN!" (
         echo #include ^<stdlib.h^>
         echo #include ^<string.h^>
         echo.
+        echo #ifdef _WIN32
+        echo #include ^<windows.h^>
+        echo #endif
+        echo.
         echo #include "!REL_PATH!widgets/headers/fenetre.h"
         echo #include "!REL_PATH!widgets/headers/export_xml.h"
         echo.
@@ -105,7 +109,7 @@ if not exist "!TARGET_WIN!" (
             echo     ^(void^)user_data;
             echo.
             echo     // 1. Initialize and Create the Custom Fenetre with title as file name
-            echo     Fenetre fenetre;
+            echo     static Fenetre fenetre;
             echo     fenetre_initialiser^(^&fenetre^);
             echo     g_free^(fenetre.title^);
             echo     fenetre.title = malloc^(strlen^("!TARGET_NAME!"^) + 1^);
@@ -113,7 +117,31 @@ if not exist "!TARGET_WIN!" (
             echo     fenetre.taille.width = 800;
             echo     fenetre.taille.height = 600;
             echo.
+            echo     #ifdef _WIN32
+            echo     char exe_dir[512] = {0};
+            echo     GetModuleFileNameA^(NULL, exe_dir, sizeof^(exe_dir^)^);
+            echo     char *last = strrchr^(exe_dir, '\\'^);
+            echo     if ^(last^) *last = '\0';
+            echo     last = strrchr^(exe_dir, '\\'^);
+            echo     if ^(last^) *last = '\0';
+            echo.
+            echo     static char icon_path[512];
+            echo     static char ico_path[512];
+            echo     snprintf^(icon_path, sizeof^(icon_path^), "%%s\\resources\\icons\\zcode.png", exe_dir^);
+            echo     snprintf^(ico_path, sizeof^(ico_path^), "%%s\\resources\\icons\\zcode.ico", exe_dir^);
+            echo.
+            echo     for ^(char *p = icon_path; *p; p++^)
+            echo         if ^(*p == '\\'^) *p = '/';
+            echo.
+            echo     fenetre.icon_path = icon_path;
+            echo     fenetre.ico_path = ico_path;
+            echo     #endif
+            echo.
             echo     GtkWidget *window = fenetre_creer^(^&fenetre, app^);
+            echo.
+            echo     #ifdef _WIN32
+            echo     g_timeout_add^(100, ^(GSourceFunc^)fenetre_appliquer_icone_taskbar, ^&fenetre^);
+            echo     #endif
             echo.
             echo     // 2. XML export setup
             echo     ExportContext ctx;
