@@ -1,4 +1,4 @@
-<fenetre title="exam3" width="800" height="600" resizable="true" maximisee="false" scroll="vertical" background_image="resources/images/background.png" icon_path="resources/icons/zcode.png" ico_path="resources/icons/zcode.ico">
+<fenetre title="zakariae2" width="800" height="600" resizable="true" maximisee="false" scroll="vertical" icon_path="resources/icons/zcode.png" ico_path="resources/icons/zcode.ico">
   <conteneur orientation="vertical" espacement="15" padding_top="15" padding_bottom="15" padding_left="20" padding_right="20" scroll_overlay="true" hexpand="true" vexpand="true">
   </conteneur>
 </fenetre>

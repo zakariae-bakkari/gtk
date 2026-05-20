@@ -45,8 +45,8 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     main_box.padding.bas = 15;
     main_box.padding.gauche = 20;
     main_box.padding.droite = 20;
-    main_box.enfants_hexpand = TRUE;
-    main_box.enfants_vexpand = TRUE;
+    // main_box.enfants_hexpand = TRUE;
+    // main_box.enfants_vexpand = TRUE;
 
     GtkWidget *p_main_box = conteneur_creer(&main_box);
     fenetre_ajouter(&fenetre, p_main_box);

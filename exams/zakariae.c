@@ -9,7 +9,22 @@
 
 #include "../widgets/headers/fenetre.h"
 #include "../widgets/headers/conteneur.h"
+#include "../widgets/headers/texte.h"
+#include "../widgets/headers/bouton.h"
+#include "../widgets/headers/bouton_radio.h"
+#include "../widgets/headers/bouton_checklist.h"
+#include "../widgets/headers/champ_texte.h"
+#include "../widgets/headers/champ_motdepasse.h"
+#include "../widgets/headers/champ_nombre.h"
+#include "../widgets/headers/champ_select.h"
+#include "../widgets/headers/champ_zone_texte.h"
+#include "../widgets/headers/image.h"
+#include "../widgets/headers/video.h"
+#include "../widgets/headers/slider.h"
+#include "../widgets/headers/menu.h"
+#include "../widgets/headers/dialog.h"
 #include "../widgets/headers/export_xml.h"
+#include "../widgets/headers/xml_parser.h"
 
 static void on_activate(GtkApplication *app, gpointer user_data) {
     (void)user_data;
@@ -18,13 +33,12 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     static Fenetre fenetre;
     fenetre_initialiser(&fenetre);
     g_free(fenetre.title);
-    fenetre.title = malloc(strlen("exam3") + 1);
-    strcpy(fenetre.title, "exam3");
+    fenetre.title = malloc(strlen("zakariae") + 1);
+    strcpy(fenetre.title, "zakariae");
     fenetre.taille.width = 800;
     fenetre.taille.height = 600;
     fenetre.scroll_mode = SCROLL_VERTICAL;
     fenetre.scroll_overlay = TRUE;
-    fenetre.background_image = "resources/images/background.png";
 
     fenetre.icon_path = "resources/icons/zcode.png";
     fenetre.ico_path = "resources/icons/zcode.ico";
@@ -50,7 +64,6 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     GtkWidget *p_main_box = conteneur_creer(&main_box);
     fenetre_ajouter(&fenetre, p_main_box);
 
-    
     // 3. XML export setup
     ExportContext ctx;
     export_context_init(&ctx);
@@ -68,7 +81,7 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
 }
 
 int main(int argc, char *argv[]) {
-    GtkApplication *app = gtk_application_new("fr.exam.exam3", G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication *app = gtk_application_new("fr.exam.zakariae", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(on_activate), NULL);
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

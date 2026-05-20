@@ -104,7 +104,23 @@ if not exist "!TARGET_WIN!" (
         echo.
         echo #include "!REL_PATH!widgets/headers/fenetre.h"
         echo #include "!REL_PATH!widgets/headers/conteneur.h"
+        echo #include "!REL_PATH!widgets/headers/texte.h"
+        echo #include "!REL_PATH!widgets/headers/bouton.h"
+        echo #include "!REL_PATH!widgets/headers/bouton_radio.h"
+        echo #include "!REL_PATH!widgets/headers/bouton_checklist.h"
+        echo #include "!REL_PATH!widgets/headers/champ_texte.h"
+        echo #include "!REL_PATH!widgets/headers/champ_motdepasse.h"
+        echo #include "!REL_PATH!widgets/headers/champ_nombre.h"
+        echo #include "!REL_PATH!widgets/headers/champ_select.h"
+        echo #include "!REL_PATH!widgets/headers/champ_zone_texte.h"
+        echo #include "!REL_PATH!widgets/headers/image.h"
+        echo #include "!REL_PATH!widgets/headers/video.h"
+        echo #include "!REL_PATH!widgets/headers/slider.h"
+        echo #include "!REL_PATH!widgets/headers/menu.h"
+        echo #include "!REL_PATH!widgets/headers/dialog.h"
         echo #include "!REL_PATH!widgets/headers/export_xml.h"
+        echo #include "!REL_PATH!widgets/headers/xml_parser.h"
+
         echo.
         echo static void on_activate^(GtkApplication *app, gpointer user_data^) {
             echo     ^(void^)user_data;
@@ -208,66 +224,12 @@ if /i "!TARGET_NAME!"=="game" (
 for /f %%A in ('"prompt $E & echo on & for %%B in (1) do rem"') do set "ESC=%%A"
 
 echo !ESC![96m[INFO] Starting project compilation...!ESC![0m
-del compile_done.tmp >nul 2>&1
-del compile.log >nul 2>&1
-del compile_bg.bat >nul 2>&1
 
-:: Create a temporary helper batch file to handle background execution cleanly
-(
-    echo @echo off
-    echo gcc -o "!EXE_NAME!" "!SRC_TO_COMPILE!" !EXTRA_SRCS! widgets/sources/*.c -Isrc -Iwidgets/headers !CFLAGS! !LIBS! -lwinmm -lm -Wno-deprecated-declarations ^> compile.log 2^>^&1
-    echo echo %%ERRORLEVEL%% ^> compile_done.tmp
-) > compile_bg.bat
-
-:: Start the helper batch file in the background
-start /B cmd /c compile_bg.bat
-
-set "BAR_WIDTH=30"
-set "PROGRESS=0"
-
-:loop
-if not exist compile_done.tmp (
-    set /a "NUM_BARS=(PROGRESS * BAR_WIDTH) / 100"
-    set /a "NUM_SPACES=BAR_WIDTH - NUM_BARS"
-    
-    set "BAR="
-    if !NUM_BARS! gtr 0 (
-        set /a "NUM_EQS=NUM_BARS - 1"
-        if !NUM_EQS! gtr 0 (
-            for /L %%i in (1,1,!NUM_EQS!) do set "BAR=!BAR!="
-        )
-        set "BAR=!BAR!>"
-    )
-    set "SPACES="
-    if !NUM_SPACES! gtr 0 (
-        for /L %%i in (1,1,!NUM_SPACES!) do set "SPACES=!SPACES! "
-    )
-    
-    echo | set /p="!ESC![1G!ESC![2K!ESC![94mBuilding: [!BAR!!SPACES!] !PROGRESS!%%!ESC![0m"
-    
-    if !PROGRESS! LSS 95 (
-        set /a PROGRESS+=5
-    )
-    
-    :: Tiny delay (approx 80-100ms)
-    for /L %%i in (1,1,5000) do rem
-    goto loop
-)
-
-set /p STATUS=<compile_done.tmp
-:: Trim any trailing spaces
-for /f "tokens=1" %%A in ("!STATUS!") do set "STATUS=%%A"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ".\build.ps1 -Target '!SRC_TO_COMPILE!' -OutFile '!EXE_NAME!' -ExtraSrcs '!EXTRA_SRCS!' -CFlags '!CFLAGS!' -Libs '!LIBS!'; exit $LASTEXITCODE"
+set "STATUS=%ERRORLEVEL%"
 
 if "!STATUS!"=="0" (
-    set "BAR="
-    for /L %%i in (1,1,%BAR_WIDTH%) do set "BAR=!BAR!="
-    echo | set /p="!ESC![1G!ESC![2K!ESC![92mBuilding: [!BAR!] 100%% [OK]!ESC![0m"
-    echo.
     echo !ESC![92m[OK] Compilation successful! Output binary: '!EXE_NAME!'!ESC![0m
-    
-    del compile_done.tmp >nul 2>&1
-    del compile.log >nul 2>&1
-    del compile_bg.bat >nul 2>&1
     
     echo [INFO] Running application...
     echo.
@@ -275,22 +237,16 @@ if "!STATUS!"=="0" (
     echo.
     echo [INFO] Execution completed.
 ) else (
-    set "BAR="
-    for /L %%i in (1,1,%BAR_WIDTH%) do set "BAR=!BAR!="
-    echo | set /p="!ESC![1G!ESC![2K!ESC![91mBuilding: [!BAR!] Failed! [ERROR]!ESC![0m"
-    echo.
     echo.
     echo !ESC![91m================================================================!ESC![0m
     echo !ESC![91m                      COMPILATION ERRORS                        !ESC![0m
     echo !ESC![91m================================================================!ESC![0m
     
     if exist compile.log (
-        powershell -Command "Get-Content compile.log | ForEach-Object { Write-Host $_ -ForegroundColor Red }"
+        powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-Content compile.log | ForEach-Object { Write-Host $_ -ForegroundColor Red }"
     )
     echo !ESC![91m================================================================!ESC![0m
     
-    del compile_done.tmp >nul 2>&1
     del compile.log >nul 2>&1
-    del compile_bg.bat >nul 2>&1
     exit /b !STATUS!
 )

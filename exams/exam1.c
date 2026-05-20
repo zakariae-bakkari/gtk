@@ -398,11 +398,11 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     conteneur_ajouter(&box_buttons, w_quit);
     conteneur_ajouter(&main_box, p_box_btns);
 
-    /* 10. XML Export Unique Call */
-    xml_export_window(window, "interface.txt");
-
-    /* 11. Affichage */
+    /* 10. Affichage */
     gtk_window_present(GTK_WINDOW(window));
+
+    /* 11. XML Export (après présentation pour assurer la réalisation des widgets) */
+    xml_export_window(window, "interface.txt");
 }
 
 int main(int argc, char *argv[])
