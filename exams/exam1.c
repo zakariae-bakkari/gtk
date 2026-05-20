@@ -83,7 +83,8 @@ static void on_activate(GtkApplication *app, gpointer user_data) {
     fenetre.taille.width = 620;
     fenetre.taille.height = 700;
     fenetre.resizable = TRUE;
-
+    fenetre.icon_path = "resources/icons/zcode.png";
+    fenetre.ico_path = "resources/icons/zcode.png";
     GtkWidget *window = fenetre_creer(&fenetre, app);
 
     /* 2. Conteneur principal */
