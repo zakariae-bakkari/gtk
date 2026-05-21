@@ -36,7 +36,7 @@ static void on_dialog_reponse(int reponse, gpointer data)
     if (reponse == DIALOG_REPONSE_OUI)
     {
         printf("[EXAM1] Réponse: Oui -> Affichage de l'image de fond.\n");
-        fenetre_set_background_image(ctx->window, "resources/images/zakariae.png");
+        fenetre_set_background_image(ctx->window, "resources/images/background.png");
     }
     else if (reponse == DIALOG_REPONSE_NON)
     {
