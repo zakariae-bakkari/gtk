@@ -4,6 +4,21 @@
 #include <stdio.h>
 #include <string.h>
 
+static GtkCheckButton *bouton_radio_ensure_group_leader(BoutonRadio *config)
+{
+   if (!config)
+      return NULL;
+
+   if (config->group_leader)
+      return config->group_leader;
+
+   GtkWidget *leader = gtk_check_button_new();
+   gtk_widget_set_visible(leader, FALSE);
+   gtk_widget_set_can_focus(leader, FALSE);
+   gtk_check_button_set_active(GTK_CHECK_BUTTON(leader), FALSE);
+   return GTK_CHECK_BUTTON(leader);
+}
+
 /**
  * Fonction interne pour appliquer le CSS au bouton radio
  * Utilise gtk_widget_add_css_class (GTK4) au lieu des APIs dépréciées
@@ -75,18 +90,16 @@ GtkWidget *bouton_radio_creer(BoutonRadio *config)
    if (!config)
       return NULL;
 
-   // En GTK4, créer un GtkCheckButton qui agira comme un radio
-   // Les radios sont groupés avec gtk_check_button_set_group()
+   // GTK4: les radios sont implémentés avec GtkCheckButton groupés
    config->widget = gtk_check_button_new_with_label(config->label);
 
    // Définir le nom CSS AVANT d'appliquer les styles
    gtk_widget_set_name(config->widget, config->id_css);
 
-   // Si un group_leader existe, ajouter ce checkbox au groupe
-   if (config->group_leader)
-   {
-      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), config->group_leader);
-   }
+   // Rejoindre un groupe réel pour obtenir l'indicateur radio.
+   GtkCheckButton *leader = bouton_radio_ensure_group_leader(config);
+   if (leader)
+      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), leader);
 
    // Définir l'état initial
    if (config->est_actif)
@@ -126,8 +139,7 @@ void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader)
    config->group_leader = group_leader;
    if (config->widget)
    {
-      // Ajouter ce bouton au groupe du leader
-      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), group_leader);
+      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), config->group_leader);
    }
 }
 

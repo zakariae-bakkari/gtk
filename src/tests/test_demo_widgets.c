@@ -104,11 +104,21 @@ static void on_dialog_reponse(int r, gpointer data)
     char *s = (char *)malloc(20);
     switch (r)
     {
-    case DIALOG_REPONSE_OK:strcpy(s, "OK");break;
-    case DIALOG_REPONSE_ANNULER:strcpy(s, "ANNULER");break;
-    case DIALOG_REPONSE_OUI:strcpy(s, "OUI");break;
-    case DIALOG_REPONSE_NON:strcpy(s, "NON");break;
-    case DIALOG_REPONSE_FERMER:strcpy(s, "FERMER");break;
+    case DIALOG_REPONSE_OK:
+        strcpy(s, "OK");
+        break;
+    case DIALOG_REPONSE_ANNULER:
+        strcpy(s, "ANNULER");
+        break;
+    case DIALOG_REPONSE_OUI:
+        strcpy(s, "OUI");
+        break;
+    case DIALOG_REPONSE_NON:
+        strcpy(s, "NON");
+        break;
+    case DIALOG_REPONSE_FERMER:
+        strcpy(s, "FERMER");
+        break;
     }
     printf("[DIALOG]    '%s' → %s\n", (char *)data, s);
 }
@@ -151,7 +161,7 @@ static void activate(GtkApplication *app, gpointer user_data)
     win.taille.width = 720;
     win.taille.height = 540;
     win.resizable = TRUE;
-    win.position=WIN_POS_MOUSE;
+    win.position = WIN_POS_MOUSE;
 
     GtkWidget *window = fenetre_creer(&win, app);
 
@@ -604,33 +614,34 @@ static void activate(GtkApplication *app, gpointer user_data)
     ExportContext ctx;
     export_context_init(&ctx);
 
-    export_ajouter_fenetre  (&ctx, &win);
-    export_ajouter_menu     (&ctx, menu);
-    export_ajouter_texte    (&ctx, &t1);
-    export_ajouter_texte    (&ctx, &t1b);
+    export_ajouter_fenetre(&ctx, &win);
+    export_ajouter_menu(&ctx, menu);
+    export_ajouter_texte(&ctx, &t1);
+    export_ajouter_texte(&ctx, &t1b);
     export_ajouter_conteneur(&ctx, &col1_ct);
-    export_ajouter_champ_texte  (&ctx, ct_nom);
-    export_ajouter_champ_mdp    (&ctx, ct_mdp);
-    export_ajouter_champ_select (&ctx, ct_sel);
-    export_ajouter_zone_texte   (&ctx, ct_zt);
+    export_ajouter_champ_texte(&ctx, ct_nom);
+    export_ajouter_champ_mdp(&ctx, ct_mdp);
+    export_ajouter_champ_select(&ctx, ct_sel);
+    export_ajouter_zone_texte(&ctx, ct_zt);
     export_ajouter_checklist(&ctx, &chk_terms);
-    export_ajouter_bouton   (&ctx, &b_cond);
-    export_ajouter_bouton   (&ctx, &b_ann);
-    export_ajouter_bouton   (&ctx, &b_sub);
-    export_ajouter_texte    (&ctx, &t2);
-    export_ajouter_texte    (&ctx, &t2b);
+    export_ajouter_bouton(&ctx, &b_cond);
+    export_ajouter_bouton(&ctx, &b_ann);
+    export_ajouter_bouton(&ctx, &b_sub);
+    export_ajouter_texte(&ctx, &t2);
+    export_ajouter_texte(&ctx, &t2b);
     export_ajouter_conteneur(&ctx, &col2_ct);
-    export_ajouter_radio    (&ctx, &rad1);
-    export_ajouter_radio    (&ctx, &rad2);
-    export_ajouter_radio    (&ctx, &rad3);
-    export_ajouter_slider   (&ctx, sld);
+    export_ajouter_radio(&ctx, &rad1);
+    export_ajouter_radio(&ctx, &rad2);
+    export_ajouter_radio(&ctx, &rad3);
+    export_ajouter_slider(&ctx, sld);
 
     generer_fichier_interface(&ctx, "interface.txt");
 
     gtk_window_present(GTK_WINDOW(window));
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     GtkApplication *gapp = gtk_application_new("fr.banc_poisson.app",
                                                G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(gapp, "activate", G_CALLBACK(activate), NULL);

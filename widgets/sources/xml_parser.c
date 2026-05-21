@@ -441,10 +441,36 @@ static XmlNode *parse_node(Lexer *l)
 {
     lex_skip_spaces(l);
 
-    /* Avance jusqu'au prochain '<', en ignorant silencieusement le texte brut.
-       Attention : les nœuds texte entre balises sont perdus (non capturés). */
-    while (l->pos < l->len && lex_peek(l) != '<')
-        lex_next(l);
+    /* Si on trouve du texte brut (pas une balise), capturer ce texte
+       comme un nœud texte pour préserver le contenu entre balises.
+       Exemple utile : <option>Texte</option> -> nœud option a un enfant texte. */
+    if (l->pos < l->len && lex_peek(l) != '<')
+    {
+        size_t start = l->pos;
+        while (l->pos < l->len && l->src[l->pos] != '<')
+            l->pos++;
+        size_t tlen = l->pos - start;
+        /* Trim début/fin */
+        while (tlen > 0 && isspace((unsigned char)l->src[start]))
+        {
+            start++;
+            tlen--;
+        }
+        while (tlen > 0 && isspace((unsigned char)l->src[start + tlen - 1]))
+            tlen--;
+        if (tlen > 0)
+        {
+            char *txt = malloc(tlen + 1);
+            memcpy(txt, l->src + start, tlen);
+            txt[tlen] = '\0';
+            XmlNode *tn = node_new("#text");
+            tn->attrs = attr_new("value", txt);
+            free(txt);
+            return tn;
+        }
+        /* sinon continuer et chercher la balise suivante */
+        return parse_node(l);
+    }
 
     /* Fin de flux : rien à parser. */
     if (l->pos >= l->len)
@@ -453,7 +479,7 @@ static XmlNode *parse_node(Lexer *l)
     lex_next(l); /* consomme '<' */
 
     /* ── Commentaire <!-- ... --> ────────────────────────────────────────── */
-    if (l->pos + 2 < l->len && l->src[l->pos] == '!' && l->src[l->pos + 1] == '-' &&l->src[l->pos + 2] == '-')
+    if (l->pos + 2 < l->len && l->src[l->pos] == '!' && l->src[l->pos + 1] == '-' && l->src[l->pos + 2] == '-')
     {
         l->pos += 3; /* saute '!--' */
         lex_skip_comment(l);
@@ -512,7 +538,7 @@ static XmlNode *parse_node(Lexer *l)
 
             /* Détection anticipée de </tag> pour éviter un appel récursif inutile. */
             if (l->pos + 1 < l->len &&
-                l->src[l->pos]     == '<' &&
+                l->src[l->pos] == '<' &&
                 l->src[l->pos + 1] == '/')
             {
                 /* REMARQUE : le nom de la balise fermante n'est pas vérifié.
@@ -1719,6 +1745,12 @@ static GtkWidget *build_champ_select(const XmlNode *n, Conteneur *parent_ct)
                 opt = xml_attr_get(ch, "text");
             if (!opt)
                 opt = xml_attr_get(ch, "value");
+            /* Si l'option contient du texte brut entre les balises (<option>Texte</option>)
+               le parser crée un nœud enfant #text avec un attribut 'value'. On le prend en compte. */
+            if (!opt && ch->children && ch->children->tag && strcmp(ch->children->tag, "#text") == 0)
+            {
+                opt = xml_attr_get(ch->children, "value");
+            }
             if (opt)
                 champ_select_add_item(cfg, opt);
         }

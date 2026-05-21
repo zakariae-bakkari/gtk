@@ -41,7 +41,7 @@ typedef void (*BoutonRadioAction)(GtkCheckButton *widget, gpointer data);
  */
 typedef struct
 {
-   GtkWidget *widget; // Le widget GtkCheckButton (en tant que radio)
+   GtkWidget *widget; // Le widget GtkCheckButton (groupé comme radio)
    char *id_css;      // ID unique pour le CSS
 
    // --- Contenu ---
@@ -76,8 +76,7 @@ typedef struct
 void bouton_radio_initialiser(BoutonRadio *config);
 
 /**
- * Crée et retourne un widget GtkCheckButton configuré comme radio
- * En GTK4, les radios sont des CheckButtons groupés via gtk_check_button_set_group()
+ * Crée et retourne un widget GtkCheckButton groupé comme radio
  * @param config : Pointeur sur la structure de configuration
  * @return : Le widget GtkCheckButton créé
  */
