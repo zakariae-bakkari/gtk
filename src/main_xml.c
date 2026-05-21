@@ -13,7 +13,7 @@
 #include "../widgets/headers/xml_parser.h"
 
 #ifndef UI_EXEMPLE_PATH
-#define UI_EXEMPLE_PATH "ui_exemple.txt"
+#define UI_EXEMPLE_PATH "interface.txt"
 #endif
 
 /* ================================================================

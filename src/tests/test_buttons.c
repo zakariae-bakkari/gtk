@@ -69,7 +69,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     // Activer le défilement vertical pour la fenêtre
     fenetre_set_scrollable(&fenetre_config, SCROLL_VERTICAL);
 
-    GtkWidget *window = fenetre_creer(&fenetre_config);
+    GtkWidget *window = fenetre_creer(&fenetre_config,app);
     gtk_application_add_window(app, GTK_WINDOW(window));
 
     // Conteneur principal avec défilement

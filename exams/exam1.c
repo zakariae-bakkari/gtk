@@ -179,6 +179,7 @@ static void on_activate(GtkApplication *app, gpointer user_data)
     box_connaissances.padding.bas = 6;
     box_connaissances.padding.gauche = 10;
     box_connaissances.padding.droite = 10;
+    box_connaissances.align_x = ALIGNEMENT_DEBUT; // Fit content instead of filling
     GtkWidget *p_box_conn = conteneur_creer(&box_connaissances);
 
     static BoutonRadio rad_faible, rad_moyen, rad_bien, rad_tres_bien;
