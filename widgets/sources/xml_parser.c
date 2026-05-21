@@ -527,12 +527,46 @@ static XmlNode *parse_node(Lexer *l)
             if (l->pos >= l->len)
                 break; /* Fin de flux inattendue (XML mal formé). */
 
-            XmlNode *child = parse_node(l);
+                /* Capture du texte entre balises (ex: <option>Texte</option>)
+                   Avant d'appeler parse_node, si la position courante n'est
+                   pas sur '<' on récupère la séquence de texte et la stocke
+                   comme attribut "texte" du nœud courant. Cela permet au
+                   code supérieur (build_champ_select) de récupérer le texte
+                   des <option> placés en contenu plutôt qu'en attribut. */
+                if (l->pos < l->len && lex_peek(l) != '<')
+                {
+                    /* collect text until next '<' */
+                    size_t start = l->pos;
+                    while (l->pos < l->len && lex_peek(l) != '<')
+                        l->pos++;
+                    size_t tlen = l->pos - start;
+                    /* trim leading/trailing spaces */
+                    const char *src = l->src + start;
+                    size_t s = 0, e = tlen;
+                    while (s < e && (src[s] == ' ' || src[s] == '\t' || src[s] == '\n' || src[s] == '\r')) s++;
+                    while (e > s && (src[e-1] == ' ' || src[e-1] == '\t' || src[e-1] == '\n' || src[e-1] == '\r')) e--;
+                    if (e > s)
+                    {
+                        char *txt = malloc(e - s + 1);
+                        memcpy(txt, src + s, e - s);
+                        txt[e - s] = '\0';
+                        /* attach as attribute "texte" to current node */
+                        XmlAttr *a = malloc(sizeof(XmlAttr));
+                        a->name = xstrdup("texte");
+                        a->value = txt; /* ownership transferred */
+                        a->next = node->attrs;
+                        node->attrs = a;
+                    }
+                    /* continue parsing children (no recursive child node created) */
+                    continue;
+                }
 
-            /* parse_node retourne NULL sur balise fermante ou erreur :
-               on sort de la boucle dans les deux cas. */
-            if (!child)
-                break;
+                XmlNode *child = parse_node(l);
+
+                /* parse_node retourne NULL sur balise fermante ou erreur :
+                   on sort de la boucle dans les deux cas. */
+                if (!child)
+                    break;
 
             /* Ajout du fils en queue de liste chaînée. */
             if (!ch_head)
@@ -1485,6 +1519,30 @@ static GtkWidget *build_bouton_radio(const XmlNode *n, Conteneur *parent_ct)
             cfg->group_leader = leader;
         }
         /* Sinon : ce sera le leader, on l'enregistre après création */
+    }
+
+    /* Si aucun groupe nommé n'est fourni, tenter de grouper automatiquement
+       les radios consécutifs dans le même conteneur : on regarde le dernier
+       widget ajouté au parent et, s'il s'agit d'un BoutonRadio, on rejoint
+       son groupe. Cela permet d'écrire plusieurs <bouton_radio> à la
+       suite dans le XML sans préciser d'attribut de groupe. */
+    if (!grp && parent_ct && parent_ct->widget)
+    {
+        GtkWidget *last = gtk_widget_get_first_child(parent_ct->widget);
+        GtkWidget *child = last;
+        while (child)
+        {
+            last = child;
+            child = gtk_widget_get_next_sibling(child);
+        }
+        if (last)
+        {
+            const char *ctype = (const char *)g_object_get_data(G_OBJECT(last), "custom_type");
+            if (ctype && strcmp(ctype, "BoutonRadio") == 0)
+            {
+                cfg->group_leader = GTK_CHECK_BUTTON(last);
+            }
+        }
     }
 
     GtkWidget *w = bouton_radio_creer(cfg);
