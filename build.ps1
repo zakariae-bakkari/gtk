@@ -166,7 +166,7 @@ $success = $true
 
 if ($totalFiles -gt 0) {
     # Parse CFlags
-    $cFlagsList = @("-Isrc", "-Iwidgets/headers", "-Wno-deprecated-declarations")
+    $cFlagsList = @("-Isrc", "-Iwidgets/headers", "-Wno-deprecated-declarations", "-pipe")
     if ($CFlags) {
         $splitFlags = $CFlags -split '\s+' | Where-Object { $_.Trim() }
         $cFlagsList += $splitFlags

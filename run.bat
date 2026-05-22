@@ -220,6 +220,9 @@ set "EXTRA_SRCS="
 if /i "!TARGET_NAME!"=="game" (
     set "EXTRA_SRCS=src/bassin.c src/draw.c src/entities.c src/screen_accueil.c src/screen_createur.c src/screen_jeux.c src/assets.c src/sound.c"
 )
+if /i "!TARGET_NAME!"=="main" (
+    set "EXTRA_SRCS=src/modele/poisson.c src/ui/screen_bassin.c src/ui/screen_stubs.c src/sound.c"
+)
 :: Define ANSI Escape character for color and cursor manipulation
 for /f %%A in ('"prompt $E & echo on & for %%B in (1) do rem"') do set "ESC=%%A"
 

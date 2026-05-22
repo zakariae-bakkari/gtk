@@ -1,53 +1,61 @@
-<fenetre title="Test des fonctions GTK+" width="620" height="700" resizable="true" maximisee="false" scroll="vertical" icon_path="resources/icons/zcode.png" ico_path="resources/icons/zcode.ico">
-  <conteneur orientation="vertical" espacement="15" padding_top="15" padding_bottom="15" padding_left="20" padding_right="20" scroll_overlay="true" hexpand="true" vexpand="true">
-    <menu id="menu" orientation="horizontal" espacement="2" bg_barre="#2c3e50" fg_item="#ecf0f1" bg_item_hover="#3d5166">
-        <menu_item id="mon_choix" texte="MonChoix" />
-        <menu_item id="votre_choix" texte="VotreChoix" sous_menu_orientation="vertical">
-          <menu_item id="sous_choix1" texte="Sous Choix1" />
-          <menu_item id="sous_choix2" texte="Sous Choix2" sous_menu_orientation="horizontal">
-            <menu_item id="choix221" texte="Choix221" />
-            <menu_item id="choix222" texte="Choix222" />
-            <menu_item id="choix223" texte="Choix223" />
+<fenetre title="Demo Widgets" width="720" height="540" resizable="true" maximisee="false" scroll="vertical" icon_path="resources/icons/zcode.png" ico_path="resources/icons/zcode.ico">
+  <conteneur orientation="vertical" espacement="0" scroll_overlay="true">
+    <menu id="menu" orientation="horizontal" espacement="4" bg_barre="#f0c040" fg_item="#2c2c2c" bg_item_hover="#e0b030">
+        <menu_item id="menu" texte="menu" />
+        <menu_item id="sousmenu" texte="sous menu " sous_menu_orientation="horizontal">
+          <menu_item id="sm1" texte="sous item 1" />
+          <menu_item id="sm2" texte="sous item 2" sous_menu_orientation="vertical">
+            <menu_item id="sm2" texte="sous item 21" />
+            <menu_item id="sm2" texte="sous item 22" />
           </menu_item>
-          <menu_item id="sous_choix3" texte="Sous Choix3" />
+          <menu_item id="" texte="" type="separateur" />
+          <menu_item id="sm3" texte="sous item 3" />
         </menu_item>
-        <menu_item id="leur_choix" texte="LeurChoix" />
+        <menu_item id="vertical" texte="sous menu vertical" sous_menu_orientation="vertical">
+          <menu_item id="sv1" texte="option A" />
+          <menu_item id="sv2" texte="option B" sous_menu_orientation="horizontal">
+            <menu_item id="sv2" texte="option B b1" />
+            <menu_item id="sv2" texte="option B b2" />
+          </menu_item>
+          <menu_item id="sv3" texte="option C" />
+        </menu_item>
+        <menu_item id="item" texte="item" />
     </menu>
-    <texte type="normal" texte="Vos connaissances de GTK+" alignement="left" bold="true" />
-    <conteneur orientation="horizontal" espacement="20" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" scroll_overlay="true" align_x="start">
-      <bouton_radio id="radio_defaut" label="Faible" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Moyen" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Bien" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Très Bien" checked="true" sensible="true" />
-    </conteneur>
-    <texte type="normal" texte="Vos Commentaires sur GTK+" alignement="left" bold="true" />
-    <conteneur orientation="horizontal" espacement="15" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" scroll_overlay="true">
-      <bouton_checklist id="checklist_defaut" label="Convivial" etat="unchecked" actif="true" />
-      <bouton_checklist id="checklist_defaut" label="Intéressant" etat="checked" actif="true" />
-      <bouton_checklist id="checklist_defaut" label="Facile à utiliser" etat="unchecked" actif="true" />
-      <bouton_checklist id="checklist_defaut" label="Optimise le travail" etat="unchecked" actif="true" />
-    </conteneur>
-    <texte type="normal" texte="Choix de date" alignement="left" bold="true" />
-    <conteneur orientation="horizontal" espacement="15" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="8" padding_bottom="8" padding_left="12" padding_right="12" scroll_overlay="true">
-      <champ_nombre id="champ_nombre" min="1.00" max="31.00" valeur="1.00" step="1.00" digits="0" wrap="false" required="false" width="65" />
-      <champ_nombre id="champ_nombre" min="0.00" max="12.00" valeur="0.00" step="1.00" digits="0" wrap="false" required="false" width="65" />
-      <champ_nombre id="champ_nombre" min="0.00" max="3000.00" valeur="0.00" step="1.00" digits="0" wrap="false" required="false" width="80" />
-    </conteneur>
-    <champ_select id="champ_select" selected_index="0">
-      <option>Faire un choix</option>
-      <option>Option A</option>
-      <option>Option B</option>
-    </champ_select>
-    <texte type="normal" texte="Le CoronaVirus" alignement="left" bold="true" />
-    <conteneur orientation="horizontal" espacement="20" bordure_largeur="1" bordure_couleur="#7f8c8d" bordure_rayon="2" padding_top="6" padding_bottom="6" padding_left="10" padding_right="10" scroll_overlay="true">
-      <bouton_radio id="radio_defaut" label="Malade" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Suspect" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Guéri" checked="false" sensible="true" />
-      <bouton_radio id="radio_defaut" label="Sain" checked="true" sensible="true" />
-    </conteneur>
-    <conteneur orientation="horizontal" espacement="30" scroll_overlay="true" align_x="center">
-      <bouton id="btn_defaut" texte="_OK" bgcolor="#E0E0E0" color="#1E1E1E" bgcolor_hover="#D5D5D5" radius="5" actif="true" width="200" height="45" />
-      <bouton id="btn_defaut" texte="_Quitter" bgcolor="#E0E0E0" color="#1E1E1E" bgcolor_hover="#D5D5D5" radius="5" actif="true" width="200" height="45" />
+    <conteneur orientation="horizontal" espacement="0" scroll_overlay="true" hexpand="true" vexpand="true">
+      <conteneur orientation="vertical" espacement="10" bgcolor="#ffffff" bordure_largeur="1" bordure_couleur="#cccccc" bordure_rayon="0" padding_top="16" padding_bottom="16" padding_left="20" padding_right="20" scroll_overlay="true">
+        <texte type="h3" texte="container 1" alignement="left" />
+        <texte type="h1" texte="text h1 : form1" alignement="left" color="#555555" />
+        <texte type="normal" texte="nom" alignement="left" color="#2c3e50" />
+        <champ_texte id="inp_nom" placeholder="" type="text" required="false" />
+        <texte type="normal" texte="mot_p" alignement="left" color="#2c3e50" />
+        <champ_motdepasse id="inp_mdp" placeholder="" required="false" />
+        <texte type="normal" texte="select" alignement="left" color="#2c3e50" />
+        <champ_select id="inp_sel" selected_index="0">
+          <option>Option 1</option>
+          <option>Option 2</option>
+          <option>Option 3</option>
+        </champ_select>
+        <texte type="caption" texte="..." alignement="left" color="#2c3e50" />
+        <champ_zone_texte id="inp_zt" max_length="0" wrap_word="true" required="false" />
+        <bouton_checklist id="checklist_defaut" label="accepter les termes" etat="unchecked" actif="true" />
+        <bouton id="btn_cond" texte="condition(dialog)" bgcolor="#3498db" color="#ffffff" bgcolor_hover="#2980b9" radius="4" actif="true" />
+        <bouton id="btn_ann" texte="annuler" bgcolor="#ecf0f1" color="#2c3e50" bgcolor_hover="#d5dbdb" radius="4" actif="true" />
+        <bouton id="btn_sub" texte="submit" bgcolor="#3498db" color="#ffffff" bgcolor_hover="#2980b9" radius="4" actif="true" />
+      </conteneur>
+      <conteneur orientation="vertical" espacement="12" bgcolor="#f8f9fa" bordure_largeur="1" bordure_couleur="#cccccc" bordure_rayon="0" padding_top="16" padding_bottom="16" padding_left="20" padding_right="20" scroll_overlay="true">
+        <texte type="h3" texte="container 2" alignement="left" />
+        <texte type="h1" texte="text h1 : form2" alignement="left" color="#555555" />
+        <texte type="caption" texte="ici va container bouton radio" alignement="left" color="#7f8c8d" />
+        <bouton_radio id="r1" label="Option A" checked="true" sensible="true" />
+        <bouton_radio id="r2" label="Option B" checked="false" sensible="true" />
+        <bouton_radio id="r3" label="Option C" checked="false" sensible="true" />
+        <texte type="caption" texte="check list" alignement="left" color="#7f8c8d" />
+        <bouton_checklist id="checklist_defaut" label="Choix 1" etat="checked" actif="true" />
+        <bouton_checklist id="checklist_defaut" label="Choix 2" etat="unchecked" actif="true" />
+        <bouton_checklist id="checklist_defaut" label="Choix 3" etat="checked" actif="true" />
+        <texte type="caption" texte="range" alignement="left" color="#7f8c8d" />
+        <slider id="sld_main" min="0.00" max="100.00" valeur="40.00" step="1.00" afficher_valeur="true" width="220" />
+      </conteneur>
     </conteneur>
   </conteneur>
 </fenetre>

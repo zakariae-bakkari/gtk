@@ -7,6 +7,12 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 
 add_executable(gtk
+    src/main.c
+    src/modele/poisson.c
+    src/ui/screen_bassin.c
+    src/ui/screen_stubs.c
+    src/sound.c
+
     widgets/sources/bouton.c
     widgets/sources/fenetre.c
     widgets/sources/bouton_radio.c
@@ -27,16 +33,6 @@ add_executable(gtk
     widgets/sources/menu.c
     widgets/sources/dialog.c
     widgets/sources/xml_parser.c
-    # App
-    # src/main.c
-    # src/bassin.c
-    # src/draw.c
-    # src/entities.c
-    # src/screen_accueil.c
-    # src/screen_createur.c
-    # src/screen_jeux.c
-    # src/assets.c
-    # src/sound.c
     widgets/sources/export_xml.c
 
 )
