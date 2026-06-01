@@ -1,0 +1,27 @@
+<species_list>
+    <species name="Hareng" type="prey" speed_norm="50.0" speed_escape="80.0" speed_slow="25.0" size="64" detection="100">
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue_outline.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png</frame>
+    </species>
+    <species name="Poisson-globe" type="prey" speed_norm="45.0" speed_escape="75.0" speed_slow="20.0" size="64" detection="100">
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange_outline.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange.png</frame>
+    </species>
+    <species name="Poisson clown" type="prey" speed_norm="55.0" speed_escape="85.0" speed_slow="30.0" size="64" detection="100">
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green_outline.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png</frame>
+    </species>
+    <species name="Requin" type="predator" speed_norm="65.0" speed_escape="95.0" speed_slow="30.0" size="80" detection="120">
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a_outline.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
+    </species>
+    <species name="Dauphin" type="ally" speed_norm="75.0" speed_escape="105.0" speed_slow="35.0" size="80" detection="120">
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b_outline.png</frame>
+        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
+    </species>
+</species_list>

@@ -6,6 +6,8 @@ param (
     [string]$Libs = ""
 )
 
+Write-Host "Debug ExtraSrcs: '$ExtraSrcs'"
+
 # Enable UTF-8 encoding
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -42,7 +44,7 @@ function Get-ObjPath([string]$cFile) {
     # Create a flat name by replacing slashes and colons with underscores
     $safeName = $relPath -replace '[\\/:]', '_'
     $safeName = [System.IO.Path]::ChangeExtension($safeName, ".o")
-    return Join-Path "obj" $safeName
+    return Join-Path "obj_v2" $safeName
 }
 
 # Find all widget source files
@@ -85,8 +87,8 @@ foreach ($src in $widgetSources) {
 }
 
 # Ensure obj/ directory exists
-if (-not (Test-Path "obj")) {
-    New-Item -ItemType Directory -Path "obj" -Force | Out-Null
+if (-not (Test-Path "obj_v2")) {
+    New-Item -ItemType Directory -Path "obj_v2" -Force | Out-Null
 }
 
 # Find latest modification time of any .h header file to trigger rebuilds on header change
@@ -110,7 +112,7 @@ $objFiles = @()
 
 foreach ($src in $allSources) {
     $obj = Get-ObjPath $src
-    if (-not $obj -or $obj -eq "obj" -or $obj -eq "obj\" -or $obj -eq "obj/") { continue }
+    if (-not $obj -or $obj -eq "obj_v2" -or $obj -eq "obj_v2\" -or $obj -eq "obj_v2/") { continue }
     $objFiles += $obj
     
     $needsCompile = $false
@@ -134,6 +136,9 @@ foreach ($src in $allSources) {
         }
     }
 }
+Write-Host "Debug allSources: $allSources"
+Write-Host "Debug objFiles: $objFiles"
+
 
 # Check if target executable needs to be linked
 $needsLink = $false

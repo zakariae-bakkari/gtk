@@ -3,16 +3,18 @@
 #include "../sound.h"
 
 // Framework Widgets
-#include "../widgets/headers/dialog.h"
-#include "../widgets/headers/bouton_radio.h"
-#include "../widgets/headers/champ_select.h"
-#include "../widgets/headers/slider.h"
+#include "dialog.h"
+#include "bouton_radio.h"
+#include "champ_select.h"
+#include "slider.h"
+#include "xml_parser.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
+// Custom CSS Data
 // Custom CSS Data
 static const char *css_data = 
    ".entity-header { font-weight: bold; font-size: 13px; color: #7F8C8D; margin-top: 15px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }\n"
@@ -26,16 +28,22 @@ static const char *css_data =
    ".sidebar-container { border-left: 1px solid #E0E0E0; background-color: #FAFAFA; padding: 15px; }\n"
    ".tab-active { background-color: #3498DB; color: white; font-weight: bold; }\n"
    ".tab-inactive { background-color: #ECEFF1; color: #37474F; }\n"
-   ".dialog-frame { background-color: #F9F9FB; border: 1px solid #E0E0E6; border-radius: 8px; padding: 12px; margin-top: 10px; }\n";
+   ".dialog-frame { background-color: #F9F9FB; border: 1px solid #E0E0E6; border-radius: 8px; padding: 12px; margin-top: 10px; }\n"
+   ".fish-selected { border: 2px solid #3498DB; border-radius: 8px; box-shadow: 0 0 12px #3498DB; padding: 4px; background-color: rgba(52, 152, 219, 0.15); }\n"
+   ".flipped { transform: scaleX(-1); }\n";
 
-// Species Sprites Mapping
-static const char *species_sprites[] = {
-   "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png",      // Hareng
-   "resources/kenney_fish-pack_2.0/PNG/Default/fish_orange.png",    // Poisson-globe
-   "resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png",     // Poisson clown
-   "resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png", // Requin
-   "resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png"  // Dauphin
-};
+typedef struct
+{
+   char *nom;
+   char *type; // "prey", "predator", "ally"
+   double vitesse_normale;
+   double vitesse_fuite;
+   double vitesse_ralentie;
+   int taille;
+   int perimetre_detection;
+   char *chemin_frames[3];
+   int nb_frames;
+} SpeciesConfig;
 
 typedef struct
 {
@@ -83,9 +91,24 @@ typedef struct
    ChampSelect settings_sel_bg;
    ChampSelect settings_sel_canvas;
 
+   // Dynamic data definitions
+   GList *species_configs; /* list of SpeciesConfig* */
+
 } BassinUI;
 
 // Prototypes
+static void load_species_configs(BassinUI *ui);
+static SpeciesConfig *find_species_config(BassinUI *ui, const char *species_name);
+static void on_fish_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data);
+static void bassin_save_to_xml(BassinUI *ui, const char *filename);
+static void bassin_load_from_xml(BassinUI *ui, const char *filename);
+static void on_save_clicked(GtkButton *btn, gpointer user_data);
+static void on_load_clicked(GtkButton *btn, gpointer user_data);
+static void on_dissolve_banc_clicked(GtkButton *btn, gpointer user_data);
+static void on_split_banc_clicked(GtkButton *btn, gpointer user_data);
+static void on_merge_reponse(int reponse, gpointer user_data);
+static void on_merge_bancs_clicked(GtkButton *btn, gpointer user_data);
+
 static void on_add_poisson_btn_clicked(GtkButton *btn, gpointer user_data);
 static void on_remove_poisson_btn_clicked(GtkButton *btn, gpointer user_data);
 static void on_play_pause_clicked(GtkButton *btn, gpointer user_data);
@@ -99,6 +122,629 @@ static void update_status_bar(BassinUI *ui);
 static void open_add_dialog(BassinUI *ui, const char *species);
 static void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, int target_banc_id);
 static gboolean update_simulation(gpointer user_data);
+
+
+
+static int attr_int(const XmlNode *n, const char *name, int def)
+{
+    const char *v = xml_attr_get(n, name);
+    return v ? atoi(v) : def;
+}
+
+static gboolean attr_bool(const XmlNode *n, const char *name, gboolean def)
+{
+    const char *v = xml_attr_get(n, name);
+    if (!v)
+        return def;
+    return (strcmp(v, "true") == 0 || strcmp(v, "1") == 0 || strcmp(v, "oui") == 0)
+               ? TRUE
+               : FALSE;
+}
+
+static void load_species_configs(BassinUI *ui)
+{
+   if (ui->species_configs)
+   {
+      for (GList *l = ui->species_configs; l; l = l->next)
+      {
+         SpeciesConfig *cfg = l->data;
+         free(cfg->nom);
+         free(cfg->type);
+         for (int i = 0; i < 3; i++)
+         {
+            if (cfg->chemin_frames[i]) free(cfg->chemin_frames[i]);
+         }
+         free(cfg);
+      }
+      g_list_free(ui->species_configs);
+      ui->species_configs = NULL;
+   }
+
+   XmlNode *root = xml_parser_parse_file("data/poissons_types.xml");
+   if (!root)
+   {
+      root = xml_parser_parse_file("../data/poissons_types.xml");
+   }
+   if (!root)
+   {
+      fprintf(stderr, "[Error] Failed to load data/poissons_types.xml\n");
+      return;
+   }
+
+   for (XmlNode *child = root->children; child; child = child->next)
+   {
+      if (strcmp(child->tag, "species") == 0)
+      {
+         SpeciesConfig *cfg = calloc(1, sizeof(SpeciesConfig));
+         const char *name = xml_attr_get(child, "name");
+         const char *type = xml_attr_get(child, "type");
+         
+         cfg->nom = name ? strdup(name) : strdup("Poisson");
+         cfg->type = type ? strdup(type) : strdup("prey");
+         
+         cfg->vitesse_normale = xml_attr_get(child, "speed_norm") ? atof(xml_attr_get(child, "speed_norm")) : 50.0;
+         cfg->vitesse_fuite = xml_attr_get(child, "speed_escape") ? atof(xml_attr_get(child, "speed_escape")) : 80.0;
+         cfg->vitesse_ralentie = xml_attr_get(child, "speed_slow") ? atof(xml_attr_get(child, "speed_slow")) : 25.0;
+         cfg->taille = attr_int(child, "size", 64);
+         cfg->perimetre_detection = attr_int(child, "detection", 100);
+
+         int frame_idx = 0;
+         for (XmlNode *frame_node = child->children; frame_node; frame_node = frame_node->next)
+         {
+            if (strcmp(frame_node->tag, "frame") == 0 && frame_idx < 3)
+            {
+               const char *frame_path = xml_attr_get(frame_node, "texte");
+               if (frame_path)
+               {
+                  cfg->chemin_frames[frame_idx++] = strdup(frame_path);
+               }
+            }
+         }
+         cfg->nb_frames = frame_idx;
+         ui->species_configs = g_list_append(ui->species_configs, cfg);
+      }
+   }
+   xml_node_free(root);
+}
+
+static SpeciesConfig *find_species_config(BassinUI *ui, const char *species_name)
+{
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *cfg = l->data;
+      if (strcmp(cfg->nom, species_name) == 0)
+      {
+         return cfg;
+      }
+   }
+   return NULL;
+}
+
+static void on_fish_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
+{
+   Poisson *p = g_object_get_data(G_OBJECT(gesture), "poisson");
+   BassinUI *ui = g_object_get_data(G_OBJECT(gesture), "ui");
+   (void)n_press;
+   (void)x;
+   (void)y;
+   (void)user_data;
+   
+   if (!p || !ui) return;
+
+   // 1. Clear previous selected fish CSS highlight
+   for (GList *l = ui->poissons; l; l = l->next)
+   {
+      Poisson *other = l->data;
+      if (other->widget_image)
+      {
+         gtk_widget_remove_css_class(other->widget_image, "fish-selected");
+      }
+   }
+
+   // 2. Add highlight CSS class to clicked fish
+   if (p->widget_image)
+   {
+      gtk_widget_add_css_class(p->widget_image, "fish-selected");
+   }
+
+   // 3. Open a beautiful GtkDialog showing characteristics
+   Dialog *details = g_new0(Dialog, 1);
+   dialog_initialiser(details);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      details->parent = GTK_WINDOW(toplevel);
+   }
+   
+   char title_buf[128];
+   sprintf(title_buf, "🔍 Inspecteur : %s #%d", p->nom, p->id);
+   dialog_set_titre(details, title_buf);
+   details->boutons_preset = DIALOG_BOUTONS_OK;
+   
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+   
+   // Add details text fields
+   char info_buf[1024];
+   char *banc_str = p->id_banc >= 0 ? g_strdup_printf("Banc #%d", p->id_banc) : g_strdup("Aucun (Solo)");
+   char *role_str = p->est_leader ? g_strdup("★ Leader du Banc") : (p->id_banc >= 0 ? g_strdup("Membre du Banc") : g_strdup("Autonome"));
+   
+   sprintf(info_buf, 
+           "<b>Espèce :</b> %s\n"
+           "<b>ID Unique :</b> %d\n"
+           "<b>Groupe :</b> %s\n"
+           "<b>Rôle :</b> %s\n"
+           "<b>Position :</b> X=%.1f, Y=%.1f\n"
+           "<b>Vitesse :</b> Vx=%.1f, Vy=%.1f\n\n"
+           "<i>Caractéristiques de l'Espèce :</i>\n"
+           "• Vitesse Normale : %.1f px/s\n"
+           "• Vitesse Fuite : %.1f px/s\n"
+           "• Taille : %d px\n"
+           "• Rayon de Détection : %d px",
+           p->nom,
+           p->id,
+           banc_str,
+           role_str,
+           p->x, p->y,
+           p->vx, p->vy,
+           p->vitesse_normale,
+           p->vitesse_fuite,
+           p->taille,
+           p->perimetre_detection);
+
+   g_free(banc_str);
+   g_free(role_str);
+
+   GtkWidget *lbl_info = gtk_label_new(NULL);
+   gtk_label_set_markup(GTK_LABEL(lbl_info), info_buf);
+   gtk_label_set_justify(GTK_LABEL(lbl_info), GTK_JUSTIFY_LEFT);
+   gtk_widget_set_halign(lbl_info, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_info);
+   
+   dialog_set_contenu(details, box);
+   dialog_creer(details);
+   dialog_afficher(details);
+
+   g_signal_connect_swapped(details->window, "destroy", G_CALLBACK(dialog_free), details);
+}
+
+static void bassin_save_to_xml(BassinUI *ui, const char *filename)
+{
+   FILE *f = fopen(filename, "w");
+   if (!f)
+   {
+      char parent_path[256];
+      sprintf(parent_path, "../%s", filename);
+      f = fopen(parent_path, "w");
+   }
+   if (!f)
+   {
+      fprintf(stderr, "[Error] Failed to open %s for saving\n", filename);
+      return;
+   }
+
+   fprintf(f, "<bassin>\n");
+   fprintf(f, "  <canvas width=\"%d\" height=\"%d\" fish_size=\"%d\" bg=\"%s\" elapsed_time=\"%f\" num_bancs=\"%d\"/>\n",
+           ui->config_canvas_width, ui->config_canvas_height, ui->config_fish_size, ui->config_bg_path, ui->elapsed_time, ui->num_bancs);
+   fprintf(f, "  <poissons>\n");
+
+   for (GList *l = ui->poissons; l; l = l->next)
+   {
+      Poisson *p = l->data;
+      fprintf(f, "    <poisson id=\"%d\" nom=\"%s\" x=\"%f\" y=\"%f\" vx=\"%f\" vy=\"%f\" id_banc=\"%d\" est_leader=\"%s\"/>\n",
+              p->id, p->nom, p->x, p->y, p->vx, p->vy, p->id_banc, p->est_leader ? "true" : "false");
+   }
+
+   fprintf(f, "  </poissons>\n");
+   fprintf(f, "</bassin>\n");
+   fclose(f);
+}
+
+static void bassin_load_from_xml(BassinUI *ui, const char *filename)
+{
+   XmlNode *root = xml_parser_parse_file(filename);
+   if (!root)
+   {
+      char parent_path[256];
+      sprintf(parent_path, "../%s", filename);
+      root = xml_parser_parse_file(parent_path);
+   }
+   if (!root)
+   {
+      fprintf(stderr, "[Error] Failed to parse save file %s\n", filename);
+      return;
+   }
+
+   // 1. Clear current poissons
+   while (ui->poissons)
+   {
+      GList *node = ui->poissons;
+      Poisson *p = (Poisson *)node->data;
+      if (p->widget_image)
+      {
+         gtk_widget_unparent(p->widget_image);
+      }
+      poisson_free(p);
+      ui->poissons = g_list_delete_link(ui->poissons, node);
+   }
+
+   ui->next_id = 1;
+
+   // 2. Traverse nodes
+   for (XmlNode *child = root->children; child; child = child->next)
+   {
+      if (strcmp(child->tag, "canvas") == 0)
+      {
+         ui->config_canvas_width = attr_int(child, "width", 900);
+         ui->config_canvas_height = attr_int(child, "height", 600);
+         ui->config_fish_size = attr_int(child, "fish_size", 64);
+         ui->elapsed_time = xml_attr_get(child, "elapsed_time") ? atof(xml_attr_get(child, "elapsed_time")) : 0.0;
+         ui->num_bancs = attr_int(child, "num_bancs", 0);
+         
+         const char *bg = xml_attr_get(child, "bg");
+         if (bg) ui->config_bg_path = strdup(bg);
+
+         gtk_widget_set_size_request(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
+         if (ui->bg_widget)
+         {
+            gtk_picture_set_filename(GTK_PICTURE(ui->bg_widget), ui->config_bg_path);
+            gtk_widget_set_size_request(ui->bg_widget, ui->config_canvas_width, ui->config_canvas_height);
+         }
+      }
+      else if (strcmp(child->tag, "poissons") == 0)
+      {
+         for (XmlNode *p_node = child->children; p_node; p_node = p_node->next)
+         {
+            if (strcmp(p_node->tag, "poisson") == 0)
+            {
+               const char *nom = xml_attr_get(p_node, "nom");
+               int p_id = attr_int(p_node, "id", 0);
+               double x = xml_attr_get(p_node, "x") ? atof(xml_attr_get(p_node, "x")) : 0.0;
+               double y = xml_attr_get(p_node, "y") ? atof(xml_attr_get(p_node, "y")) : 0.0;
+               double vx = xml_attr_get(p_node, "vx") ? atof(xml_attr_get(p_node, "vx")) : 0.0;
+               double vy = xml_attr_get(p_node, "vy") ? atof(xml_attr_get(p_node, "vy")) : 0.0;
+               int id_banc = attr_int(p_node, "id_banc", -1);
+               gboolean est_leader = attr_bool(p_node, "est_leader", FALSE);
+
+               Poisson *p = poisson_new(nom);
+               p->id = p_id;
+               p->x = x;
+               p->y = y;
+               p->vx = vx;
+               p->vy = vy;
+               p->id_banc = id_banc;
+               p->est_leader = est_leader;
+
+               // Apply species configurations
+               SpeciesConfig *cfg = find_species_config(ui, nom);
+               if (cfg)
+               {
+                  p->vitesse_normale = cfg->vitesse_normale;
+                  p->vitesse_fuite = cfg->vitesse_fuite;
+                  p->vitesse_ralentie = cfg->vitesse_ralentie;
+                  p->taille = ui->config_fish_size;
+                  p->perimetre_detection = cfg->perimetre_detection;
+                  poisson_set_default_frames(p, cfg->chemin_frames[0], cfg->chemin_frames[1], cfg->chemin_frames[2]);
+               }
+
+               // If next_id is <= p->id, update it
+               if (ui->next_id <= p->id)
+               {
+                  ui->next_id = p->id + 1;
+               }
+
+               // Build widget
+               GtkWidget *container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 2);
+               
+               GtkWidget *lbl_lead = gtk_label_new("★ Leader");
+               gtk_widget_add_css_class(lbl_lead, "leader-tag");
+               gtk_widget_set_visible(lbl_lead, p->est_leader);
+               gtk_box_append(GTK_BOX(container), lbl_lead);
+
+               GtkWidget *img = gtk_picture_new_for_filename(p->chemin_frames[0]);
+               gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(img), TRUE);
+               gtk_widget_set_size_request(img, p->taille, p->taille);
+               gtk_box_append(GTK_BOX(container), img);
+
+               char tag_buf[64];
+               if (strcmp(p->nom, "Requin") == 0) sprintf(tag_buf, "Requin Alpha");
+               else if (strcmp(p->nom, "Dauphin") == 0) sprintf(tag_buf, "Dauphin");
+               else
+               {
+                  const char *short_nom = strcmp(p->nom, "Poisson clown") == 0 ? "Clown" : (strcmp(p->nom, "Poisson-globe") == 0 ? "Globe" : "Hareng");
+                  sprintf(tag_buf, "%s #%d", short_nom, p->id);
+               }
+
+               GtkWidget *lbl_tag = gtk_label_new(tag_buf);
+               gtk_widget_add_css_class(lbl_tag, "fish-tag");
+               if (strcmp(p->nom, "Requin") == 0) gtk_widget_add_css_class(lbl_tag, "fish-tag-pred");
+               gtk_box_append(GTK_BOX(container), lbl_tag);
+
+               // Enable click gesture
+               GtkGesture *gesture = gtk_gesture_click_new();
+               g_object_set_data(G_OBJECT(gesture), "poisson", p);
+               g_object_set_data(G_OBJECT(gesture), "ui", ui);
+               g_signal_connect(gesture, "released", G_CALLBACK(on_fish_clicked), NULL);
+               gtk_widget_add_controller(container, GTK_EVENT_CONTROLLER(gesture));
+
+               poisson_set_widget(p, container);
+               gtk_fixed_put(GTK_FIXED(ui->canvas), container, (int)p->x, (int)p->y);
+
+               ui->poissons = g_list_prepend(ui->poissons, p);
+            }
+         }
+      }
+   }
+
+   xml_node_free(root);
+   update_sidebar_list(ui);
+   update_status_bar(ui);
+}
+
+static void on_save_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)btn;
+   BassinUI *ui = user_data;
+   bassin_save_to_xml(ui, "data/bassin.xml");
+   
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   dialog_afficher_info(toplevel ? GTK_WINDOW(toplevel) : NULL, 
+                        "Succès", 
+                        "L'état du bassin a été sauvegardé avec succès dans data/bassin.xml.", 
+                        NULL, 
+                        NULL);
+}
+
+static void on_load_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)btn;
+   BassinUI *ui = user_data;
+   bassin_load_from_xml(ui, "data/bassin.xml");
+
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   dialog_afficher_info(toplevel ? GTK_WINDOW(toplevel) : NULL, 
+                        "Succès", 
+                        "L'état du bassin a été rechargé depuis data/bassin.xml.", 
+                        NULL, 
+                        NULL);
+}
+
+static void on_dissolve_banc_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)btn;
+   (void)user_data;
+   BassinUI *ui = g_object_get_data(G_OBJECT(btn), "ui");
+   int b_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "banc_id"));
+
+   if (!ui) return;
+
+   for (GList *l = ui->poissons; l; l = l->next)
+   {
+      Poisson *p = l->data;
+      if (p->id_banc == b_id)
+      {
+         p->id_banc = -1;
+         p->est_leader = FALSE;
+         
+         if (p->widget_image)
+         {
+            GtkWidget *lbl_lead = gtk_widget_get_first_child(p->widget_image);
+            if (lbl_lead) gtk_widget_set_visible(lbl_lead, FALSE);
+         }
+      }
+   }
+
+   update_sidebar_list(ui);
+   update_status_bar(ui);
+}
+
+static void on_split_banc_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)btn;
+   (void)user_data;
+   BassinUI *ui = g_object_get_data(G_OBJECT(btn), "ui");
+   int b_id = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(btn), "banc_id"));
+
+   if (!ui) return;
+
+   GList *members = NULL;
+   for (GList *l = ui->poissons; l; l = l->next)
+   {
+      Poisson *p = l->data;
+      if (p->id_banc == b_id)
+      {
+         members = g_list_append(members, p);
+      }
+   }
+
+   int total = g_list_length(members);
+   if (total < 2)
+   {
+      g_list_free(members);
+      return; 
+   }
+
+   ui->num_bancs++;
+   int new_banc_id = ui->num_bancs;
+
+   int half = total / 2;
+   int count = 0;
+   
+   for (GList *l = members; l; l = l->next)
+   {
+      Poisson *p = l->data;
+      if (count < half)
+      {
+         p->id_banc = new_banc_id;
+         p->est_leader = (count == 0);
+      }
+      else
+      {
+         p->est_leader = (count == half);
+      }
+      
+      if (p->widget_image)
+      {
+         GtkWidget *lbl_lead = gtk_widget_get_first_child(p->widget_image);
+         if (lbl_lead) gtk_widget_set_visible(lbl_lead, p->est_leader);
+      }
+      count++;
+   }
+
+   g_list_free(members);
+   update_sidebar_list(ui);
+   update_status_bar(ui);
+}
+
+typedef struct {
+   BassinUI *ui;
+   Dialog dialog;
+   ChampSelect sel1;
+   ChampSelect sel2;
+   int *banc_ids;
+   int nb_bancs;
+} MergeContext;
+
+static void on_merge_reponse(int reponse, gpointer user_data)
+{
+   MergeContext *ctx = user_data;
+   BassinUI *ui = ctx->ui;
+
+   if (reponse == DIALOG_REPONSE_OK)
+   {
+      int idx1 = champ_select_get_index(&ctx->sel1);
+      int idx2 = champ_select_get_index(&ctx->sel2);
+
+      if (idx1 >= 0 && idx2 >= 0 && idx1 < ctx->nb_bancs && idx2 < ctx->nb_bancs && idx1 != idx2)
+      {
+         int b1 = ctx->banc_ids[idx1];
+         int b2 = ctx->banc_ids[idx2];
+
+         for (GList *l = ui->poissons; l; l = l->next)
+         {
+            Poisson *p = l->data;
+            if (p->id_banc == b2)
+            {
+               p->id_banc = b1;
+               p->est_leader = FALSE;
+               
+               if (p->widget_image)
+               {
+                  GtkWidget *lbl_lead = gtk_widget_get_first_child(p->widget_image);
+                  if (lbl_lead) gtk_widget_set_visible(lbl_lead, FALSE);
+               }
+            }
+         }
+
+         update_sidebar_list(ui);
+         update_status_bar(ui);
+      }
+   }
+
+   dialog_fermer(&ctx->dialog);
+   free(ctx->banc_ids);
+   free(ctx);
+}
+
+static void on_merge_bancs_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)btn;
+   BassinUI *ui = user_data;
+
+   int active_schools[100];
+   int school_counts[100];
+   char *school_species[100];
+   int count_schools = 0;
+
+   for (int b_id = 1; b_id <= ui->num_bancs; b_id++)
+   {
+      int m_count = 0;
+      char *sp_name = NULL;
+      for (GList *l = ui->poissons; l; l = l->next)
+      {
+         Poisson *p = l->data;
+         if (p->id_banc == b_id)
+         {
+            m_count++;
+            sp_name = p->nom;
+         }
+      }
+      if (m_count > 0 && count_schools < 100)
+      {
+         active_schools[count_schools] = b_id;
+         school_counts[count_schools] = m_count;
+         school_species[count_schools] = sp_name;
+         count_schools++;
+      }
+   }
+
+   if (count_schools < 2)
+   {
+      GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+      dialog_afficher_erreur(toplevel ? GTK_WINDOW(toplevel) : NULL, 
+                             "Fusion impossible", 
+                             "Il doit y avoir au moins 2 bancs actifs dans le bassin pour pouvoir les fusionner.", 
+                             NULL, 
+                             NULL);
+      return;
+   }
+
+   MergeContext *ctx = calloc(1, sizeof(MergeContext));
+   ctx->ui = ui;
+   ctx->nb_bancs = count_schools;
+   ctx->banc_ids = calloc(count_schools, sizeof(int));
+   memcpy(ctx->banc_ids, active_schools, count_schools * sizeof(int));
+
+   dialog_initialiser(&ctx->dialog);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel) ctx->dialog.parent = GTK_WINDOW(toplevel);
+   dialog_set_titre(&ctx->dialog, "🔗 Fusionner deux bancs");
+   ctx->dialog.boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
+   ctx->dialog.on_reponse = on_merge_reponse;
+   ctx->dialog.user_data = ctx;
+
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+
+   GtkWidget *lbl_1 = gtk_label_new("Sélectionner le premier banc :");
+   gtk_widget_set_halign(lbl_1, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_1);
+
+   champ_select_initialiser(&ctx->sel1);
+   for (int i = 0; i < count_schools; i++)
+   {
+      char name_buf[128];
+      sprintf(name_buf, "Banc #%d (%s, %d membres)", active_schools[i], school_species[i], school_counts[i]);
+      champ_select_add_item(&ctx->sel1, name_buf);
+   }
+   GtkWidget *w_sel1 = champ_select_creer(&ctx->sel1);
+   gtk_box_append(GTK_BOX(box), w_sel1);
+
+   GtkWidget *lbl_2 = gtk_label_new("Sélectionner le deuxième banc à fusionner dedans :");
+   gtk_widget_set_halign(lbl_2, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_2);
+
+   champ_select_initialiser(&ctx->sel2);
+   for (int i = 0; i < count_schools; i++)
+   {
+      char name_buf[128];
+      sprintf(name_buf, "Banc #%d (%s, %d membres)", active_schools[i], school_species[i], school_counts[i]);
+      champ_select_add_item(&ctx->sel2, name_buf);
+   }
+   champ_select_set_index(&ctx->sel2, 1);
+   GtkWidget *w_sel2 = champ_select_creer(&ctx->sel2);
+   gtk_box_append(GTK_BOX(box), w_sel2);
+
+   dialog_set_contenu(&ctx->dialog, box);
+   dialog_creer(&ctx->dialog);
+   dialog_afficher(&ctx->dialog);
+}
 
 // Safe cleanup for entities
 static void eat_fish(BassinUI *ui, Poisson *prey)
@@ -239,6 +885,7 @@ static void on_species_selected(GtkButton *btn, gpointer user_data)
 {
    BassinUI *ui = g_object_get_data(G_OBJECT(btn), "ui");
    const char *species = g_object_get_data(G_OBJECT(btn), "species");
+   (void)user_data;
    
    // Dismiss the popover menu
    GtkWidget *popover = gtk_widget_get_ancestor(GTK_WIDGET(btn), GTK_TYPE_POPOVER);
@@ -247,8 +894,10 @@ static void on_species_selected(GtkButton *btn, gpointer user_data)
       gtk_popover_popdown(GTK_POPOVER(popover));
    }
 
-   // Requin and Dauphin can ONLY be added individually
-   if (strcmp(species, "Requin") == 0 || strcmp(species, "Dauphin") == 0)
+   SpeciesConfig *cfg = find_species_config(ui, species);
+   gboolean is_pred_or_ally = cfg ? (strcmp(cfg->type, "prey") != 0) : FALSE;
+
+   if (is_pred_or_ally)
    {
       add_fish_programmatic(ui, species, FALSE, -1);
       update_sidebar_list(ui);
@@ -274,7 +923,16 @@ static void open_add_dialog(BassinUI *ui, const char *species)
    }
    
    char title_buf[128];
-   const char *emoji = strcmp(species, "Hareng") == 0 ? "🐟" : (strcmp(species, "Poisson-globe") == 0 ? "🐡" : "🐠");
+   const char *emoji = "🐟";
+   SpeciesConfig *cfg = find_species_config(ui, species);
+   if (cfg)
+   {
+      if (strcmp(cfg->type, "predator") == 0) emoji = "🦈";
+      else if (strcmp(cfg->type, "ally") == 0) emoji = "🐬";
+      else if (strcmp(species, "Poisson-globe") == 0) emoji = "🐡";
+      else if (strcmp(species, "Poisson clown") == 0) emoji = "🐠";
+   }
+
    sprintf(title_buf, "Ajouter %s %s", emoji, species);
    dialog_set_titre(&ui->active_dialog, title_buf);
 
@@ -378,56 +1036,52 @@ static void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in
    p->id = ui->next_id++;
    p->taille = ui->config_fish_size;
 
-   // Select Sprite Path
-   const char *sprite = species_sprites[0]; // default
-   if (strcmp(species, "Poisson-globe") == 0) sprite = species_sprites[1];
-   else if (strcmp(species, "Poisson clown") == 0) sprite = species_sprites[2];
-   else if (strcmp(species, "Requin") == 0) sprite = species_sprites[3];
-   else if (strcmp(species, "Dauphin") == 0) sprite = species_sprites[4];
-   
-   poisson_set_default_frames(p, sprite, NULL, NULL);
-
-   // Set Flocking vs Solo vs Predator roles
-   if (strcmp(species, "Requin") == 0)
+   SpeciesConfig *cfg = find_species_config(ui, species);
+   if (cfg)
    {
-      p->vitesse_normale = 60.0;
-      p->vitesse_fuite = 90.0;
-      p->id_banc = -1;
-      p->est_leader = FALSE;
-   }
-   else if (strcmp(species, "Dauphin") == 0)
-   {
-      p->vitesse_normale = 70.0;
-      p->vitesse_fuite = 100.0;
-      p->id_banc = -1;
-      p->est_leader = FALSE;
-   }
-   else
-   {
-      p->vitesse_normale = 50.0;
-      p->vitesse_fuite = 80.0;
-      p->id_banc = in_banc ? target_banc_id : -1;
+      p->vitesse_normale = cfg->vitesse_normale;
+      p->vitesse_fuite = cfg->vitesse_fuite;
+      p->vitesse_ralentie = cfg->vitesse_ralentie;
+      p->taille = ui->config_fish_size > 0 ? ui->config_fish_size : cfg->taille;
+      p->perimetre_detection = cfg->perimetre_detection;
       
-      // Determine leader
-      if (in_banc)
+      poisson_set_default_frames(p, cfg->chemin_frames[0], cfg->chemin_frames[1], cfg->chemin_frames[2]);
+      
+      if (strcmp(cfg->type, "predator") == 0 || strcmp(cfg->type, "ally") == 0)
       {
-         // Check if this school already has a leader
-         gboolean has_leader = FALSE;
-         for (GList *l = ui->poissons; l; l = l->next)
-         {
-            Poisson *other = l->data;
-            if (other->id_banc == target_banc_id && other->est_leader)
-            {
-               has_leader = TRUE;
-               break;
-            }
-         }
-         p->est_leader = !has_leader;
+         p->id_banc = -1;
+         p->est_leader = FALSE;
       }
       else
       {
-         p->est_leader = FALSE;
+         p->id_banc = in_banc ? target_banc_id : -1;
+         if (in_banc)
+         {
+            gboolean has_leader = FALSE;
+            for (GList *l = ui->poissons; l; l = l->next)
+            {
+               Poisson *other = l->data;
+               if (other->id_banc == target_banc_id && other->est_leader)
+               {
+                  has_leader = TRUE;
+                  break;
+               }
+            }
+            p->est_leader = !has_leader;
+         }
+         else
+         {
+            p->est_leader = FALSE;
+         }
       }
+   }
+   else
+   {
+      // Fallback defaults
+      p->vitesse_normale = 50.0;
+      p->vitesse_fuite = 80.0;
+      p->id_banc = in_banc ? target_banc_id : -1;
+      p->est_leader = FALSE;
    }
 
    // Random position relative to configurable canvas size
@@ -450,7 +1104,7 @@ static void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in
    gtk_box_append(GTK_BOX(container), lbl_lead);
 
    // Sprite (using GtkPicture for premium and accurate auto-scaling to p->taille)
-   GtkWidget *img = gtk_picture_new_for_filename(p->chemin_frames[0]);
+   GtkWidget *img = gtk_picture_new_for_filename(p->chemin_frames[0] ? p->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png");
    gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(img), TRUE);
    gtk_widget_set_size_request(img, p->taille, p->taille);
    gtk_box_append(GTK_BOX(container), img);
@@ -478,6 +1132,13 @@ static void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in
       gtk_widget_add_css_class(lbl_tag, "fish-tag-pred");
    }
    gtk_box_append(GTK_BOX(container), lbl_tag);
+
+   // Enable click gesture
+   GtkGesture *gesture = gtk_gesture_click_new();
+   g_object_set_data(G_OBJECT(gesture), "poisson", p);
+   g_object_set_data(G_OBJECT(gesture), "ui", ui);
+   g_signal_connect(gesture, "released", G_CALLBACK(on_fish_clicked), NULL);
+   gtk_widget_add_controller(container, GTK_EVENT_CONTROLLER(gesture));
 
    poisson_set_widget(p, container);
    gtk_fixed_put(GTK_FIXED(ui->canvas), container, (int)p->x, (int)p->y);
@@ -659,6 +1320,11 @@ static void update_sidebar_list(BassinUI *ui)
    }
    else // Tab: Bancs
    {
+      GtkWidget *btn_merge = gtk_button_new_with_label("🔗 Fusionner deux bancs");
+      gtk_widget_add_css_class(btn_merge, "suggested-action");
+      g_signal_connect(btn_merge, "clicked", G_CALLBACK(on_merge_bancs_clicked), ui);
+      gtk_box_append(GTK_BOX(ui->box_sidebar_content), btn_merge);
+
       GtkWidget *lbl_header = gtk_label_new("LISTE DES BANCS");
       gtk_widget_set_halign(lbl_header, GTK_ALIGN_START);
       gtk_widget_add_css_class(lbl_header, "entity-header");
@@ -690,7 +1356,12 @@ static void update_sidebar_list(BassinUI *ui)
             GtkWidget *item = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
             gtk_widget_add_css_class(item, "entity-item");
 
-            const char *emoji = strcmp(species_nom, "Hareng") == 0 ? "🐟" : (strcmp(species_nom, "Poisson-globe") == 0 ? "🐡" : "🐠");
+            const char *emoji = "🐟";
+            if (strcmp(species_nom, "Poisson-globe") == 0) emoji = "🐡";
+            else if (strcmp(species_nom, "Poisson clown") == 0) emoji = "🐠";
+            else if (strcmp(species_nom, "Requin") == 0) emoji = "🦈";
+            else if (strcmp(species_nom, "Dauphin") == 0) emoji = "🐬";
+
             char name_buf[128];
             sprintf(name_buf, "%s Banc de %ss #%d", emoji, species_nom, b_id);
             GtkWidget *lbl_name = gtk_label_new(name_buf);
@@ -702,6 +1373,25 @@ static void update_sidebar_list(BassinUI *ui)
             GtkWidget *lbl_lead = gtk_label_new(lead_buf);
             gtk_widget_set_halign(lbl_lead, GTK_ALIGN_START);
             gtk_box_append(GTK_BOX(item), lbl_lead);
+
+            // Add action buttons
+            GtkWidget *actions_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+            gtk_widget_set_margin_top(actions_box, 6);
+            
+            GtkWidget *btn_dissolve = gtk_button_new_with_label("🔓 Dissoudre");
+            gtk_widget_add_css_class(btn_dissolve, "destructive-action");
+            g_object_set_data(G_OBJECT(btn_dissolve), "ui", ui);
+            g_object_set_data(G_OBJECT(btn_dissolve), "banc_id", GINT_TO_POINTER(b_id));
+            g_signal_connect(btn_dissolve, "clicked", G_CALLBACK(on_dissolve_banc_clicked), NULL);
+            gtk_box_append(GTK_BOX(actions_box), btn_dissolve);
+
+            GtkWidget *btn_split = gtk_button_new_with_label("✂️ Diviser");
+            g_object_set_data(G_OBJECT(btn_split), "ui", ui);
+            g_object_set_data(G_OBJECT(btn_split), "banc_id", GINT_TO_POINTER(b_id));
+            g_signal_connect(btn_split, "clicked", G_CALLBACK(on_split_banc_clicked), NULL);
+            gtk_box_append(GTK_BOX(actions_box), btn_split);
+
+            gtk_box_append(GTK_BOX(item), actions_box);
 
             gtk_box_append(GTK_BOX(ui->box_sidebar_content), item);
          }
@@ -781,6 +1471,22 @@ static gboolean update_simulation(gpointer user_data)
 
    double dt = 0.033; // 33ms step
    ui->elapsed_time += dt;
+
+   // Dynamically update canvas and background bounds if window resizes
+   int canvas_w = gtk_widget_get_width(ui->canvas);
+   int canvas_h = gtk_widget_get_height(ui->canvas);
+   if (canvas_w > 50 && canvas_h > 50)
+   {
+      if (canvas_w != ui->config_canvas_width || canvas_h != ui->config_canvas_height)
+      {
+         ui->config_canvas_width = canvas_w;
+         ui->config_canvas_height = canvas_h;
+         if (ui->bg_widget)
+         {
+            gtk_widget_set_size_request(ui->bg_widget, canvas_w, canvas_h);
+         }
+      }
+   }
 
    // 1. Gather all species movements & boids calculations
    for (GList *l = ui->poissons; l; l = l->next)
@@ -1006,20 +1712,39 @@ static gboolean update_simulation(gpointer user_data)
       // Animate/move widget
       if (p->widget_image)
       {
-         // Flip fish horizontally based on movement direction
-         GtkWidget *img_widget = gtk_widget_get_first_child(p->widget_image); // skips the leader label
+         // Update fish animation frame if multiple frames exist
+         if (p->chemin_frames[1] != NULL)
+         {
+            p->temps_depuis_frame += dt;
+            if (p->temps_depuis_frame >= 0.25) // Change frame every 250ms
+            {
+               p->temps_depuis_frame = 0.0;
+               int next_frame = p->frame_courante + 1;
+               if (next_frame >= 3 || p->chemin_frames[next_frame] == NULL)
+               {
+                  next_frame = 0;
+               }
+               p->frame_courante = next_frame;
+            }
+         }
+
+         // Get the image widget inside the box: skips the leader label
+         GtkWidget *img_widget = gtk_widget_get_first_child(p->widget_image); 
          if (img_widget && GTK_IS_LABEL(img_widget)) 
          {
             img_widget = gtk_widget_get_next_sibling(img_widget); // this is the image
          }
          
-         if (img_widget)
+         if (img_widget && GTK_IS_PICTURE(img_widget))
          {
-            if (p->vx > 0)
+            gtk_picture_set_filename(GTK_PICTURE(img_widget), p->chemin_frames[p->frame_courante] ? p->chemin_frames[p->frame_courante] : p->chemin_frames[0]);
+            if (p->vx < 0.0)
             {
-               // Facing right: transform flip
-               GtkStyleContext *style_ctx = gtk_widget_get_style_context(img_widget);
-               // Add native layout flip or scale if needed
+               gtk_widget_add_css_class(img_widget, "flipped");
+            }
+            else
+            {
+               gtk_widget_remove_css_class(img_widget, "flipped");
             }
          }
 
@@ -1052,26 +1777,24 @@ static void on_add_poisson_btn_clicked(GtkButton *btn, gpointer user_data)
    gtk_widget_add_css_class(lbl_p, "entity-header");
    gtk_box_append(GTK_BOX(box), lbl_p);
 
-   // Hareng
-   GtkWidget *btn_har = gtk_button_new_with_label("🐟  Hareng (Banc possible)");
-   g_object_set_data(G_OBJECT(btn_har), "ui", ui);
-   g_object_set_data(G_OBJECT(btn_har), "species", "Hareng");
-   g_signal_connect(btn_har, "clicked", G_CALLBACK(on_species_selected), NULL);
-   gtk_box_append(GTK_BOX(box), btn_har);
-
-   // Poisson-globe
-   GtkWidget *btn_gl = gtk_button_new_with_label("🐡  Poisson-globe (Banc possible)");
-   g_object_set_data(G_OBJECT(btn_gl), "ui", ui);
-   g_object_set_data(G_OBJECT(btn_gl), "species", "Poisson-globe");
-   g_signal_connect(btn_gl, "clicked", G_CALLBACK(on_species_selected), NULL);
-   gtk_box_append(GTK_BOX(box), btn_gl);
-
-   // Poisson clown
-   GtkWidget *btn_cl = gtk_button_new_with_label("🐠  Poisson clown (Banc possible)");
-   g_object_set_data(G_OBJECT(btn_cl), "ui", ui);
-   g_object_set_data(G_OBJECT(btn_cl), "species", "Poisson clown");
-   g_signal_connect(btn_cl, "clicked", G_CALLBACK(on_species_selected), NULL);
-   gtk_box_append(GTK_BOX(box), btn_cl);
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *cfg = l->data;
+      if (strcmp(cfg->type, "prey") == 0)
+      {
+         char label_buf[128];
+         const char *emoji = "🐟";
+         if (strcmp(cfg->nom, "Poisson-globe") == 0) emoji = "🐡";
+         else if (strcmp(cfg->nom, "Poisson clown") == 0) emoji = "🐠";
+         
+         sprintf(label_buf, "%s  %s (Banc possible)", emoji, cfg->nom);
+         GtkWidget *btn_sp = gtk_button_new_with_label(label_buf);
+         g_object_set_data(G_OBJECT(btn_sp), "ui", ui);
+         g_object_set_data(G_OBJECT(btn_sp), "species", cfg->nom);
+         g_signal_connect(btn_sp, "clicked", G_CALLBACK(on_species_selected), NULL);
+         gtk_box_append(GTK_BOX(box), btn_sp);
+      }
+   }
 
    // PRÉDATEURS header
    GtkWidget *lbl_pr = gtk_label_new("PRÉDATEURS & ALLIÉS");
@@ -1079,19 +1802,22 @@ static void on_add_poisson_btn_clicked(GtkButton *btn, gpointer user_data)
    gtk_widget_add_css_class(lbl_pr, "entity-header");
    gtk_box_append(GTK_BOX(box), lbl_pr);
 
-   // Requin
-   GtkWidget *btn_req = gtk_button_new_with_label("🦈  Requin (Individuel)");
-   g_object_set_data(G_OBJECT(btn_req), "ui", ui);
-   g_object_set_data(G_OBJECT(btn_req), "species", "Requin");
-   g_signal_connect(btn_req, "clicked", G_CALLBACK(on_species_selected), NULL);
-   gtk_box_append(GTK_BOX(box), btn_req);
-
-   // Dauphin
-   GtkWidget *btn_dau = gtk_button_new_with_label("🐬  Dauphin (Individuel)");
-   g_object_set_data(G_OBJECT(btn_dau), "ui", ui);
-   g_object_set_data(G_OBJECT(btn_dau), "species", "Dauphin");
-   g_signal_connect(btn_dau, "clicked", G_CALLBACK(on_species_selected), NULL);
-   gtk_box_append(GTK_BOX(box), btn_dau);
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *cfg = l->data;
+      if (strcmp(cfg->type, "prey") != 0)
+      {
+         char label_buf[128];
+         const char *emoji = strcmp(cfg->type, "predator") == 0 ? "🦈" : "🐬";
+         
+         sprintf(label_buf, "%s  %s (Individuel)", emoji, cfg->nom);
+         GtkWidget *btn_sp = gtk_button_new_with_label(label_buf);
+         g_object_set_data(G_OBJECT(btn_sp), "ui", ui);
+         g_object_set_data(G_OBJECT(btn_sp), "species", cfg->nom);
+         g_signal_connect(btn_sp, "clicked", G_CALLBACK(on_species_selected), NULL);
+         gtk_box_append(GTK_BOX(box), btn_sp);
+      }
+   }
 
    gtk_popover_set_child(GTK_POPOVER(popover), box);
    gtk_popover_popup(GTK_POPOVER(popover));
@@ -1311,15 +2037,39 @@ static void on_restart_clicked(GtkButton *btn, gpointer user_data)
    ui->num_bancs = 0;
    ui->elapsed_time = 0;
 
-   // Pre-populate default entities: 3 schools of different fish + 1 predator + 1 ally
-   ui->num_bancs++;
-   for (int i = 0; i < 4; i++) add_fish_programmatic(ui, "Hareng", TRUE, ui->num_bancs); // school of 4
-   
-   ui->num_bancs++;
-   for (int i = 0; i < 3; i++) add_fish_programmatic(ui, "Poisson-globe", TRUE, ui->num_bancs); // school of 3
-
-   add_fish_programmatic(ui, "Poisson clown", FALSE, -1); // solo
-   add_fish_programmatic(ui, "Requin", FALSE, -1); // predator
+   // Pre-populate default entities dynamically
+   int preys_found = 0;
+   int preds_found = 0;
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *cfg = l->data;
+      if (strcmp(cfg->type, "prey") == 0)
+      {
+         preys_found++;
+         if (preys_found == 1)
+         {
+            ui->num_bancs++;
+            for (int i = 0; i < 4; i++) add_fish_programmatic(ui, cfg->nom, TRUE, ui->num_bancs);
+         }
+         else if (preys_found == 2)
+         {
+            ui->num_bancs++;
+            for (int i = 0; i < 3; i++) add_fish_programmatic(ui, cfg->nom, TRUE, ui->num_bancs);
+         }
+         else if (preys_found == 3)
+         {
+            add_fish_programmatic(ui, cfg->nom, FALSE, -1);
+         }
+      }
+      else if (strcmp(cfg->type, "predator") == 0)
+      {
+         preds_found++;
+         if (preds_found == 1)
+         {
+            add_fish_programmatic(ui, cfg->nom, FALSE, -1);
+         }
+      }
+   }
 
    update_sidebar_list(ui);
    update_status_bar(ui);
@@ -1341,6 +2091,9 @@ GtkWidget *screen_bassin_create(void)
     ui->simulation_running = TRUE;
     ui->active_tab = 0; // Entités
     ui->elapsed_time = 0;
+
+    // Dynamic species loading
+    load_species_configs(ui);
 
     // Default configuration values
     ui->config_fish_size = 64;
@@ -1373,6 +2126,14 @@ GtkWidget *screen_bassin_create(void)
    gtk_widget_add_css_class(btn_remove, "destructive-action");
    g_signal_connect(btn_remove, "clicked", G_CALLBACK(on_remove_poisson_btn_clicked), ui);
    gtk_box_append(GTK_BOX(header), btn_remove);
+
+   GtkWidget *btn_save = gtk_button_new_with_label("💾 Sauvegarder");
+   g_signal_connect(btn_save, "clicked", G_CALLBACK(on_save_clicked), ui);
+   gtk_box_append(GTK_BOX(header), btn_save);
+
+   GtkWidget *btn_load = gtk_button_new_with_label("📂 Charger");
+   g_signal_connect(btn_load, "clicked", G_CALLBACK(on_load_clicked), ui);
+   gtk_box_append(GTK_BOX(header), btn_load);
 
    // Simulation status controls on the right
    GtkWidget *sim_controls = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
@@ -1408,6 +2169,7 @@ GtkWidget *screen_bassin_create(void)
    // 1. Center Canvas aquarium (GtkFixed)
    ui->canvas = gtk_fixed_new();
    gtk_widget_set_hexpand(ui->canvas, TRUE);
+   gtk_widget_set_vexpand(ui->canvas, TRUE);
    gtk_widget_set_size_request(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
     
    // Canvas Background Image (using GtkPicture with no aspect ratio constraint for dynamic stretching)
