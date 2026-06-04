@@ -447,7 +447,9 @@ GtkWidget *dialog_creer(Dialog *cfg)
       gtk_box_append(GTK_BOX(cfg->box_header), btn_close);
    }
 
-   gtk_box_append(GTK_BOX(root), cfg->box_header);
+   GtkWidget *handle = gtk_window_handle_new();
+   gtk_window_handle_set_child(GTK_WINDOW_HANDLE(handle), cfg->box_header);
+   gtk_box_append(GTK_BOX(root), handle);
 
    /* Séparateur header / corps */
    gtk_box_append(GTK_BOX(root), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL));
