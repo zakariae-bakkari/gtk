@@ -14,14 +14,23 @@
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green_outline.png</frame>
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png</frame>
     </species>
-    <species name="Requin" type="predator" speed_norm="65.0" speed_escape="95.0" speed_slow="30.0" size="80" detection="120">
+    <species name="Requin" type="predator" speed_norm="65.0" speed_escape="95.0" speed_slow="30.0" size="115" detection="120">
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a_outline.png</frame>
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
     </species>
-    <species name="Dauphin" type="ally" speed_norm="75.0" speed_escape="105.0" speed_slow="35.0" size="80" detection="120">
+    <species name="Requin Blanc" type="predator" speed_norm="70.0" speed_escape="100.0" speed_slow="35.0" size="130" detection="130">
+        <frame>resources/images/shark_open_no_background.png</frame>
+        <frame>resources/images/shark2-removebg-no_background.png</frame>
+    </species>
+    <species name="Dauphin" type="ally" speed_norm="75.0" speed_escape="105.0" speed_slow="35.0" size="96" detection="120">
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b_outline.png</frame>
         <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
+    </species>
+    <species name="Puffer" type="predator" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="80" detection="100">
+        <frame>resources/images/Puffer_normal_no_background.png</frame>
+        <frame>resources/images/Puffer_big_no_background.png</frame>
+        <frame>resources/images/Puffer_normal_no_background.png</frame>
     </species>
 </species_list>

@@ -1,14 +1,9 @@
 <bassin>
-  <canvas width="900" height="600" fish_size="64" bg="resources/images/background.png" elapsed_time="2.442000" num_bancs="2"/>
+  <canvas width="1030" height="600" fish_size="64" bg="resources/images/background_banc.png" elapsed_time="73.557000" num_bancs="0"/>
   <poissons>
-    <poisson id="9" nom="Requin" x="430.490623" y="362.048212" vx="52.544146" vy="-38.263725" id_banc="-1" est_leader="false"/>
-    <poisson id="8" nom="Poisson clown" x="584.328914" y="462.975464" vx="-49.005359" vy="24.969477" id_banc="-1" est_leader="false"/>
-    <poisson id="7" nom="Poisson-globe" x="688.887637" y="254.160862" vx="-30.977148" vy="-32.640715" id_banc="2" est_leader="false"/>
-    <poisson id="6" nom="Poisson-globe" x="552.908211" y="264.675837" vx="-11.494111" vy="-43.507303" id_banc="2" est_leader="false"/>
-    <poisson id="5" nom="Poisson-globe" x="372.783954" y="89.196227" vx="44.129283" vy="-8.809446" id_banc="2" est_leader="true"/>
-    <poisson id="4" nom="Hareng" x="661.684760" y="191.186029" vx="-44.451737" vy="-22.891986" id_banc="1" est_leader="false"/>
-    <poisson id="3" nom="Hareng" x="383.557157" y="141.618641" vx="-11.297629" vy="-48.706915" id_banc="1" est_leader="false"/>
-    <poisson id="2" nom="Hareng" x="622.774341" y="374.767188" vx="-29.868633" vy="-40.098189" id_banc="1" est_leader="false"/>
-    <poisson id="1" nom="Hareng" x="177.041243" y="66.121746" vx="40.761619" vy="-28.956698" id_banc="1" est_leader="true"/>
+    <poisson id="4" nom="Requin Blanc" x="424.753157" y="554.825125" vx="-4.445994" vy="-69.858665" id_banc="-1" est_leader="false" sante="100.000000"/>
+    <poisson id="3" nom="Requin" x="539.159986" y="380.656893" vx="-49.920662" vy="-41.628445" id_banc="-1" est_leader="false" sante="100.000000"/>
+    <poisson id="2" nom="Puffer" x="463.717565" y="317.590358" vx="-53.584796" vy="-45.040756" id_banc="-1" est_leader="false" sante="28.720000"/>
+    <poisson id="1" nom="Dauphin" x="535.809103" y="379.164818" vx="-62.458815" vy="-41.519832" id_banc="-1" est_leader="false" sante="100.000000"/>
   </poissons>
 </bassin>
