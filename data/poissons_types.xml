@@ -47,7 +47,6 @@
     <species name="Swordfish" type="predator" level="4" speed_norm="75.0" speed_escape="110.0" speed_slow="30.0" size="90" detection="110">
         <frame>resources/images/fishes/Swordfish/frame1.png</frame>
         <frame>resources/images/fishes/Swordfish/frame2.png</frame>
-        <frame>resources/images/fishes/Swordfish/frame3.png</frame>
         <eats>tuna</eats>
         <eats>Sardine</eats>
         <eats>Eel</eats>
