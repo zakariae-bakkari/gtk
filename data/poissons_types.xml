@@ -1,56 +1,107 @@
 <species_list>
-    <species name="Hareng" type="prey" speed_norm="50.0" speed_escape="80.0" speed_slow="25.0" size="64" detection="100">
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue_outline.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png</frame>
+    <species name="Requin Blanc" type="predator" level="5" speed_norm="70.0" speed_escape="110.0" speed_slow="35.0" size="140" detection="130">
+        <frame>resources/images/fishes/shark_white/frame1.png</frame>
+        <frame>resources/images/fishes/shark_white/frame2.png</frame>
+        <frame>resources/images/fishes/shark_white/frame1.png</frame>
+        <eats>tuna</eats>
+        <eats>Dolphin</eats>
+        <eats>Dauphin</eats>
+        <eats>Swordfish</eats>
+        <eats>Garfish</eats>
+        <eats>Eel</eats>
+        <eats>scate</eats>
+        <eats>turtle</eats>
+        <eats>Requin</eats>
+        <eats>Poisson-globe</eats>
+        <eats>Poisson clown</eats>
+        <eats>Hareng</eats>
+        <eats>Sardine</eats>
+        <eats>seahorse</eats>
     </species>
-    <species name="Poisson-globe" type="prey" speed_norm="45.0" speed_escape="75.0" speed_slow="20.0" size="64" detection="100">
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange_outline.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_orange.png</frame>
+    <species name="Puffer" type="predator" level="3" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="65" detection="100">
+        <frame>resources/images/fishes/puffer/frame1.png</frame>
+        <frame>resources/images/fishes/puffer/frame2.png</frame>
+        <frame>resources/images/fishes/puffer/frame1.png</frame>
+        <eats>Sardine</eats>
+        <eats>Poisson clown</eats>
+        <eats>seahorse</eats>
     </species>
-    <species name="Poisson clown" type="prey" speed_norm="55.0" speed_escape="85.0" speed_slow="30.0" size="64" detection="100">
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green_outline.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_green.png</frame>
+    <species name="Sardine" type="prey" level="1" speed_norm="70.0" speed_escape="95.0" speed_slow="20.0" size="35" detection="100">
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <frame>resources/images/fishes/sardine/frame2.png</frame>
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
     </species>
-    <species name="Requin" type="predator" speed_norm="65.0" speed_escape="95.0" speed_slow="30.0" size="115" detection="120">
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a_outline.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_a.png</frame>
-    </species>
-    <species name="Requin Blanc" type="predator" speed_norm="70.0" speed_escape="100.0" speed_slow="35.0" size="130" detection="130">
-        <frame>resources/images/shark_open_no_background.png</frame>
-        <frame>resources/images/shark2-removebg-no_background.png</frame>
-    </species>
-    <species name="Dauphin" type="ally" speed_norm="75.0" speed_escape="105.0" speed_slow="35.0" size="96" detection="120">
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b_outline.png</frame>
-        <frame>resources/kenney_fish-pack_2.0/PNG/Default/fish_grey_long_b.png</frame>
-    </species>
-    <species name="Puffer" type="predator" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="80" detection="100">
-        <frame>resources/images/Puffer_normal_no_background.png</frame>
-        <frame>resources/images/Puffer_big_no_background.png</frame>
-        <frame>resources/images/Puffer_normal_no_background.png</frame>
-    </species>
-    <species name="Sardine" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
-        <frame>resources/images/sardine.png</frame>
-        <frame>resources/images/sardine2.png</frame>
-        <frame>resources/images/sardine.png</frame>
-    </species>
-    <species name="Eel" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+    <species name="Eel" type="prey" level="2" speed_norm="50.0" speed_escape="80.0" speed_slow="20.0" size="55" detection="100">
         <frame>resources/images/fishes/eel/frame1.png</frame>
         <frame>resources/images/fishes/eel/frame2.png</frame>
         <frame>resources/images/fishes/eel/frame3.png</frame>
+        <eats>Sardine</eats>
+        <eats>seahorse</eats>
+        <eats>Hareng</eats>
     </species>    
-        <species name="scate" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+    <species name="scate" type="prey" level="2" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="60" detection="100">
         <frame>resources/images/fishes/scate/frame1.png</frame>
         <frame>resources/images/fishes/scate/frame2.png</frame>
         <frame>resources/images/fishes/scate/frame3.png</frame>
     </species>  
-         <species name="Swordfish" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+    <species name="Swordfish" type="predator" level="4" speed_norm="75.0" speed_escape="110.0" speed_slow="30.0" size="90" detection="110">
         <frame>resources/images/fishes/Swordfish/frame1.png</frame>
         <frame>resources/images/fishes/Swordfish/frame2.png</frame>
-        <frame>resources/images/fishes/Swordfish/frame1.png</frame>
+        <frame>resources/images/fishes/Swordfish/frame3.png</frame>
+        <eats>tuna</eats>
+        <eats>Sardine</eats>
+        <eats>Eel</eats>
+        <eats>scate</eats>
+        <eats>Hareng</eats>
     </species>  
+    <species name="seahorse" type="prey" level="1" speed_norm="30.0" speed_escape="55.0" speed_slow="15.0" size="35" detection="100">
+        <frame>resources/images/fishes/seahorse/frame1.png</frame>
+        <frame>resources/images/fishes/seahorse/frame2.png</frame>
+        <frame>resources/images/fishes/seahorse/frame1.png</frame>
+    </species>
+    <species name="turtle" type="prey" level="2" speed_norm="25.0" speed_escape="45.0" speed_slow="15.0" size="65" detection="100">
+        <frame>resources/images/fishes/turtle/frame1.png</frame>
+        <frame>resources/images/fishes/turtle/frame2.png</frame>
+        <frame>resources/images/fishes/turtle/frame1.png</frame>
+    </species>
+    <species name="Garfish" type="predator" level="3" speed_norm="65.0" speed_escape="95.0" speed_slow="25.0" size="75" detection="100">
+        <frame>resources/images/fishes/Garfish/frame1.png</frame>
+        <frame>resources/images/fishes/Garfish/frame2.png</frame>
+        <frame>resources/images/fishes/Garfish/frame3.png</frame>
+        <eats>Sardine</eats>
+        <eats>Poisson clown</eats>
+        <eats>Hareng</eats>
+    </species>
+    <species name="tuna" type="predator" level="4" speed_norm="85.0" speed_escape="120.0" speed_slow="35.0" size="85" detection="120">
+        <frame>resources/images/fishes/tuna/frame1.png</frame>
+        <frame>resources/images/fishes/tuna/frame2.png</frame>
+        <frame>resources/images/fishes/tuna/frame3.png</frame>
+        <eats>Sardine</eats>
+        <eats>Hareng</eats>
+        <eats>Poisson clown</eats>
+        <eats>Poisson-globe</eats>
+        <eats>seahorse</eats>
+    </species>
+    <species name="Dolphin" type="ally" level="4" speed_norm="80.0" speed_escape="115.0" speed_slow="35.0" size="100" detection="120">
+        <frame>resources/images/fishes/dolphin/frame1.png</frame>
+        <frame>resources/images/fishes/dolphin/frame2.png</frame>
+        <frame>resources/images/fishes/dolphin/frame3.png</frame>
+        <eats>Sardine</eats>
+        <eats>Eel</eats>
+        <eats>scate</eats>
+        <eats>Hareng</eats>
+    </species>
+    <species name="orka" type="predator" level="5" speed_norm="90.0" speed_escape="130.0" speed_slow="40.0" size="160" detection="135">
+        <frame>resources/images/fishes/orka/frame1.png</frame>
+        <frame>resources/images/fishes/orka/frame2.png</frame>
+        <frame>resources/images/fishes/orka/frame3.png</frame>
+        <eats>Requin</eats>
+        <eats>Requin Blanc</eats>
+        <eats>Dolphin</eats>
+        <eats>Dauphin</eats>
+        <eats>tuna</eats>
+        <eats>Swordfish</eats>
+        <eats>turtle</eats>
+        <eats>scate</eats>
+    </species>
 </species_list>

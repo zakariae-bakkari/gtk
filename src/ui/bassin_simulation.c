@@ -6,7 +6,32 @@
 // But defined in screen_bassin.c or bassin_private.h? Let's verify.
 // They are defined in screen_bassin.c, so we can just use them here.
 
-// Find closest prey
+gboolean can_eat(BassinUI *ui, Poisson *predator, Poisson *prey)
+{
+   if (!predator || !prey) return FALSE;
+   SpeciesConfig *pred_cfg = find_species_config(ui, predator->nom);
+   if (!pred_cfg) return FALSE;
+
+   // If the predator config defines a specific diet (list of species it eats)
+   if (pred_cfg->nb_diet > 0)
+   {
+      for (int i = 0; i < pred_cfg->nb_diet; i++)
+      {
+         if (strcmp(pred_cfg->diet[i], prey->nom) == 0)
+         {
+            return TRUE;
+         }
+      }
+      return FALSE; // Specific diet defined and prey is not in it
+   }
+
+   // Fallback: use level hierarchy (predator eats any fish with lower level)
+   int pred_level = pred_cfg->level;
+   int prey_level = get_fish_level(ui, prey);
+   return pred_level > prey_level;
+}
+
+// Find closest prey (any fish with a level lower than us or in our custom diet)
 Poisson *find_nearest_prey(BassinUI *ui, Poisson *predator)
 {
    Poisson *closest = NULL;
@@ -14,22 +39,25 @@ Poisson *find_nearest_prey(BassinUI *ui, Poisson *predator)
    for (GList *l = ui->poissons; l; l = l->next)
    {
       Poisson *p = l->data;
-      if (p != predator && is_prey(ui, p) && p->sante > 0.0)
+      if (p != predator && p->sante > 0.0)
       {
-         double dx = (p->x + p->taille / 2.0) - (predator->x + predator->taille / 2.0);
-         double dy = (p->y + p->taille / 2.0) - (predator->y + predator->taille / 2.0);
-         double dist = sqrt(dx * dx + dy * dy);
-         if (dist < min_dist)
+         if (can_eat(ui, predator, p))
          {
-            min_dist = dist;
-            closest = p;
+            double dx = (p->x + p->taille / 2.0) - (predator->x + predator->taille / 2.0);
+            double dy = (p->y + p->taille / 2.0) - (predator->y + predator->taille / 2.0);
+            double dist = sqrt(dx * dx + dy * dy);
+            if (dist < min_dist)
+            {
+               min_dist = dist;
+               closest = p;
+            }
          }
       }
    }
    return closest;
 }
 
-// Find closest predator
+// Find closest predator (any fish that can eat us)
 Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish)
 {
    Poisson *closest = NULL;
@@ -37,15 +65,18 @@ Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish)
    for (GList *l = ui->poissons; l; l = l->next)
    {
       Poisson *p = l->data;
-      if (is_predator(ui, p))
+      if (p != fish && p->sante > 0.0)
       {
-         double dx = (p->x + p->taille / 2.0) - (fish->x + fish->taille / 2.0);
-         double dy = (p->y + p->taille / 2.0) - (fish->y + fish->taille / 2.0);
-         double dist = sqrt(dx * dx + dy * dy);
-         if (dist < min_dist)
+         if (can_eat(ui, p, fish))
          {
-            min_dist = dist;
-            closest = p;
+            double dx = (p->x + p->taille / 2.0) - (fish->x + fish->taille / 2.0);
+            double dy = (p->y + p->taille / 2.0) - (fish->y + fish->taille / 2.0);
+            double dist = sqrt(dx * dx + dy * dy);
+            if (dist < min_dist)
+            {
+               min_dist = dist;
+               closest = p;
+            }
          }
       }
    }
@@ -187,63 +218,12 @@ gboolean update_simulation(gpointer user_data)
             force_y = p->vy;
          }
       }
-      else if (is_predator(ui, p))
-      {
-         // Predator chases nearest prey
-         Poisson *target = find_nearest_prey(ui, p);
-         if (target)
-         {
-            double dx = (target->x + target->taille / 2.0) - (p->x + p->taille / 2.0);
-            double dy = (target->y + target->taille / 2.0) - (p->y + p->taille / 2.0);
-            double dist = sqrt(dx * dx + dy * dy);
-            if (dist > 0)
-            {
-               force_x = (dx / dist) * p->vitesse_fuite;
-               force_y = (dy / dist) * p->vitesse_fuite;
-
-               // Check if attacking
-               if (dist < (p->taille + target->taille) * 0.5)
-               {
-                  double damage_rate = 180.0;
-                  target->sante -= damage_rate * dt;
-                  target->temps_effet_attaque = 0.5;
-                  target->dernier_attaquant = p;
-                  target->degats_accumules += damage_rate * dt;
-               }
-            }
-         }
-         else
-         {
-            force_x = p->vx;
-            force_y = p->vy;
-         }
-      }
-      else if (is_ally(ui, p))
-      {
-         // Ally (e.g. Dauphin) chases nearest predator
-         Poisson *target = find_nearest_predator(ui, p);
-         if (target)
-         {
-            double dx = (target->x + target->taille / 2.0) - (p->x + p->taille / 2.0);
-            double dy = (target->y + target->taille / 2.0) - (p->y + p->taille / 2.0);
-            double dist = sqrt(dx * dx + dy * dy);
-            if (dist > 0)
-            {
-               force_x = (dx / dist) * p->vitesse_fuite;
-               force_y = (dy / dist) * p->vitesse_fuite;
-            }
-         }
-         else
-         {
-            force_x = p->vx;
-            force_y = p->vy;
-         }
-      }
       else
       {
-         // Prey: Hareng, Poisson-globe, Poisson clown
+         // Food chain hierarchy behavior
+         // 1. Check if there is a predator nearby (any fish with a level higher than us)
          Poisson *pred = find_nearest_predator(ui, p);
-         if (pred)
+         if (pred && (p->perimetre_detection > 0))
          {
             double dx = (pred->x + pred->taille / 2.0) - (p->x + p->taille / 2.0);
             double dy = (pred->y + pred->taille / 2.0) - (p->y + p->taille / 2.0);
@@ -262,98 +242,135 @@ gboolean update_simulation(gpointer user_data)
                p->etat = ETAT_NORMAL;
             }
          }
+         else
+         {
+            p->etat = ETAT_NORMAL;
+         }
 
          if (p->etat == ETAT_NORMAL)
          {
-            if (p->id_banc >= 0)
+            // 2. If we are not fleeing, and our level > 1, check if we can chase a prey (lower level fish)
+            int lvl = get_fish_level(ui, p);
+            Poisson *target = NULL;
+            if (lvl > 1)
             {
-               // Flocking behaviors
-               double coh_x = 0, coh_y = 0;
-               double align_vx = 0, align_vy = 0;
-               double sep_x = 0, sep_y = 0;
-               int num_banc_members = 0;
-               Poisson *leader = NULL;
+               target = find_nearest_prey(ui, p);
+            }
 
-               for (GList *o = ui->poissons; o; o = o->next)
+            if (target)
+            {
+               double dx = (target->x + target->taille / 2.0) - (p->x + p->taille / 2.0);
+               double dy = (target->y + target->taille / 2.0) - (p->y + p->taille / 2.0);
+               double dist = sqrt(dx * dx + dy * dy);
+               if (dist > 0)
                {
-                  Poisson *other = o->data;
-                  if (other != p && other->id_banc == p->id_banc)
+                  force_x = (dx / dist) * p->vitesse_fuite;
+                  force_y = (dy / dist) * p->vitesse_fuite;
+
+                  // Check if attacking
+                  if (dist < (p->taille + target->taille) * 0.5)
                   {
-                     coh_x += other->x;
-                     coh_y += other->y;
-                     align_vx += other->vx;
-                     align_vy += other->vy;
+                     double damage_rate = 180.0;
+                     target->sante -= damage_rate * dt;
+                     target->temps_effet_attaque = 0.5;
+                     target->dernier_attaquant = p;
+                     target->degats_accumules += damage_rate * dt;
+                  }
+               }
+            }
+            else
+            {
+               // 3. No prey and no predator, do flocking (if in school) or random swim
+               if (p->id_banc >= 0)
+               {
+                  // Flocking behaviors
+                  double coh_x = 0, coh_y = 0;
+                  double align_vx = 0, align_vy = 0;
+                  double sep_x = 0, sep_y = 0;
+                  int num_banc_members = 0;
+                  Poisson *leader = NULL;
 
-                     double dx = p->x - other->x;
-                     double dy = p->y - other->y;
-                     double d = sqrt(dx * dx + dy * dy);
-                     if (d < 45.0 && d > 0)
+                  for (GList *o = ui->poissons; o; o = o->next)
+                  {
+                     Poisson *other = o->data;
+                     if (other != p && other->id_banc == p->id_banc)
                      {
-                        sep_x += dx / d;
-                        sep_y += dy / d;
-                      }
-                      if (other->est_leader)
-                      {
-                         leader = other;
-                      }
-                      num_banc_members++;
-                   }
-                }
+                        coh_x += other->x;
+                        coh_y += other->y;
+                        align_vx += other->vx;
+                        align_vy += other->vy;
 
-                if (num_banc_members > 0)
-                {
-                   coh_x /= num_banc_members;
-                   coh_y /= num_banc_members;
-                   align_vx /= num_banc_members;
-                   align_vy /= num_banc_members;
+                        double dx = p->x - other->x;
+                        double dy = p->y - other->y;
+                        double d = sqrt(dx * dx + dy * dy);
+                        if (d < 45.0 && d > 0)
+                        {
+                           sep_x += dx / d;
+                           sep_y += dy / d;
+                        }
+                        if (other->est_leader)
+                        {
+                           leader = other;
+                        }
+                        num_banc_members++;
+                     }
+                  }
 
-                   // Cohesion force
-                   double coh_fx = coh_x - p->x;
-                   double coh_fy = coh_y - p->y;
-                   double coh_d = sqrt(coh_fx * coh_fx + coh_fy * coh_fy);
-                   if (coh_d > 0)
-                   {
-                      coh_fx = (coh_fx / coh_d) * p->vitesse_normale;
-                      coh_fy = (coh_fy / coh_d) * p->vitesse_normale;
-                   }
+                  if (num_banc_members > 0)
+                  {
+                     coh_x /= num_banc_members;
+                     coh_y /= num_banc_members;
+                     align_vx /= num_banc_members;
+                     align_vy /= num_banc_members;
 
-                   // Alignment force
-                   double align_d = sqrt(align_vx * align_vx + align_vy * align_vy);
-                   if (align_d > 0)
-                   {
-                      align_vx = (align_vx / align_d) * p->vitesse_normale;
-                      align_vy = (align_vy / align_d) * p->vitesse_normale;
-                   }
+                     // Cohesion force
+                     double coh_fx = coh_x - p->x;
+                     double coh_fy = coh_y - p->y;
+                     double coh_d = sqrt(coh_fx * coh_fx + coh_fy * coh_fy);
+                     if (coh_d > 0)
+                     {
+                        coh_fx = (coh_fx / coh_d) * p->vitesse_normale;
+                        coh_fy = (coh_fy / coh_d) * p->vitesse_normale;
+                     }
 
-                   force_x = coh_fx * 0.4 + align_vx * 0.3 + sep_x * 0.4 * p->vitesse_normale;
-                   force_y = coh_fy * 0.4 + align_vy * 0.3 + sep_y * 0.4 * p->vitesse_normale;
+                     // Alignment force
+                     double align_d = sqrt(align_vx * align_vx + align_vy * align_vy);
+                     if (align_d > 0)
+                     {
+                        align_vx = (align_vx / align_d) * p->vitesse_normale;
+                        align_vy = (align_vy / align_d) * p->vitesse_normale;
+                     }
 
-                   if (leader && !p->est_leader)
-                   {
-                      double lead_dx = leader->x - p->x;
-                      double lead_dy = leader->y - p->y;
-                      double lead_d = sqrt(lead_dx * lead_dx + lead_dy * lead_dy);
-                      if (lead_d > 0)
-                      {
-                         force_x += (lead_dx / lead_d) * p->vitesse_normale * 0.3;
-                         force_y += (lead_dy / lead_d) * p->vitesse_normale * 0.3;
-                      }
-                   }
-                }
-                else
-                {
-                   force_x = p->vx;
-                   force_y = p->vy;
-                }
-             }
-             else
-             {
-                // Solo random swim
-                force_x = p->vx;
-                force_y = p->vy;
-             }
-          }
-       }
+                     force_x = coh_fx * 0.4 + align_vx * 0.3 + sep_x * 0.4 * p->vitesse_normale;
+                     force_y = coh_fy * 0.4 + align_vy * 0.3 + sep_y * 0.4 * p->vitesse_normale;
+
+                     if (leader && !p->est_leader)
+                     {
+                        double lead_dx = leader->x - p->x;
+                        double lead_dy = leader->y - p->y;
+                        double lead_d = sqrt(lead_dx * lead_dx + lead_dy * lead_dy);
+                        if (lead_d > 0)
+                        {
+                           force_x += (lead_dx / lead_d) * p->vitesse_normale * 0.3;
+                           force_y += (lead_dy / lead_d) * p->vitesse_normale * 0.3;
+                        }
+                     }
+                  }
+                  else
+                  {
+                     force_x = p->vx;
+                     force_y = p->vy;
+                  }
+               }
+               else
+               {
+                  // Solo random swim
+                  force_x = p->vx;
+                  force_y = p->vy;
+               }
+            }
+         }
+      }
 
        // Smooth velocity transitions
        p->vx = p->vx * 0.85 + force_x * 0.15;

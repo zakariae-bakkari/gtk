@@ -10,6 +10,13 @@
 // Custom CSS loaded from resources/bassin.css
 
 // Helper functions for species type checking (non-static)
+int get_fish_level(BassinUI *ui, Poisson *p)
+{
+   if (!p) return 0;
+   SpeciesConfig *cfg = find_species_config(ui, p->nom);
+   return cfg ? cfg->level : 1;
+}
+
 gboolean is_predator(BassinUI *ui, Poisson *p)
 {
    if (!p) return FALSE;

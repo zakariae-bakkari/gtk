@@ -34,6 +34,11 @@ void load_species_configs(BassinUI *ui)
             if (cfg->chemin_frames[i])
                free(cfg->chemin_frames[i]);
          }
+         for (int i = 0; i < cfg->nb_diet; i++)
+         {
+            if (cfg->diet[i])
+               free(cfg->diet[i]);
+         }
          free(cfg);
       }
       g_list_free(ui->species_configs);
@@ -61,6 +66,7 @@ void load_species_configs(BassinUI *ui)
 
          cfg->nom = name ? strdup(name) : strdup("Poisson");
          cfg->type = type ? strdup(type) : strdup("prey");
+         cfg->level = attr_int(child, "level", 1);
 
          cfg->vitesse_normale = xml_attr_get(child, "speed_norm") ? atof(xml_attr_get(child, "speed_norm")) : 50.0;
          cfg->vitesse_fuite = xml_attr_get(child, "speed_escape") ? atof(xml_attr_get(child, "speed_escape")) : 80.0;
@@ -69,18 +75,35 @@ void load_species_configs(BassinUI *ui)
          cfg->perimetre_detection = attr_int(child, "detection", 100);
 
          int frame_idx = 0;
-         for (XmlNode *frame_node = child->children; frame_node; frame_node = frame_node->next)
+         int diet_idx = 0;
+         for (XmlNode *sub = child->children; sub; sub = sub->next)
          {
-            if (strcmp(frame_node->tag, "frame") == 0 && frame_idx < 3)
+            if (strcmp(sub->tag, "frame") == 0 && frame_idx < 3)
             {
-               const char *frame_path = xml_attr_get(frame_node, "texte");
+               const char *frame_path = xml_attr_get(sub, "texte");
                if (frame_path)
                {
                   cfg->chemin_frames[frame_idx++] = strdup(frame_path);
                }
             }
+            else if (strcmp(sub->tag, "eats") == 0 && diet_idx < 16)
+            {
+               const char *diet_name = xml_attr_get(sub, "texte");
+               if (diet_name)
+               {
+                  cfg->diet[diet_idx++] = strdup(diet_name);
+               }
+            }
          }
          cfg->nb_frames = frame_idx;
+         cfg->nb_diet = diet_idx;
+         g_print("Loaded Species: %s, type: %s, level: %d, frames: %d, diet: %d\n", cfg->nom, cfg->type, cfg->level, cfg->nb_frames, cfg->nb_diet);
+         for(int i = 0; i < cfg->nb_frames; i++) {
+             g_print("  Frame %d: %s\n", i, cfg->chemin_frames[i]);
+         }
+         for(int i = 0; i < cfg->nb_diet; i++) {
+             g_print("  Eats: %s\n", cfg->diet[i]);
+         }
          ui->species_configs = g_list_append(ui->species_configs, cfg);
       }
    }

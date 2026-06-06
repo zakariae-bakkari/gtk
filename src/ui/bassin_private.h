@@ -24,6 +24,9 @@ typedef struct
    int perimetre_detection;
    char *chemin_frames[3];
    int nb_frames;
+   int level;
+   char *diet[16]; // list of species names that this fish can eat
+   int nb_diet;
 } SpeciesConfig;
 
 typedef struct
@@ -84,6 +87,7 @@ typedef struct
 
 // Shared helper functions
 SpeciesConfig *find_species_config(BassinUI *ui, const char *species_name);
+int get_fish_level(BassinUI *ui, Poisson *p);
 gboolean is_predator(BassinUI *ui, Poisson *p);
 gboolean is_ally(BassinUI *ui, Poisson *p);
 gboolean is_prey(BassinUI *ui, Poisson *p);
