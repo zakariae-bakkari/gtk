@@ -33,9 +33,24 @@
         <frame>resources/images/Puffer_big_no_background.png</frame>
         <frame>resources/images/Puffer_normal_no_background.png</frame>
     </species>
-        <species name="Sardine" type="prey" speed_norm="170.0" speed_escape="270.0" speed_slow="20.0" size="30" detection="100">
+    <species name="Sardine" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
         <frame>resources/images/sardine.png</frame>
         <frame>resources/images/sardine2.png</frame>
         <frame>resources/images/sardine.png</frame>
     </species>
+    <species name="Eel" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+        <frame>resources/images/fishes/eel/frame1.png</frame>
+        <frame>resources/images/fishes/eel/frame2.png</frame>
+        <frame>resources/images/fishes/eel/frame3.png</frame>
+    </species>    
+        <species name="scate" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+        <frame>resources/images/fishes/scate/frame1.png</frame>
+        <frame>resources/images/fishes/scate/frame2.png</frame>
+        <frame>resources/images/fishes/scate/frame3.png</frame>
+    </species>  
+         <species name="Swordfish" type="prey" speed_norm="70.0" speed_escape="80.0" speed_slow="20.0" size="30" detection="100">
+        <frame>resources/images/fishes/Swordfish/frame1.png</frame>
+        <frame>resources/images/fishes/Swordfish/frame2.png</frame>
+        <frame>resources/images/fishes/Swordfish/frame1.png</frame>
+    </species>  
 </species_list>
