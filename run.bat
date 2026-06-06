@@ -222,7 +222,7 @@ if /i "!TARGET_NAME:~0,4!"=="game" (
     set "EXTRA_SRCS=src/bassin.c src/draw.c src/entities.c src/screen_accueil.c src/screen_createur.c src/screen_jeux.c src/assets.c src/sound.c"
 )
 if /i "!TARGET_NAME:~0,4!"=="main" (
-    set "EXTRA_SRCS=src/modele/poisson.c src/ui/screen_bassin.c src/ui/screen_stubs.c src/sound.c"
+    set "EXTRA_SRCS=src/modele/poisson.c src/ui/screen_bassin.c src/ui/bassin_simulation.c src/ui/bassin_sidebar.c src/ui/bassin_xml.c src/ui/bassin_dialogs.c src/ui/bassin_menu.c src/ui/screen_stubs.c src/sound.c"
 )
 :: Define ANSI Escape character for color and cursor manipulation
 for /f %%A in ('"prompt $E & echo on & for %%B in (1) do rem"') do set "ESC=%%A"

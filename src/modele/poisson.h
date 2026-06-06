@@ -47,6 +47,8 @@ typedef struct _Poisson
    double sante;
    double sante_max;
    double temps_effet_attaque;
+   double degats_accumules;
+   double temps_dernier_floating_damage;
 
    /* kill stats (predators only) */
    char *kills_espece[8];   /* species name (owned string) */

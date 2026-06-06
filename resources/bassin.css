@@ -1,0 +1,118 @@
+.entity-header {
+  font-weight: bold;
+  font-size: 13px;
+  color: #7F8C8D;
+  margin-top: 15px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.entity-item {
+  padding: 8px 12px;
+  background-color: #Fdfdfd;
+  border: 1px solid #EAEAEA;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+.badge-banc {
+  background-color: #EBF5FB;
+  color: #2980B9;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.badge-solo {
+  background-color: #F2F4F4;
+  color: #7F8C8D;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.badge-pred {
+  background-color: #FDEDEC;
+  color: #C0392B;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.fish-tag {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.fish-tag-pred {
+  background-color: rgba(192, 57, 43, 0.85);
+  color: white;
+  font-weight: bold;
+}
+.leader-tag {
+  color: #F1C40F;
+  font-size: 9px;
+  font-weight: bold;
+  text-shadow: 1px 1px 1px black;
+}
+.sidebar-container {
+  border-left: 1px solid #E0E0E0;
+  background-color: #FAFAFA;
+  padding: 15px;
+}
+.tab-active {
+  background-color: #3498DB;
+  color: white;
+  font-weight: bold;
+}
+.tab-inactive {
+  background-color: #ECEFF1;
+  color: #37474F;
+}
+.dialog-frame {
+  background-color: #F9F9FB;
+  border: 1px solid #E0E0E6;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.fish-selected {
+  border: 2px solid #3498DB;
+  border-radius: 8px;
+  box-shadow: 0 0 12px #3498DB;
+  padding: 4px;
+  background-color: rgba(52, 152, 219, 0.15);
+}
+.fish-health-bar {
+  min-height: 4px;
+  margin-top: 1px;
+  margin-bottom: 2px;
+}
+.fish-health-bar trough {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-radius: 2px;
+  min-height: 4px;
+}
+.fish-health-bar progress {
+  background-color: #2ECC71;
+  border-radius: 2px;
+  min-height: 4px;
+}
+.fish-health-bar.low-health progress {
+  background-color: #E74C3C;
+}
+.under-attack {
+  border: 2px solid #E74C3C;
+  border-radius: 6px;
+  box-shadow: 0 0 10px #E74C3C;
+  background-color: rgba(231, 76, 60, 0.25);
+}
+.floating-damage {
+  color: #E74C3C;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}

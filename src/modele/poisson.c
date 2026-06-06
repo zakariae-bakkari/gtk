@@ -35,6 +35,8 @@ Poisson *poisson_new(const char *nom)
    p->sante = 100.0;
    p->sante_max = 100.0;
    p->temps_effet_attaque = 0.0;
+   p->degats_accumules = 0.0;
+   p->temps_dernier_floating_damage = 0.0;
 
    /* kill stats */
    for (int i = 0; i < 8; i++) { p->kills_espece[i] = NULL; p->kills_count[i] = 0; }
