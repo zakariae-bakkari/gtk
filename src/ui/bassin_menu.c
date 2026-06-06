@@ -151,6 +151,17 @@ void on_vider_clicked(GtkWidget *widget, gpointer user_data)
    update_status_bar(ui);
 }
 
+void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = user_data;
+   if (ui)
+   {
+      ui->zen_mode = !ui->zen_mode;
+      apply_zen_mode(ui);
+   }
+}
+
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
 {
    // Title label styled
@@ -216,6 +227,11 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
    GtkWidget *btn_toggle_sidebar = gtk_button_new_with_label("📋 Sidebar");
    g_signal_connect(btn_toggle_sidebar, "clicked", G_CALLBACK(on_toggle_sidebar_clicked), ui);
    gtk_box_append(GTK_BOX(sim_controls), btn_toggle_sidebar);
+
+   // Toggle Zen Mode button
+   GtkWidget *btn_zen = gtk_button_new_with_label("🧘 Mode Zen");
+   g_signal_connect(btn_zen, "clicked", G_CALLBACK(on_toggle_zen_mode_clicked), ui);
+   gtk_box_append(GTK_BOX(sim_controls), btn_zen);
 
    gtk_box_append(GTK_BOX(header_box), sim_controls);
 }

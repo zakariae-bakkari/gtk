@@ -24,10 +24,13 @@ static void on_bouton_clicked(GtkButton *button, gpointer user_data)
    if (!d || !d->dialog)
       return;
 
-   if (d->dialog->on_reponse)
-      d->dialog->on_reponse(d->reponse_id, d->dialog->user_data);
+   Dialog *dialog = d->dialog;
+   int reponse_id = d->reponse_id;
 
-   dialog_fermer(d->dialog);
+   if (dialog->on_reponse)
+      dialog->on_reponse(reponse_id, dialog->user_data);
+
+   dialog_fermer(dialog);
 }
 
 static void on_close_request(GtkWindow *window, gpointer user_data)
@@ -41,8 +44,10 @@ static void on_close_request(GtkWindow *window, gpointer user_data)
 
 static void dialog_apply_css(Dialog *cfg)
 {
-   if (!cfg || !cfg->window || !cfg->id_css)
+   if (!cfg || !cfg->window)
       return;
+
+   const char *id = cfg->id_css ? cfg->id_css : "dialog";
 
    GtkCssProvider *provider = gtk_css_provider_new();
    char css[4096];
@@ -129,46 +134,46 @@ static void dialog_apply_css(Dialog *cfg)
             "}\n",
 
             /* window */
-            cfg->id_css,
+            id,
             cfg->style.bg_corps ? cfg->style.bg_corps : "#ffffff",
             cfg->style.rayon_arrondi,
             border_css,
 
             /* header */
-            cfg->id_css,
+            id,
             cfg->style.bg_header ? cfg->style.bg_header : "#3498db",
             cfg->style.rayon_arrondi, cfg->style.rayon_arrondi,
 
             /* header label */
-            cfg->id_css,
+            id,
             cfg->style.fg_header ? cfg->style.fg_header : "#ffffff",
             cfg->style.titre_gras ? "bold" : "normal",
             titre_size,
 
             /* corps */
-            cfg->id_css,
+            id,
             cfg->style.bg_corps ? cfg->style.bg_corps : "#ffffff",
 
             /* corps label */
-            cfg->id_css,
+            id,
             cfg->style.fg_corps ? cfg->style.fg_corps : "#2c3e50",
 
             /* footer */
-            cfg->id_css,
+            id,
             cfg->style.bg_footer ? cfg->style.bg_footer : "#f5f6fa",
             cfg->style.rayon_arrondi, cfg->style.rayon_arrondi,
 
             /* bouton principal */
-            cfg->id_css,
+            id,
             cfg->style.bg_bouton_principal ? cfg->style.bg_bouton_principal : "#3498db",
             cfg->style.fg_bouton_principal ? cfg->style.fg_bouton_principal : "#ffffff",
-            cfg->id_css,
+            id,
 
             /* bouton secondaire */
-            cfg->id_css,
+            id,
             cfg->style.bg_bouton_secondaire ? cfg->style.bg_bouton_secondaire : "#ecf0f1",
             cfg->style.fg_bouton_secondaire ? cfg->style.fg_bouton_secondaire : "#2c3e50",
-            cfg->id_css);
+            id);
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider_for_display(
@@ -690,8 +695,9 @@ void dialog_fermer(Dialog *cfg)
 {
    if (!cfg || !cfg->window)
       return;
-   gtk_window_destroy(GTK_WINDOW(cfg->window));
+   GtkWidget *win = cfg->window;
    cfg->window = NULL;
+   gtk_window_destroy(GTK_WINDOW(win));
 }
 
 // ====================== LIBÉRATION MÉMOIRE ======================

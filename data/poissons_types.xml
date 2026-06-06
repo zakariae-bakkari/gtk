@@ -32,12 +32,12 @@
         <eats>Sardine</eats>
         <eats>seahorse</eats>
         <eats>Hareng</eats>
-    </species>    
+    </species>
     <species name="scate" type="prey" level="2" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="60" detection="100">
         <frame>resources/images/fishes/scate/frame1.png</frame>
         <frame>resources/images/fishes/scate/frame2.png</frame>
         <frame>resources/images/fishes/scate/frame3.png</frame>
-    </species>  
+    </species>
     <species name="Swordfish" type="predator" level="4" speed_norm="75.0" speed_escape="110.0" speed_slow="30.0" size="90" detection="110">
         <frame>resources/images/fishes/Swordfish/frame1.png</frame>
         <frame>resources/images/fishes/Swordfish/frame2.png</frame>
@@ -45,7 +45,7 @@
         <eats>Sardine</eats>
         <eats>Eel</eats>
         <eats>scate</eats>
-    </species>  
+    </species>
     <species name="seahorse" type="prey" level="1" speed_norm="30.0" speed_escape="55.0" speed_slow="15.0" size="3" detection="100">
         <frame>resources/images/fishes/seahorse/frame1.png</frame>
         <frame>resources/images/fishes/seahorse/frame2.png</frame>
@@ -87,5 +87,37 @@
         <eats>Swordfish</eats>
         <eats>turtle</eats>
         <eats>scate</eats>
+    </species>
+    <species name="test" type="predator" level="4" speed_norm="4.0" speed_escape="3.0" speed_slow="3.0" size="100" detection="8">
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <frame>resources/images/fishes/sardine/frame2.png</frame>
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <eats>Requin Blanc</eats>
+        <eats>Puffer</eats>
+        <eats>Garfish</eats>
+        <eats>tuna</eats>
+    </species>
+    <species name="test2" type="predator" level="100" speed_norm="27.0" speed_escape="27.0" speed_slow="27.0" size="100" detection="100">
+        <frame>resources/images/fishes/test2/frame1.jpg</frame>
+        <frame>resources/images/fishes/test2/frame2.jpg</frame>
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <eats>scate</eats>
+        <eats>Swordfish</eats>
+        <eats>seahorse</eats>
+        <eats>Garfish</eats>
+    </species>
+    <species name="test4" type="predator" level="4" speed_norm="0.0" speed_escape="0.0" speed_slow="0.0" size="4" detection="3">
+        <frame>resources/images/fishes/test4/frame1.jpg</frame>
+        <frame>resources/images/fishes/sardine/frame2.png</frame>
+        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <eats>Puffer</eats>
+        <eats>Sardine</eats>
+    </species>
+    <species name="yy" type="predator" level="4" speed_norm="100.0" speed_escape="100.0" speed_slow="100.0" size="100" detection="95">
+        <frame>resources/images/fishes/yy/frame1.jpg</frame>
+        <frame>resources/images/fishes/yy/frame2.jpg</frame>
+        <frame>resources/images/fishes/yy/frame3.jpg</frame>
+        <eats>Garfish</eats>
+        <eats>tuna</eats>
     </species>
 </species_list>

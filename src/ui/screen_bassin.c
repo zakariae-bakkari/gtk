@@ -219,6 +219,38 @@ static void on_prey_details_clicked(GtkButton *btn, gpointer user_data)
    }
 }
 
+typedef struct {
+   BassinUI *ui;
+   char *species_name;
+} SpeciesDetailsCtx;
+
+static void on_species_details_destroy(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   SpeciesDetailsCtx *ctx = (SpeciesDetailsCtx *)user_data;
+   if (ctx)
+   {
+      g_free(ctx->species_name);
+      g_free(ctx);
+   }
+}
+
+static void on_species_details_reponse(int reponse, gpointer user_data)
+{
+   SpeciesDetailsCtx *ctx = (SpeciesDetailsCtx *)user_data;
+   if (!ctx)
+      return;
+
+   if (reponse == 150) // Modifier
+   {
+      open_create_species_dialog(ctx->ui, ctx->species_name);
+   }
+   else if (reponse == 151) // Supprimer
+   {
+      open_delete_species_confirmation(ctx->ui, ctx->species_name);
+   }
+}
+
 void open_species_details_dialog(BassinUI *ui, const char *species_name)
 {
    SpeciesConfig *cfg = find_species_config(ui, species_name);
@@ -236,7 +268,17 @@ void open_species_details_dialog(BassinUI *ui, const char *species_name)
    char title_buf[128];
    sprintf(title_buf, "📚 Fiche Espèce : %s", cfg->nom);
    dialog_set_titre(sd, title_buf);
-   sd->boutons_preset = DIALOG_BOUTONS_OK;
+
+   SpeciesDetailsCtx *ctx = g_new0(SpeciesDetailsCtx, 1);
+   ctx->ui = ui;
+   ctx->species_name = g_strdup(species_name);
+
+   sd->on_reponse = on_species_details_reponse;
+   sd->user_data = ctx;
+
+   dialog_ajouter_bouton(sd, "Modifier", "document-edit-symbolic", 150, TRUE);
+   dialog_ajouter_bouton(sd, "Supprimer", "user-trash-symbolic", 151, FALSE);
+   dialog_ajouter_bouton(sd, "Fermer", NULL, DIALOG_REPONSE_OK, FALSE);
 
    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
    gtk_widget_set_margin_start(box, 15);
@@ -315,6 +357,120 @@ void open_species_details_dialog(BassinUI *ui, const char *species_name)
    dialog_afficher(sd);
 
    g_signal_connect_swapped(sd->window, "destroy", G_CALLBACK(dialog_free), sd);
+   g_signal_connect(sd->window, "destroy", G_CALLBACK(on_species_details_destroy), ctx);
+}
+
+static void on_delete_species_confirmed(int reponse, gpointer user_data)
+{
+   SpeciesDetailsCtx *ctx = (SpeciesDetailsCtx *)user_data;
+   if (!ctx)
+      return;
+
+   if (reponse == DIALOG_REPONSE_OUI)
+   {
+      BassinUI *ui = ctx->ui;
+      const char *species_name = ctx->species_name;
+
+      // 1. Find species config in ui->species_configs and remove it
+      GList *cfg_link = NULL;
+      for (GList *l = ui->species_configs; l; l = l->next)
+      {
+         SpeciesConfig *cfg = l->data;
+         if (strcmp(cfg->nom, species_name) == 0)
+         {
+            cfg_link = l;
+            break;
+         }
+      }
+
+      if (cfg_link)
+      {
+         SpeciesConfig *cfg = cfg_link->data;
+         
+         // Free the sub-allocations of cfg
+         g_free(cfg->nom);
+         g_free(cfg->type);
+         for (int i = 0; i < 3; i++)
+         {
+            if (cfg->chemin_frames[i])
+               g_free(cfg->chemin_frames[i]);
+         }
+         for (int i = 0; i < cfg->nb_diet; i++)
+         {
+            if (cfg->diet[i])
+               g_free(cfg->diet[i]);
+         }
+         g_free(cfg);
+
+         ui->species_configs = g_list_delete_link(ui->species_configs, cfg_link);
+      }
+
+      // 2. Clean up from other species' diets
+      for (GList *l = ui->species_configs; l; l = l->next)
+      {
+         SpeciesConfig *cfg = l->data;
+         int new_nb_diet = 0;
+         for (int i = 0; i < cfg->nb_diet; i++)
+         {
+            if (strcmp(cfg->diet[i], species_name) == 0)
+            {
+               g_free(cfg->diet[i]);
+            }
+            else
+            {
+               cfg->diet[new_nb_diet++] = cfg->diet[i];
+            }
+         }
+         cfg->nb_diet = new_nb_diet;
+      }
+
+      // 3. Remove all active fish of this species
+      GList *node = ui->poissons;
+      while (node)
+      {
+         GList *next = node->next;
+         Poisson *p = node->data;
+         if (strcmp(p->nom, species_name) == 0)
+         {
+            // Remove image widget if it exists
+            if (p->widget_image)
+            {
+               gtk_widget_unparent(p->widget_image);
+            }
+            poisson_free(p);
+            ui->poissons = g_list_delete_link(ui->poissons, node);
+         }
+         node = next;
+      }
+
+      // 4. Save configs to XML
+      save_species_configs_to_xml(ui);
+
+      // 5. Update UI
+      update_sidebar_list(ui);
+      update_status_bar(ui);
+   }
+
+   // Free the context
+   g_free(ctx->species_name);
+   g_free(ctx);
+}
+
+void open_delete_species_confirmation(BassinUI *ui, const char *species_name)
+{
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   char msg[256];
+   snprintf(msg, sizeof(msg), "Voulez-vous vraiment supprimer l'espèce '%s' ?\nTous les poissons de cette espèce seront retirés du bassin.", species_name);
+   
+   SpeciesDetailsCtx *ctx = g_new0(SpeciesDetailsCtx, 1);
+   ctx->ui = ui;
+   ctx->species_name = g_strdup(species_name);
+
+   dialog_afficher_confirmation(toplevel ? GTK_WINDOW(toplevel) : NULL,
+                                "Confirmation de suppression",
+                                msg,
+                                on_delete_species_confirmed,
+                                ctx);
 }
 
 void show_fish_details_dialog(BassinUI *ui, Poisson *p)
@@ -419,7 +575,7 @@ void show_fish_details_dialog(BassinUI *ui, Poisson *p)
       gtk_widget_set_margin_bottom(sep2, 6);
       gtk_box_append(GTK_BOX(box), sep2);
 
-      GtkWidget *lbl_table_title = gtk_label_new("<b>🍽️ Régime Alimentaire & Proies Dévorées :</b>");
+      GtkWidget *lbl_table_title = gtk_label_new("<b>🍽️ Régime Alimentaire &amp; Proies Dévorées :</b>");
       gtk_label_set_use_markup(GTK_LABEL(lbl_table_title), TRUE);
       gtk_widget_set_halign(lbl_table_title, GTK_ALIGN_START);
       gtk_box_append(GTK_BOX(box), lbl_table_title);
@@ -610,6 +766,7 @@ void create_poisson_widget(BassinUI *ui, Poisson *p)
       gtk_widget_add_css_class(health_bar, "low-health");
    gtk_widget_set_halign(health_bar, GTK_ALIGN_CENTER);
    gtk_widget_set_size_request(health_bar, (int)(p->taille * 0.5), 4);
+   gtk_widget_set_visible(health_bar, !ui->config_hide_health_bar);
    gtk_box_append(GTK_BOX(container), health_bar);
 
    // Sprite (using GtkPicture for premium and accurate auto-scaling to p->taille)
@@ -642,6 +799,7 @@ void create_poisson_widget(BassinUI *ui, Poisson *p)
    {
       gtk_widget_add_css_class(lbl_tag, "fish-tag-pred");
    }
+   gtk_widget_set_visible(lbl_tag, !ui->config_hide_fish_name);
    gtk_box_append(GTK_BOX(container), lbl_tag);
 
    // Enable click gesture
@@ -681,6 +839,12 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
       }
       return TRUE; // handled
    }
+   if ((keyval == GDK_KEY_h || keyval == GDK_KEY_H) && (state & GDK_CONTROL_MASK) != 0)
+   {
+      ui->zen_mode = !ui->zen_mode;
+      apply_zen_mode(ui);
+      return TRUE; // handled
+   }
    return FALSE;
 }
 
@@ -692,6 +856,64 @@ static void on_root_destroy(GtkWidget *widget, gpointer user_data)
    {
       g_source_remove(ui->timer_id);
       ui->timer_id = 0;
+   }
+}
+
+void apply_fish_visibility_configs(BassinUI *ui)
+{
+   for (GList *l = ui->poissons; l; l = l->next)
+   {
+      Poisson *p = l->data;
+      if (p->widget_image)
+      {
+         GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
+         GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
+         GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
+         GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(img_widget) : NULL;
+
+         if (health_bar)
+         {
+            gtk_widget_set_visible(health_bar, !ui->config_hide_health_bar);
+         }
+         if (lbl_tag)
+         {
+            gtk_widget_set_visible(lbl_tag, !ui->config_hide_fish_name);
+         }
+      }
+   }
+}
+
+void apply_zen_mode(BassinUI *ui)
+{
+   if (ui->zen_mode)
+   {
+      ui->sidebar_was_visible = gtk_widget_get_visible(ui->sidebar);
+
+      if (ui->header_widget)
+         gtk_widget_set_visible(ui->header_widget, FALSE);
+      if (ui->sep_top_widget)
+         gtk_widget_set_visible(ui->sep_top_widget, FALSE);
+      if (ui->sidebar)
+         gtk_widget_set_visible(ui->sidebar, FALSE);
+      if (ui->sep_bottom_widget)
+         gtk_widget_set_visible(ui->sep_bottom_widget, FALSE);
+      if (ui->status_bar_widget)
+         gtk_widget_set_visible(ui->status_bar_widget, FALSE);
+   }
+   else
+   {
+      if (ui->header_widget)
+         gtk_widget_set_visible(ui->header_widget, TRUE);
+      if (ui->sep_top_widget)
+         gtk_widget_set_visible(ui->sep_top_widget, TRUE);
+      if (ui->sidebar)
+         gtk_widget_set_visible(ui->sidebar, ui->sidebar_was_visible);
+
+      gboolean show_status = !ui->config_hide_status_bar;
+      if (ui->sep_bottom_widget)
+         gtk_widget_set_visible(ui->sep_bottom_widget, show_status);
+      if (ui->status_bar_widget)
+         gtk_widget_set_visible(ui->status_bar_widget, show_status);
    }
 }
 
@@ -721,12 +943,18 @@ GtkWidget *screen_bassin_create(void)
    ui->config_bg_path = "resources/images/background_banc.png";
    ui->config_canvas_width = 900;
    ui->config_canvas_height = 600;
+   ui->config_hide_health_bar = FALSE;
+   ui->config_hide_fish_name = FALSE;
+   ui->config_hide_status_bar = FALSE;
+   ui->zen_mode = FALSE;
+   ui->sidebar_was_visible = TRUE;
 
    // Root layout box (vertical)
    ui->root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
    // ------------------ HEADER PANEL ------------------
-   GtkWidget *header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+   ui->header_widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+   GtkWidget *header = ui->header_widget;
    gtk_widget_set_margin_start(header, 15);
    gtk_widget_set_margin_end(header, 15);
    gtk_widget_set_margin_top(header, 8);
@@ -737,7 +965,8 @@ GtkWidget *screen_bassin_create(void)
    gtk_box_append(GTK_BOX(ui->root), header);
 
    // Separator
-   GtkWidget *sep_top = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   ui->sep_top_widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   GtkWidget *sep_top = ui->sep_top_widget;
    gtk_box_append(GTK_BOX(ui->root), sep_top);
 
    // ------------------ CONTENT BOX (Aquarium + Sidebar) ------------------
@@ -819,11 +1048,13 @@ GtkWidget *screen_bassin_create(void)
    gtk_box_append(GTK_BOX(ui->root), content_box);
 
    // Separator
-   GtkWidget *sep_bottom = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   ui->sep_bottom_widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   GtkWidget *sep_bottom = ui->sep_bottom_widget;
    gtk_box_append(GTK_BOX(ui->root), sep_bottom);
 
    // ------------------ BOTTOM STATUS BAR ------------------
-   GtkWidget *status_bar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+   ui->status_bar_widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+   GtkWidget *status_bar = ui->status_bar_widget;
    gtk_widget_set_margin_start(status_bar, 15);
    gtk_widget_set_margin_end(status_bar, 15);
    gtk_widget_set_margin_top(status_bar, 6);

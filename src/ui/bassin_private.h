@@ -78,14 +78,34 @@ typedef struct
    GtkWidget *bg_widget;
    GtkWidget *debug_overlay;
    gboolean debug_mode;
+   gboolean zen_mode;
+   gboolean sidebar_was_visible;
 
-   // Settings Dialog fields
+   // Display settings
+   gboolean config_hide_health_bar;
+   gboolean config_hide_fish_name;
+   gboolean config_hide_status_bar;
+
+   // Settings Dialog fields & switch widgets
    Dialog settings_dialog;
    ChampSelect settings_sel_bg;
    ChampSelect settings_sel_canvas;
    Slider settings_sld_fish_size;
+   GtkWidget *settings_sw_hide_health;
+   GtkWidget *settings_sw_hide_name;
+   GtkWidget *settings_sw_hide_status;
    GList *species_configs; /* list of SpeciesConfig* */
+
+   // Main UI widgets for Zen mode
+   GtkWidget *header_widget;
+   GtkWidget *sep_top_widget;
+   GtkWidget *sep_bottom_widget;
+   GtkWidget *status_bar_widget;
 } BassinUI;
+
+void apply_zen_mode(BassinUI *ui);
+void apply_fish_visibility_configs(BassinUI *ui);
+void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data);
 
 // Shared helper functions
 SpeciesConfig *find_species_config(BassinUI *ui, const char *species_name);
@@ -136,7 +156,8 @@ void on_dialog_reponse(int reponse, gpointer user_data);
 void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, int target_banc_id);
 void show_fish_details_dialog(BassinUI *ui, Poisson *p);
 void open_species_details_dialog(BassinUI *ui, const char *species_name);
-void open_create_species_dialog(BassinUI *ui);
+void open_create_species_dialog(BassinUI *ui, const char *edit_species_name);
+void open_delete_species_confirmation(BassinUI *ui, const char *species_name);
 void save_species_configs_to_xml(BassinUI *ui);
 void on_toggle_sidebar_clicked(GtkWidget *widget, gpointer user_data);
 void on_image_widget_destroy(GtkWidget *widget, gpointer user_data);
