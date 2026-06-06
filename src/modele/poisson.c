@@ -32,6 +32,14 @@ Poisson *poisson_new(const char *nom)
    p->etat = ETAT_NORMAL;
    p->temps_hors_cadre = 0;
    p->cote_sortie = 0;
+   p->sante = 100.0;
+   p->sante_max = 100.0;
+   p->temps_effet_attaque = 0.0;
+
+   /* kill stats */
+   for (int i = 0; i < 8; i++) { p->kills_espece[i] = NULL; p->kills_count[i] = 0; }
+   p->nb_kills_types = 0;
+   p->dernier_attaquant = NULL;
 
    p->chemin_frames[0] = NULL;
    p->chemin_frames[1] = NULL;
@@ -60,6 +68,10 @@ void poisson_free(Poisson *p)
    {
       if (p->chemin_frames[i])
          free(p->chemin_frames[i]);
+   }
+   for (int i = 0; i < p->nb_kills_types; i++)
+   {
+      if (p->kills_espece[i]) free(p->kills_espece[i]);
    }
    /* Do not unref widget here: UI owner must handle widget lifecycle */
    free(p);

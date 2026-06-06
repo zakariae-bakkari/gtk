@@ -1,0 +1,394 @@
+--> XploreIA/frontend/src/pages/ComparePage.jsx:
+
+import { useMemo, useState } from 'react';
+import CatalogPageShell from '../components/ai-catalog/CatalogPageShell';
+import { useAiToolsDetailed, buildComparisonRows } from '../hooks/useAiCatalog';
+import '../style/toolWatch.css';
+
+const ComparePage = () => {
+  const { tools, loading, error } = useAiToolsDetailed();
+  const [toolAId, setToolAId] = useState('');
+  const [toolBId, setToolBId] = useState('');
+
+  const toolA = useMemo(() => tools.find((t) => t.id === toolAId), [tools, toolAId]);
+  const toolB = useMemo(() => tools.find((t) => t.id === toolBId), [tools, toolBId]);
+  const rows = useMemo(
+    () => (toolA && toolB && toolAId !== toolBId ? buildComparisonRows(toolA, toolB) : []),
+    [toolA, toolB, toolAId, toolBId],
+  );
+
+  return (
+    <CatalogPageShell
+      title="Compare"
+      subtitle="Select two tools from the database to generate a dynamic comparison table."
+      loading={loading}
+      error={error}
+    >
+      <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', marginBottom: '28px' }}>
+        <div className="flex flex-wrap gap-md" style={{ alignItems: 'flex-end' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <label className="label-sm" style={{ display: 'block', marginBottom: '8px', color: 'var(--primary)' }}>
+              Tool A
+            </label>
+            <select
+              className="glass-input"
+              value={toolAId}
+              onChange={(e) => setToolAId(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              <option value="">Select tool…</option>
+              {tools.map((t) => (
+                <option key={t.id} value={t.id} disabled={t.id === toolBId}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <span className="material-symbols-outlined" style={{ color: 'var(--outline)', padding: '12px' }}>
+            compare_arrows
+          </span>
+          <div style={{ flex: '1 1 200px' }}>
+            <label className="label-sm" style={{ display: 'block', marginBottom: '8px', color: 'var(--primary)' }}>
+              Tool B
+            </label>
+            <select
+              className="glass-input"
+              value={toolBId}
+              onChange={(e) => setToolBId(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              <option value="">Select tool…</option>
+              {tools.map((t) => (
+                <option key={t.id} value={t.id} disabled={t.id === toolAId}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {toolAId && toolBId && toolAId === toolBId && (
+        <p className="tool-watch-hero-copy">Please choose two different tools.</p>
+      )}
+
+      {rows.length > 0 && (
+        <div className="tool-watch-compare-wrap glass-panel">
+          <table className="tool-watch-compare-table">
+            <thead>
+              <tr>
+                <th>Attribute</th>
+                <th>{toolA.name}</th>
+                <th>{toolB.name}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.label}>
+                  <td>{row.label}</td>
+                  <td>
+                    {row.isLink && row.a !== '—' ? (
+                      <a href={row.a} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)' }}>
+                        {row.a}
+                      </a>
+                    ) : (
+                      row.a
+                    )}
+                  </td>
+                  <td>
+                    {row.isLink && row.b !== '—' ? (
+                      <a href={row.b} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)' }}>
+                        {row.b}
+                      </a>
+                    ) : (
+                      row.b
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {toolA && toolB && toolAId !== toolBId && rows.length === 0 && (
+        <p className="tool-watch-hero-copy">No comparison data available.</p>
+      )}
+    </CatalogPageShell>
+  );
+};
+
+export default ComparePage;
+
+
+
+--> XploreIA/frontend/src/hooks/useAiCatalog.js:
+import { useEffect, useState } from 'react';
+import { aiToolApi } from '../api';
+
+export function flattenCharacteristics(tool) {
+  const raw = tool?.characteristics;
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  return Object.values(raw).flat();
+}
+
+export function buildChangeEntries(tool) {
+  if (!tool) return [];
+
+  const entries = [];
+
+  if (tool.updated_at && tool.created_at !== tool.updated_at) {
+    entries.push({
+      date: tool.updated_at,
+      toolId: tool.id,
+      toolName: tool.name,
+      feature: tool.name,
+      text: 'Catalog entry updated.',
+    });
+  }
+
+  (tool.advantages || []).forEach((item) => {
+    if (item.created_at) {
+      entries.push({
+        date: item.created_at,
+        toolId: tool.id,
+        toolName: tool.name,
+        feature: 'Advantage',
+        text: item.name,
+      });
+    }
+  });
+
+  (tool.disadvantages || []).forEach((item) => {
+    if (item.created_at) {
+      entries.push({
+        date: item.created_at,
+        toolId: tool.id,
+        toolName: tool.name,
+        feature: 'Limit',
+        text: item.name,
+      });
+    }
+  });
+
+  (tool.reviews || []).forEach((review) => {
+    entries.push({
+      date: review.created_at,
+      toolId: tool.id,
+      toolName: tool.name,
+      feature: `Review · ${review.user_name || 'User'}`,
+      text: review.comment || `Rating ${review.rating}/5`,
+    });
+  });
+
+  return entries;
+}
+
+export function buildTimelineEvents(tool) {
+  if (!tool) return [];
+
+  const events = [];
+
+  if (tool.release_date) {
+    events.push({
+      date: tool.release_date,
+      toolId: tool.id,
+      toolName: tool.name,
+      title: 'Release date',
+      description: `Public launch of ${tool.name}.`,
+      category: 'release',
+    });
+  }
+
+  if (tool.created_at) {
+    events.push({
+      date: tool.created_at,
+      toolId: tool.id,
+      toolName: tool.name,
+      title: 'Added to catalog',
+      description: 'Listed in XploreIA.',
+      category: 'catalog',
+    });
+  }
+
+  if (tool.updated_at && tool.updated_at !== tool.created_at) {
+    events.push({
+      date: tool.updated_at,
+      toolId: tool.id,
+      toolName: tool.name,
+      title: 'Last updated',
+      description: 'Information verified or enriched.',
+      category: 'update',
+    });
+  }
+
+  buildChangeEntries(tool).forEach((entry) => {
+    events.push({
+      date: entry.date,
+      toolId: tool.id,
+      toolName: tool.name,
+      title: entry.feature,
+      description: entry.text,
+      category: 'change',
+    });
+  });
+
+  return events;
+}
+
+/** Lightweight list from GET /ai-tools */
+export function useAiToolsList() {
+  const [tools, setTools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await aiToolApi.getAll();
+        if (!cancelled) {
+          if (res.status === 'success') {
+            setTools(res.data || []);
+          } else {
+            setError(res.message || 'Failed to load tools.');
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { tools, loading, error };
+}
+
+/** Full details for every published tool (for Changes, Limits, Timeline, About, Compare) */
+export function useAiToolsDetailed() {
+  const [tools, setTools] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const listRes = await aiToolApi.getAll();
+        if (listRes.status !== 'success') {
+          throw new Error(listRes.message || 'Failed to load tools.');
+        }
+
+        const list = listRes.data || [];
+        const results = await Promise.all(
+          list.map((t) => aiToolApi.getFullDetails(t.id)),
+        );
+
+        const detailed = results
+          .filter((r) => r?.success && r.data)
+          .map((r) => r.data);
+
+        if (!cancelled) setTools(detailed);
+      } catch (e) {
+        if (!cancelled) setError(e.message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { tools, loading, error };
+}
+
+export function buildComparisonRows(toolA, toolB) {
+  if (!toolA || !toolB) return [];
+
+  const countChars = (t, type) =>
+    flattenCharacteristics(t).filter((c) => !type || c.type === type).length;
+
+  return [
+    { label: 'Provider', a: toolA.provider_name || '—', b: toolB.provider_name || '—' },
+    { label: 'Category', a: toolA.category_name || '—', b: toolB.category_name || '—' },
+    { label: 'Rating', a: toolA.global_rating ?? '—', b: toolB.global_rating ?? '—' },
+    { label: 'Pricing model', a: toolA.pricing_model || '—', b: toolB.pricing_model || '—' },
+    { label: 'Release date', a: toolA.release_date || '—', b: toolB.release_date || '—' },
+    { label: 'Capabilities', a: countChars(toolA, 'capability'), b: countChars(toolB, 'capability') },
+    { label: 'Models', a: (toolA.models || []).length, b: (toolB.models || []).length },
+    { label: 'Pricing plans', a: (toolA.pricing_plans || []).length, b: (toolB.pricing_plans || []).length },
+    { label: 'Advantages', a: (toolA.advantages || []).length, b: (toolB.advantages || []).length },
+    { label: 'Limitations noted', a: (toolA.disadvantages || []).length, b: (toolB.disadvantages || []).length },
+    { label: 'Reviews', a: (toolA.reviews || []).length, b: (toolB.reviews || []).length },
+    {
+      label: 'Website',
+      a: toolA.website_url || '—',
+      b: toolB.website_url || '—',
+      isLink: true,
+    },
+  ];
+}
+
+
+
+--> XploreIA/frontend/src/components/ai-catalog/CatalogPageShell.jsx:
+
+import DashboardLayout from '../../layouts/DashboardLayout';
+
+const CatalogPageShell = ({ title, subtitle, loading, error, children }) => (
+  <DashboardLayout>
+    <div className="tool-watch-page page-fade">
+      <header style={{ marginBottom: '32px' }}>
+        <h1 className="h2-lg">{title}</h1>
+        {subtitle && (
+          <p style={{ color: 'var(--on-surface-variant)', marginTop: '8px', maxWidth: '720px' }}>
+            {subtitle}
+          </p>
+        )}
+      </header>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center" style={{ padding: '80px' }}>
+          <div
+            className="animate-spin"
+            style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid rgba(0, 219, 233, 0.1)',
+              borderTopColor: 'var(--primary)',
+              borderRadius: '50%',
+            }}
+          />
+          <p style={{ marginTop: '16px', color: 'var(--on-surface-variant)' }}>Loading from database…</p>
+        </div>
+      ) : error ? (
+        <div className="glass-panel" style={{ padding: '32px', borderRadius: '16px', color: 'var(--error)' }}>
+          {error}
+        </div>
+      ) : (
+        children
+      )}
+    </div>
+  </DashboardLayout>
+);
+
+export default CatalogPageShell;
+
+
+
+--> backend/app/controllers/AiToolController.php: index() → GET /ai-tools (tool list for dropdowns)
+
+--> backend/app/controllers/AiToolDetailsController.php:show($id) → GET /ai-tools/{id} (full details for comparison)
+
+
+--> backend/routes/web.php: Registers GET /ai-tools and GET /ai-tools/{id}

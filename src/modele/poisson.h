@@ -43,6 +43,19 @@ typedef struct _Poisson
    GtkWidget *widget_image;
    bool visible;
 
+   /* health and damage */
+   double sante;
+   double sante_max;
+   double temps_effet_attaque;
+
+   /* kill stats (predators only) */
+   char *kills_espece[8];   /* species name (owned string) */
+   int   kills_count[8];    /* kills per species */
+   int   nb_kills_types;    /* number of distinct species eaten */
+
+   /* last attacker reference (prey only, not owned) */
+   struct _Poisson *dernier_attaquant;
+
    /* banc */
    int id_banc;
    bool est_leader;
