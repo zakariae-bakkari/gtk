@@ -5,16 +5,11 @@
         <frame>resources/images/fishes/shark_white/frame1.png</frame>
         <eats>tuna</eats>
         <eats>Dolphin</eats>
-        <eats>Dauphin</eats>
         <eats>Swordfish</eats>
         <eats>Garfish</eats>
         <eats>Eel</eats>
         <eats>scate</eats>
         <eats>turtle</eats>
-        <eats>Requin</eats>
-        <eats>Poisson-globe</eats>
-        <eats>Poisson clown</eats>
-        <eats>Hareng</eats>
         <eats>Sardine</eats>
         <eats>seahorse</eats>
     </species>
@@ -23,7 +18,6 @@
         <frame>resources/images/fishes/puffer/frame2.png</frame>
         <frame>resources/images/fishes/puffer/frame1.png</frame>
         <eats>Sardine</eats>
-        <eats>Poisson clown</eats>
         <eats>seahorse</eats>
     </species>
     <species name="Sardine" type="prey" level="1" speed_norm="70.0" speed_escape="95.0" speed_slow="20.0" size="35" detection="100">
@@ -51,9 +45,8 @@
         <eats>Sardine</eats>
         <eats>Eel</eats>
         <eats>scate</eats>
-        <eats>Hareng</eats>
     </species>  
-    <species name="seahorse" type="prey" level="1" speed_norm="30.0" speed_escape="55.0" speed_slow="15.0" size="35" detection="100">
+    <species name="seahorse" type="prey" level="1" speed_norm="30.0" speed_escape="55.0" speed_slow="15.0" size="3" detection="100">
         <frame>resources/images/fishes/seahorse/frame1.png</frame>
         <frame>resources/images/fishes/seahorse/frame2.png</frame>
         <frame>resources/images/fishes/seahorse/frame1.png</frame>
@@ -68,17 +61,12 @@
         <frame>resources/images/fishes/Garfish/frame2.png</frame>
         <frame>resources/images/fishes/Garfish/frame3.png</frame>
         <eats>Sardine</eats>
-        <eats>Poisson clown</eats>
-        <eats>Hareng</eats>
     </species>
     <species name="tuna" type="predator" level="4" speed_norm="85.0" speed_escape="120.0" speed_slow="35.0" size="85" detection="120">
         <frame>resources/images/fishes/tuna/frame1.png</frame>
         <frame>resources/images/fishes/tuna/frame2.png</frame>
         <frame>resources/images/fishes/tuna/frame3.png</frame>
         <eats>Sardine</eats>
-        <eats>Hareng</eats>
-        <eats>Poisson clown</eats>
-        <eats>Poisson-globe</eats>
         <eats>seahorse</eats>
     </species>
     <species name="Dolphin" type="ally" level="4" speed_norm="80.0" speed_escape="115.0" speed_slow="35.0" size="100" detection="120">
@@ -88,16 +76,13 @@
         <eats>Sardine</eats>
         <eats>Eel</eats>
         <eats>scate</eats>
-        <eats>Hareng</eats>
     </species>
     <species name="orka" type="predator" level="5" speed_norm="90.0" speed_escape="130.0" speed_slow="40.0" size="160" detection="135">
         <frame>resources/images/fishes/orka/frame1.png</frame>
         <frame>resources/images/fishes/orka/frame2.png</frame>
         <frame>resources/images/fishes/orka/frame3.png</frame>
-        <eats>Requin</eats>
         <eats>Requin Blanc</eats>
         <eats>Dolphin</eats>
-        <eats>Dauphin</eats>
         <eats>tuna</eats>
         <eats>Swordfish</eats>
         <eats>turtle</eats>

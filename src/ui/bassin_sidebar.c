@@ -1,6 +1,44 @@
 #include "bassin_private.h"
 #include <string.h>
 
+void on_toggle_sidebar_clicked(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = user_data;
+   if (!ui || !ui->sidebar)
+      return;
+
+   gboolean is_visible = gtk_widget_get_visible(ui->sidebar);
+   gtk_widget_set_visible(ui->sidebar, !is_visible);
+}
+
+static void on_sidebar_item_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
+{
+   (void)n_press;
+   (void)x;
+   (void)y;
+   (void)user_data;
+   Poisson *p = g_object_get_data(G_OBJECT(gesture), "poisson");
+   BassinUI *ui = g_object_get_data(G_OBJECT(gesture), "ui");
+   if (p && ui)
+   {
+      // Select the fish in the aquarium too to make it look premium
+      for (GList *l = ui->poissons; l; l = l->next)
+      {
+         Poisson *other = l->data;
+         if (other->widget_image)
+         {
+            gtk_widget_remove_css_class(other->widget_image, "fish-selected");
+         }
+      }
+      if (p->widget_image)
+      {
+         gtk_widget_add_css_class(p->widget_image, "fish-selected");
+      }
+      show_fish_details_dialog(ui, p);
+   }
+}
+
 void on_tab_entites_clicked(GtkButton *btn, gpointer user_data)
 {
    (void)btn;
@@ -58,7 +96,6 @@ void update_sidebar_list(BassinUI *ui)
          if (members)
          {
             char header_buf[128];
-            const char *emoji = strcmp(species_nom, "Hareng") == 0 ? "🐟" : (strcmp(species_nom, "Poisson-globe") == 0 ? "🐡" : "🐠");
             sprintf(header_buf, "BANC %sS", species_nom);
 
             GtkWidget *lbl_header = gtk_label_new(header_buf);
@@ -72,14 +109,21 @@ void update_sidebar_list(BassinUI *ui)
                GtkWidget *item = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
                gtk_widget_add_css_class(item, "entity-item");
 
+               // Fish Image
+               const char *frame_path = p->chemin_frames[0] ? p->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png";
+               GtkWidget *img = gtk_picture_new_for_filename(frame_path);
+               gtk_widget_set_size_request(img, 24, 24);
+               gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(img), TRUE);
+               gtk_box_append(GTK_BOX(item), img);
+
                char name_buf[128];
                const char *short_nom = strcmp(p->nom, "Poisson clown") == 0 ? "Clown" : (strcmp(p->nom, "Poisson-globe") == 0 ? "Globe" : "Hareng");
-               sprintf(name_buf, "%s %s #%d", emoji, short_nom, p->id);
+               sprintf(name_buf, "%s #%d", short_nom, p->id);
 
                GtkWidget *lbl_name = gtk_label_new(name_buf);
                gtk_box_append(GTK_BOX(item), lbl_name);
 
-               GtkWidget *lbl_role = gtk_label_new(p->est_leader ? "Leader du banc" : "Membre");
+               GtkWidget *lbl_role = gtk_label_new(p->est_leader ? "Leader" : "Membre");
                gtk_widget_set_halign(lbl_role, GTK_ALIGN_END);
                gtk_widget_set_hexpand(lbl_role, TRUE);
                gtk_box_append(GTK_BOX(item), lbl_role);
@@ -87,6 +131,13 @@ void update_sidebar_list(BassinUI *ui)
                GtkWidget *lbl_badge = gtk_label_new("banc");
                gtk_widget_add_css_class(lbl_badge, "badge-banc");
                gtk_box_append(GTK_BOX(item), lbl_badge);
+
+               // Enable click gesture to inspect details
+               GtkGesture *sidebar_click = gtk_gesture_click_new();
+               g_object_set_data(G_OBJECT(sidebar_click), "poisson", p);
+               g_object_set_data(G_OBJECT(sidebar_click), "ui", ui);
+               g_signal_connect(sidebar_click, "released", G_CALLBACK(on_sidebar_item_clicked), NULL);
+               gtk_widget_add_controller(item, GTK_EVENT_CONTROLLER(sidebar_click));
 
                gtk_box_append(GTK_BOX(ui->box_sidebar_content), item);
             }
@@ -113,10 +164,16 @@ void update_sidebar_list(BassinUI *ui)
             GtkWidget *item = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
             gtk_widget_add_css_class(item, "entity-item");
 
-            const char *emoji = strcmp(p->nom, "Hareng") == 0 ? "🐟" : (strcmp(p->nom, "Poisson-globe") == 0 ? "🐡" : "🐠");
+            // Fish Image
+            const char *frame_path = p->chemin_frames[0] ? p->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png";
+            GtkWidget *img = gtk_picture_new_for_filename(frame_path);
+            gtk_widget_set_size_request(img, 24, 24);
+            gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(img), TRUE);
+            gtk_box_append(GTK_BOX(item), img);
+
             char name_buf[128];
             const char *short_nom = strcmp(p->nom, "Poisson clown") == 0 ? "Clown" : (strcmp(p->nom, "Poisson-globe") == 0 ? "Globe" : "Hareng");
-            sprintf(name_buf, "%s %s #%d", emoji, short_nom, p->id);
+            sprintf(name_buf, "%s #%d", short_nom, p->id);
 
             GtkWidget *lbl_name = gtk_label_new(name_buf);
             gtk_box_append(GTK_BOX(item), lbl_name);
@@ -129,6 +186,13 @@ void update_sidebar_list(BassinUI *ui)
             GtkWidget *lbl_badge = gtk_label_new("solo");
             gtk_widget_add_css_class(lbl_badge, "badge-solo");
             gtk_box_append(GTK_BOX(item), lbl_badge);
+
+            // Enable click gesture to inspect details
+            GtkGesture *sidebar_click = gtk_gesture_click_new();
+            g_object_set_data(G_OBJECT(sidebar_click), "poisson", p);
+            g_object_set_data(G_OBJECT(sidebar_click), "ui", ui);
+            g_signal_connect(sidebar_click, "released", G_CALLBACK(on_sidebar_item_clicked), NULL);
+            gtk_widget_add_controller(item, GTK_EVENT_CONTROLLER(sidebar_click));
 
             gtk_box_append(GTK_BOX(ui->box_sidebar_content), item);
          }
@@ -153,9 +217,15 @@ void update_sidebar_list(BassinUI *ui)
             GtkWidget *item = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
             gtk_widget_add_css_class(item, "entity-item");
 
-            const char *emoji = is_predator(ui, p) ? "🦈" : "🐬";
+            // Fish Image
+            const char *frame_path = p->chemin_frames[0] ? p->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png";
+            GtkWidget *img = gtk_picture_new_for_filename(frame_path);
+            gtk_widget_set_size_request(img, 24, 24);
+            gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(img), TRUE);
+            gtk_box_append(GTK_BOX(item), img);
+
             char name_buf[128];
-            sprintf(name_buf, "%s %s", emoji, p->nom);
+            sprintf(name_buf, "%s", p->nom);
 
             GtkWidget *lbl_name = gtk_label_new(name_buf);
             gtk_box_append(GTK_BOX(item), lbl_name);
@@ -168,6 +238,13 @@ void update_sidebar_list(BassinUI *ui)
             GtkWidget *lbl_badge = gtk_label_new(is_predator(ui, p) ? "pred" : "allie");
             gtk_widget_add_css_class(lbl_badge, "badge-pred");
             gtk_box_append(GTK_BOX(item), lbl_badge);
+
+            // Enable click gesture to inspect details
+            GtkGesture *sidebar_click = gtk_gesture_click_new();
+            g_object_set_data(G_OBJECT(sidebar_click), "poisson", p);
+            g_object_set_data(G_OBJECT(sidebar_click), "ui", ui);
+            g_signal_connect(sidebar_click, "released", G_CALLBACK(on_sidebar_item_clicked), NULL);
+            gtk_widget_add_controller(item, GTK_EVENT_CONTROLLER(sidebar_click));
 
             gtk_box_append(GTK_BOX(ui->box_sidebar_content), item);
          }

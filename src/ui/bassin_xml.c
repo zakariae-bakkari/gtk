@@ -192,7 +192,7 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
       {
          ui->config_canvas_width = attr_int(child, "width", 900);
          ui->config_canvas_height = attr_int(child, "height", 600);
-         ui->config_fish_size = attr_int(child, "fish_size", 64);
+         ui->config_fish_size = attr_int(child, "fish_size", 0);
          ui->elapsed_time = xml_attr_get(child, "elapsed_time") ? atof(xml_attr_get(child, "elapsed_time")) : 0.0;
          ui->num_bancs = attr_int(child, "num_bancs", 0);
 
@@ -300,4 +300,37 @@ void on_load_clicked(GtkWidget *widget, gpointer user_data)
                         "L'état du bassin a été rechargé depuis data/bassin.xml.",
                         NULL,
                         NULL);
+}
+
+void save_species_configs_to_xml(BassinUI *ui)
+{
+   FILE *f = fopen("data/poissons_types.xml", "w");
+   if (!f)
+   {
+      f = fopen("../data/poissons_types.xml", "w");
+   }
+   if (!f)
+   {
+      fprintf(stderr, "[Error] Failed to open poissons_types.xml for saving\n");
+      return;
+   }
+
+   fprintf(f, "<species_list>\n");
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *cfg = l->data;
+      fprintf(f, "    <species name=\"%s\" type=\"%s\" level=\"%d\" speed_norm=\"%.1f\" speed_escape=\"%.1f\" speed_slow=\"%.1f\" size=\"%d\" detection=\"%d\">\n",
+              cfg->nom, cfg->type, cfg->level, cfg->vitesse_normale, cfg->vitesse_fuite, cfg->vitesse_ralentie, cfg->taille, cfg->perimetre_detection);
+      for (int i = 0; i < cfg->nb_frames; i++)
+      {
+         fprintf(f, "        <frame>%s</frame>\n", cfg->chemin_frames[i]);
+      }
+      for (int i = 0; i < cfg->nb_diet; i++)
+      {
+         fprintf(f, "        <eats>%s</eats>\n", cfg->diet[i]);
+      }
+      fprintf(f, "    </species>\n");
+   }
+   fprintf(f, "</species_list>\n");
+   fclose(f);
 }

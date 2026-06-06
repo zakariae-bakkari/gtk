@@ -198,6 +198,339 @@ static void on_fish_drag_end(GtkGestureDrag *gesture, double offset_x, double of
       g_object_set_data(G_OBJECT(w), "dragging", NULL);
 }
 
+void on_image_widget_destroy(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   Image *img = (Image *)user_data;
+   if (img)
+   {
+      image_free(img);
+      g_free(img);
+   }
+}
+
+static void on_prey_details_clicked(GtkButton *btn, gpointer user_data)
+{
+   BassinUI *ui = user_data;
+   const char *species_name = g_object_get_data(G_OBJECT(btn), "species_name");
+   if (ui && species_name)
+   {
+      open_species_details_dialog(ui, species_name);
+   }
+}
+
+void open_species_details_dialog(BassinUI *ui, const char *species_name)
+{
+   SpeciesConfig *cfg = find_species_config(ui, species_name);
+   if (!cfg)
+      return;
+
+   Dialog *sd = g_new0(Dialog, 1);
+   dialog_initialiser(sd);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      sd->parent = GTK_WINDOW(toplevel);
+   }
+
+   char title_buf[128];
+   sprintf(title_buf, "📚 Fiche Espèce : %s", cfg->nom);
+   dialog_set_titre(sd, title_buf);
+   sd->boutons_preset = DIALOG_BOUTONS_OK;
+
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+
+   // Custom Image of the species
+   Image *sp_img = g_new0(Image, 1);
+   image_initialiser(sp_img);
+   image_set_from_file(sp_img, cfg->chemin_frames[0] ? cfg->chemin_frames[0] : "resources/images/fish_blue.png");
+   image_set_size(sp_img, 112, 112);
+   image_set_fit_mode(sp_img, IMAGE_FIT_CONTAIN);
+   image_set_halign(sp_img, WIDGET_ALIGN_CENTER);
+   GtkWidget *w_sp_img = image_creer(sp_img);
+   g_signal_connect(w_sp_img, "destroy", G_CALLBACK(on_image_widget_destroy), sp_img);
+   gtk_box_append(GTK_BOX(box), w_sp_img);
+
+   // Details info
+   char info_buf[1024];
+   const char *type_str = strcmp(cfg->type, "predator") == 0 ? "🦈 Prédateur" : (strcmp(cfg->type, "ally") == 0 ? "🐬 Allié" : "🐟 Proie");
+   sprintf(info_buf,
+           "<b>Nom :</b> %s\n"
+           "<b>Type :</b> %s\n"
+           "<b>Niveau :</b> %d\n"
+           "<b>Taille par défaut :</b> %d px\n"
+           "<b>Vitesse Normale :</b> %.1f px/s\n"
+           "<b>Vitesse Fuite :</b> %.1f px/s\n"
+           "<b>Rayon Détection :</b> %d px",
+           cfg->nom,
+           type_str,
+           cfg->level,
+           cfg->taille,
+           cfg->vitesse_normale,
+           cfg->vitesse_fuite,
+           cfg->perimetre_detection);
+
+   GtkWidget *lbl_info = gtk_label_new(NULL);
+   gtk_label_set_markup(GTK_LABEL(lbl_info), info_buf);
+   gtk_label_set_justify(GTK_LABEL(lbl_info), GTK_JUSTIFY_LEFT);
+   gtk_widget_set_halign(lbl_info, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_info);
+
+   // Show diet for this species too!
+   if (cfg->nb_diet > 0)
+   {
+      GtkWidget *sep = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+      gtk_widget_set_margin_top(sep, 6);
+      gtk_widget_set_margin_bottom(sep, 6);
+      gtk_box_append(GTK_BOX(box), sep);
+
+      GtkWidget *lbl_diet_title = gtk_label_new("<b>🍽️ Régime Alimentaire :</b>");
+      gtk_label_set_use_markup(GTK_LABEL(lbl_diet_title), TRUE);
+      gtk_widget_set_halign(lbl_diet_title, GTK_ALIGN_START);
+      gtk_box_append(GTK_BOX(box), lbl_diet_title);
+
+      for (int i = 0; i < cfg->nb_diet; i++)
+      {
+         char diet_buf[128];
+         sprintf(diet_buf, "  • %s", cfg->diet[i]);
+         GtkWidget *lbl_diet_item = gtk_label_new(diet_buf);
+         gtk_widget_set_halign(lbl_diet_item, GTK_ALIGN_START);
+         gtk_widget_set_margin_start(lbl_diet_item, 10);
+         gtk_box_append(GTK_BOX(box), lbl_diet_item);
+      }
+   }
+
+   GtkWidget *scroll = gtk_scrolled_window_new();
+   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(scroll), TRUE);
+   gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroll), 480);
+   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), box);
+
+   dialog_set_contenu(sd, scroll);
+   dialog_creer(sd);
+   dialog_afficher(sd);
+
+   g_signal_connect_swapped(sd->window, "destroy", G_CALLBACK(dialog_free), sd);
+}
+
+void show_fish_details_dialog(BassinUI *ui, Poisson *p)
+{
+   if (!ui || !p)
+      return;
+
+   Dialog *details = g_new0(Dialog, 1);
+   dialog_initialiser(details);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      details->parent = GTK_WINDOW(toplevel);
+   }
+
+   char title_buf[128];
+   sprintf(title_buf, "🔍 Inspecteur : %s #%d", p->nom, p->id);
+   dialog_set_titre(details, title_buf);
+   details->boutons_preset = DIALOG_BOUTONS_OK;
+
+   // Main content box (vertical)
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+
+   // 1. Header Row (Horizontal Box): Image on left, details on right
+   GtkWidget *header_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
+   gtk_widget_set_halign(header_row, GTK_ALIGN_FILL);
+
+   // Custom Image of the fish (frame1)
+   Image *fish_img = g_new0(Image, 1);
+   image_initialiser(fish_img);
+   image_set_from_file(fish_img, p->chemin_frames[0] ? p->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png");
+   image_set_size(fish_img, 96, 96);
+   image_set_fit_mode(fish_img, IMAGE_FIT_CONTAIN);
+   image_set_halign(fish_img, WIDGET_ALIGN_CENTER);
+   GtkWidget *w_fish_img = image_creer(fish_img);
+   g_signal_connect(w_fish_img, "destroy", G_CALLBACK(on_image_widget_destroy), fish_img);
+   gtk_box_append(GTK_BOX(header_row), w_fish_img);
+
+   // Right side info (vertical box)
+   GtkWidget *header_text_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   gtk_widget_set_valign(header_text_box, GTK_ALIGN_CENTER);
+
+   char *banc_str = p->id_banc >= 0 ? g_strdup_printf("Banc #%d", p->id_banc) : g_strdup("Aucun (Solo)");
+   char *role_str = p->est_leader ? g_strdup("★ Leader du Banc") : (p->id_banc >= 0 ? g_strdup("Membre du Banc") : g_strdup("Autonome"));
+
+   char header_lbl_buf[512];
+   sprintf(header_lbl_buf,
+           "<span size='large' weight='bold'>%s</span>\n"
+           "<b>ID Unique :</b> #%d\n"
+           "<b>Groupe :</b> %s\n"
+           "<b>Rôle :</b> %s",
+           p->nom, p->id, banc_str, role_str);
+   g_free(banc_str);
+   g_free(role_str);
+
+   GtkWidget *lbl_header_text = gtk_label_new(NULL);
+   gtk_label_set_markup(GTK_LABEL(lbl_header_text), header_lbl_buf);
+   gtk_widget_set_halign(lbl_header_text, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(header_text_box), lbl_header_text);
+
+   gtk_box_append(GTK_BOX(header_row), header_text_box);
+   gtk_box_append(GTK_BOX(box), header_row);
+
+   // Separator
+   GtkWidget *sep1 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   gtk_box_append(GTK_BOX(box), sep1);
+
+   // 2. Core Characteristics
+   char char_lbl_buf[1024];
+   sprintf(char_lbl_buf,
+           "<b>Position :</b> X=%.1f, Y=%.1f\n"
+           "<b>Vitesse courante :</b> Vx=%.1f, Vy=%.1f\n"
+           "<b>Santé :</b> %.1f / %.1f\n\n"
+           "<i>Paramètres de l'espèce :</i>\n"
+           "• Vitesse Normale : %.1f px/s\n"
+           "• Vitesse Fuite : %.1f px/s\n"
+           "• Taille actuelle : %d px\n"
+           "• Rayon de Détection : %d px",
+           p->x, p->y,
+           p->vx, p->vy,
+           p->sante, p->sante_max,
+           p->vitesse_normale,
+           p->vitesse_fuite,
+           p->taille,
+           p->perimetre_detection);
+
+   GtkWidget *lbl_char = gtk_label_new(NULL);
+   gtk_label_set_markup(GTK_LABEL(lbl_char), char_lbl_buf);
+   gtk_widget_set_halign(lbl_char, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_char);
+
+   // 3. Diet table
+   SpeciesConfig *cfg = find_species_config(ui, p->nom);
+   if (cfg && cfg->nb_diet > 0)
+   {
+      GtkWidget *sep2 = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+      gtk_widget_set_margin_top(sep2, 6);
+      gtk_widget_set_margin_bottom(sep2, 6);
+      gtk_box_append(GTK_BOX(box), sep2);
+
+      GtkWidget *lbl_table_title = gtk_label_new("<b>🍽️ Régime Alimentaire & Proies Dévorées :</b>");
+      gtk_label_set_use_markup(GTK_LABEL(lbl_table_title), TRUE);
+      gtk_widget_set_halign(lbl_table_title, GTK_ALIGN_START);
+      gtk_box_append(GTK_BOX(box), lbl_table_title);
+
+      GtkWidget *grid = gtk_grid_new();
+      gtk_grid_set_column_spacing(GTK_GRID(grid), 15);
+      gtk_grid_set_row_spacing(GTK_GRID(grid), 6);
+      gtk_widget_set_margin_top(grid, 6);
+
+      // Add table headers
+      GtkWidget *h_img = gtk_label_new("<b>Proie</b>");
+      gtk_label_set_use_markup(GTK_LABEL(h_img), TRUE);
+      gtk_widget_set_halign(h_img, GTK_ALIGN_START);
+      gtk_grid_attach(GTK_GRID(grid), h_img, 0, 0, 1, 1);
+
+      GtkWidget *h_name = gtk_label_new("<b>Espèce</b>");
+      gtk_label_set_use_markup(GTK_LABEL(h_name), TRUE);
+      gtk_widget_set_halign(h_name, GTK_ALIGN_START);
+      gtk_grid_attach(GTK_GRID(grid), h_name, 1, 0, 1, 1);
+
+      GtkWidget *h_kills = gtk_label_new("<b>Captures</b>");
+      gtk_label_set_use_markup(GTK_LABEL(h_kills), TRUE);
+      gtk_widget_set_halign(h_kills, GTK_ALIGN_START);
+      gtk_grid_attach(GTK_GRID(grid), h_kills, 2, 0, 1, 1);
+
+      GtkWidget *h_actions = gtk_label_new("<b>Action</b>");
+      gtk_label_set_use_markup(GTK_LABEL(h_actions), TRUE);
+      gtk_widget_set_halign(h_actions, GTK_ALIGN_START);
+      gtk_grid_attach(GTK_GRID(grid), h_actions, 3, 0, 1, 1);
+
+      for (int i = 0; i < cfg->nb_diet; i++)
+      {
+         int r = i + 1; // row index
+         const char *prey_name = cfg->diet[i];
+         SpeciesConfig *prey_cfg = find_species_config(ui, prey_name);
+         const char *prey_frame = (prey_cfg && prey_cfg->chemin_frames[0]) ? prey_cfg->chemin_frames[0] : "resources/kenney_fish-pack_2.0/PNG/Default/fish_blue.png";
+
+         // Prey image (using the custom Image widget)
+         Image *prey_img = g_new0(Image, 1);
+         image_initialiser(prey_img);
+         image_set_from_file(prey_img, prey_frame);
+         image_set_size(prey_img, 32, 32);
+         image_set_fit_mode(prey_img, IMAGE_FIT_CONTAIN);
+         image_set_halign(prey_img, WIDGET_ALIGN_CENTER);
+         GtkWidget *w_prey_img = image_creer(prey_img);
+         g_signal_connect(w_prey_img, "destroy", G_CALLBACK(on_image_widget_destroy), prey_img);
+         gtk_grid_attach(GTK_GRID(grid), w_prey_img, 0, r, 1, 1);
+
+         // Prey name label
+         GtkWidget *lbl_prey_name = gtk_label_new(prey_name);
+         gtk_widget_set_halign(lbl_prey_name, GTK_ALIGN_START);
+         gtk_grid_attach(GTK_GRID(grid), lbl_prey_name, 1, r, 1, 1);
+
+         // Kills: small image + number of kills
+         int kills = 0;
+         for (int j = 0; j < p->nb_kills_types; j++)
+         {
+            if (strcmp(p->kills_espece[j], prey_name) == 0)
+            {
+               kills = p->kills_count[j];
+               break;
+            }
+         }
+
+         GtkWidget *kills_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+         gtk_widget_set_halign(kills_box, GTK_ALIGN_START);
+         gtk_widget_set_valign(kills_box, GTK_ALIGN_CENTER);
+
+         // Small image
+         Image *small_prey_img = g_new0(Image, 1);
+         image_initialiser(small_prey_img);
+         image_set_from_file(small_prey_img, prey_frame);
+         image_set_size(small_prey_img, 20, 20);
+         small_prey_img->rayon_arrondi = 2;
+         small_prey_img->fit_mode = IMAGE_FIT_CONTAIN;
+         GtkWidget *w_small_img = image_creer(small_prey_img);
+         g_signal_connect(w_small_img, "destroy", G_CALLBACK(on_image_widget_destroy), small_prey_img);
+         gtk_box_append(GTK_BOX(kills_box), w_small_img);
+
+         // Number of kills label
+         char kill_lbl_buf[32];
+         sprintf(kill_lbl_buf, "x %d", kills);
+         GtkWidget *lbl_kills_count = gtk_label_new(kill_lbl_buf);
+         gtk_box_append(GTK_BOX(kills_box), lbl_kills_count);
+
+         gtk_grid_attach(GTK_GRID(grid), kills_box, 2, r, 1, 1);
+
+         // Details button
+         GtkWidget *btn_prey_detail = gtk_button_new_with_label("🔍 Détails");
+         gtk_widget_add_css_class(btn_prey_detail, "secondaire");
+         g_object_set_data(G_OBJECT(btn_prey_detail), "species_name", (gpointer)prey_name);
+         g_signal_connect(btn_prey_detail, "clicked", G_CALLBACK(on_prey_details_clicked), ui);
+         gtk_grid_attach(GTK_GRID(grid), btn_prey_detail, 3, r, 1, 1);
+      }
+
+      gtk_box_append(GTK_BOX(box), grid);
+   }
+
+   GtkWidget *scroll = gtk_scrolled_window_new();
+   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(scroll), TRUE);
+   gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroll), 480);
+   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), box);
+
+   dialog_set_contenu(details, scroll);
+   dialog_creer(details);
+   dialog_afficher(details);
+
+   g_signal_connect_swapped(details->window, "destroy", G_CALLBACK(dialog_free), details);
+}
+
 // Click on fish handler
 static void on_fish_clicked(GtkGestureClick *gesture, int n_press, double x, double y, gpointer user_data)
 {
@@ -254,89 +587,8 @@ static void on_fish_clicked(GtkGestureClick *gesture, int n_press, double x, dou
       gtk_widget_add_css_class(p->widget_image, "fish-selected");
    }
 
-   // 3. Open a beautiful GtkDialog showing characteristics
-   Dialog *details = g_new0(Dialog, 1);
-   dialog_initialiser(details);
-   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
-   if (toplevel)
-   {
-      details->parent = GTK_WINDOW(toplevel);
-   }
-
-   char title_buf[128];
-   sprintf(title_buf, "🔍 Inspecteur : %s #%d", p->nom, p->id);
-   dialog_set_titre(details, title_buf);
-   details->boutons_preset = DIALOG_BOUTONS_OK;
-
-   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
-   gtk_widget_set_margin_start(box, 15);
-   gtk_widget_set_margin_end(box, 15);
-   gtk_widget_set_margin_top(box, 10);
-   gtk_widget_set_margin_bottom(box, 10);
-
-   // Add details text fields
-   char info_buf[2048];
-   char *banc_str = p->id_banc >= 0 ? g_strdup_printf("Banc #%d", p->id_banc) : g_strdup("Aucun (Solo)");
-   char *role_str = p->est_leader ? g_strdup("★ Leader du Banc") : (p->id_banc >= 0 ? g_strdup("Membre du Banc") : g_strdup("Autonome"));
-
-   sprintf(info_buf,
-           "<b>Espèce :</b> %s\n"
-           "<b>ID Unique :</b> %d\n"
-           "<b>Groupe :</b> %s\n"
-           "<b>Rôle :</b> %s\n"
-           "<b>Position :</b> X=%.1f, Y=%.1f\n"
-           "<b>Vitesse :</b> Vx=%.1f, Vy=%.1f\n"
-           "<b>Santé :</b> %.1f / %.1f\n\n"
-           "<i>Caractéristiques de l'Espèce :</i>\n"
-           "• Vitesse Normale : %.1f px/s\n"
-           "• Vitesse Fuite : %.1f px/s\n"
-           "• Taille : %d px\n"
-           "• Rayon de Détection : %d px",
-           p->nom,
-           p->id,
-           banc_str,
-           role_str,
-           p->x, p->y,
-           p->vx, p->vy,
-           p->sante, p->sante_max,
-           p->vitesse_normale,
-           p->vitesse_fuite,
-           p->taille,
-           p->perimetre_detection);
-
-   g_free(banc_str);
-   g_free(role_str);
-
-   // Add prey statistics for predators or species with kills
-   if (p->nb_kills_types > 0 || is_predator(ui, p))
-   {
-      strcat(info_buf, "\n\n<b>Proies dévorées :</b>");
-      if (p->nb_kills_types == 0)
-      {
-         strcat(info_buf, "\n• Aucune proie pour le moment");
-      }
-      else
-      {
-         for (int i = 0; i < p->nb_kills_types; i++)
-         {
-            char kill_line[128];
-            sprintf(kill_line, "\n• %s : %d", p->kills_espece[i], p->kills_count[i]);
-            strcat(info_buf, kill_line);
-         }
-      }
-   }
-
-   GtkWidget *lbl_info = gtk_label_new(NULL);
-   gtk_label_set_markup(GTK_LABEL(lbl_info), info_buf);
-   gtk_label_set_justify(GTK_LABEL(lbl_info), GTK_JUSTIFY_LEFT);
-   gtk_widget_set_halign(lbl_info, GTK_ALIGN_START);
-   gtk_box_append(GTK_BOX(box), lbl_info);
-
-   dialog_set_contenu(details, box);
-   dialog_creer(details);
-   dialog_afficher(details);
-
-   g_signal_connect_swapped(details->window, "destroy", G_CALLBACK(dialog_free), details);
+   // 3. Open the fish details dialog using the custom show_fish_details_dialog function
+   show_fish_details_dialog(ui, p);
 }
 
 // Coordinate & build the single unified Poisson representation widget (non-static)
@@ -465,7 +717,7 @@ GtkWidget *screen_bassin_create(void)
    load_species_configs(ui);
 
    // Default configuration values
-   ui->config_fish_size = 64;
+   ui->config_fish_size = 0;
    ui->config_bg_path = "resources/images/background_banc.png";
    ui->config_canvas_width = 900;
    ui->config_canvas_height = 600;
@@ -531,6 +783,7 @@ GtkWidget *screen_bassin_create(void)
 
    // 2. Right Sidebar Panel
    GtkWidget *sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
+   ui->sidebar = sidebar;
    gtk_widget_add_css_class(sidebar, "sidebar-container");
    gtk_widget_set_hexpand(sidebar, FALSE);
    gtk_widget_set_size_request(sidebar, 250, ui->config_canvas_height);

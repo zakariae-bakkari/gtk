@@ -11,6 +11,7 @@
 #include "../../widgets/headers/champ_select.h"
 #include "../../widgets/headers/bouton_radio.h"
 #include "../../widgets/headers/texte.h"
+#include "../../widgets/headers/image.h"
 
 // Forward declaration of SpeciesConfig
 typedef struct
@@ -49,6 +50,7 @@ typedef struct
    GtkWidget *btn_tab_bancs;
    GtkWidget *scrolled_sidebar_list;
    GtkWidget *box_sidebar_content;
+   GtkWidget *sidebar;
    int active_tab; // 0 = Entités, 1 = Bancs
 
    // Status bar labels
@@ -132,5 +134,11 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data);
 void on_insertion_mode_changed(GtkCheckButton *widget, gpointer user_data);
 void on_dialog_reponse(int reponse, gpointer user_data);
 void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, int target_banc_id);
+void show_fish_details_dialog(BassinUI *ui, Poisson *p);
+void open_species_details_dialog(BassinUI *ui, const char *species_name);
+void open_create_species_dialog(BassinUI *ui);
+void save_species_configs_to_xml(BassinUI *ui);
+void on_toggle_sidebar_clicked(GtkWidget *widget, gpointer user_data);
+void on_image_widget_destroy(GtkWidget *widget, gpointer user_data);
 
 #endif // BASSIN_PRIVATE_H

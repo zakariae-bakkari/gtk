@@ -177,15 +177,6 @@ gboolean update_simulation(gpointer user_data)
       {
          ui->config_canvas_width = canvas_w;
          ui->config_canvas_height = canvas_h;
-         gtk_widget_set_size_request(ui->canvas, canvas_w, canvas_h);
-         if (ui->debug_overlay)
-         {
-            gtk_widget_set_size_request(ui->debug_overlay, canvas_w, canvas_h);
-         }
-         if (ui->bg_widget)
-         {
-            gtk_widget_set_size_request(ui->bg_widget, canvas_w, canvas_h);
-         }
       }
    }
 
@@ -535,7 +526,16 @@ gboolean update_simulation(gpointer user_data)
              {
                 flipped = !flipped;
              }
-             double angle_deg = atan2(!flipped ? p->vy : -p->vy, !flipped ? p->vx : -p->vx) * 180.0 / M_PI;
+
+             double angle_deg = 0.0;
+             if (flipped)
+             {
+                angle_deg = atan2(-p->vy, -p->vx) * 180.0 / M_PI;
+             }
+             else
+             {
+                angle_deg = atan2(p->vy, p->vx) * 180.0 / M_PI;
+             }
              int rounded_angle = (int)round(angle_deg);
 
              int last_angle = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(img_widget), "last_angle"));

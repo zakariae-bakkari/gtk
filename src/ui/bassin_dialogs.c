@@ -1,6 +1,9 @@
 #include "bassin_private.h"
 #include <stdlib.h>
 #include <string.h>
+#include "../../widgets/headers/champ_texte.h"
+#include "../../widgets/headers/champ_nombre.h"
+#include "../../widgets/headers/bouton_checklist.h"
 
 void on_insertion_mode_changed(GtkCheckButton *widget, gpointer user_data)
 {
@@ -14,7 +17,7 @@ void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, 
 {
    Poisson *p = poisson_new(species);
    p->id = ui->next_id++;
-   p->taille = ui->config_fish_size;
+   p->taille = ui->config_fish_size > 0 ? ui->config_fish_size : 64;
 
    SpeciesConfig *cfg = find_species_config(ui, species);
    if (cfg)
@@ -272,6 +275,328 @@ static void on_popover_species_selected(GtkButton *btn, gpointer user_data)
       open_add_dialog(ui, selected);
 }
 
+typedef struct
+{
+   BassinUI *ui;
+   Dialog *dialog;
+   ChampTexte champ_nom;
+   ChampSelect champ_type;
+   ChampNombre champ_level;
+   ChampNombre champ_size;
+   ChampNombre champ_detection;
+   ChampNombre champ_speed_norm;
+   ChampNombre champ_speed_escape;
+   ChampNombre champ_speed_slow;
+   ChampTexte champ_frame0;
+   ChampTexte champ_frame1;
+   ChampTexte champ_frame2;
+   GList *diet_checklist_items; // list of BoutonChecklist*
+} SpeciesCreationCtx;
+
+static void add_form_row(GtkWidget *box, const char *label_text, GtkWidget *field_widget)
+{
+   GtkWidget *row = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   GtkWidget *lbl = gtk_label_new(NULL);
+   char *markup = g_strdup_printf("<b>%s</b>", label_text);
+   gtk_label_set_markup(GTK_LABEL(lbl), markup);
+   g_free(markup);
+   gtk_widget_set_halign(lbl, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(row), lbl);
+   gtk_box_append(GTK_BOX(row), field_widget);
+   gtk_box_append(GTK_BOX(box), row);
+}
+
+static void on_create_species_dialog_destroy(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   SpeciesCreationCtx *ctx = (SpeciesCreationCtx *)user_data;
+   if (!ctx)
+      return;
+
+   champ_texte_free(&ctx->champ_nom);
+   champ_select_free(&ctx->champ_type);
+   champ_nombre_free(&ctx->champ_level);
+   champ_nombre_free(&ctx->champ_size);
+   champ_nombre_free(&ctx->champ_detection);
+   champ_nombre_free(&ctx->champ_speed_norm);
+   champ_nombre_free(&ctx->champ_speed_escape);
+   champ_nombre_free(&ctx->champ_speed_slow);
+   champ_texte_free(&ctx->champ_frame0);
+   champ_texte_free(&ctx->champ_frame1);
+   champ_texte_free(&ctx->champ_frame2);
+
+   for (GList *l = ctx->diet_checklist_items; l; l = l->next)
+   {
+      BoutonChecklist *chk = l->data;
+      g_free(chk->label);
+      g_free(chk->tooltip);
+      g_free(chk->id_css);
+      g_free(chk);
+   }
+   g_list_free(ctx->diet_checklist_items);
+
+   g_free(ctx);
+}
+
+static void on_create_species_response(int reponse, gpointer user_data)
+{
+   SpeciesCreationCtx *ctx = (SpeciesCreationCtx *)user_data;
+   BassinUI *ui = ctx->ui;
+
+   if (reponse == 10 || reponse == 11)
+   {
+      const char *entered_name = champ_texte_get_texte(&ctx->champ_nom);
+      char name[128];
+      if (entered_name && strlen(entered_name) > 0)
+      {
+         strncpy(name, entered_name, sizeof(name) - 1);
+         name[sizeof(name) - 1] = '\0';
+      }
+      else
+      {
+         strcpy(name, "Poisson-perso");
+      }
+
+      // Ensure name is unique to avoid collisions
+      char unique_name[128];
+      strcpy(unique_name, name);
+      int suffix = 2;
+      while (find_species_config(ui, unique_name))
+      {
+         snprintf(unique_name, sizeof(unique_name), "%s-%d", name, suffix++);
+      }
+
+      SpeciesConfig *cfg = calloc(1, sizeof(SpeciesConfig));
+      cfg->nom = strdup(unique_name);
+
+      const char *type_str = champ_select_get_string(&ctx->champ_type);
+      cfg->type = strdup(type_str ? type_str : "prey");
+
+      cfg->level = (int)champ_nombre_get_valeur(&ctx->champ_level);
+      cfg->taille = (int)champ_nombre_get_valeur(&ctx->champ_size);
+      cfg->perimetre_detection = (int)champ_nombre_get_valeur(&ctx->champ_detection);
+
+      cfg->vitesse_normale = champ_nombre_get_valeur(&ctx->champ_speed_norm);
+      cfg->vitesse_fuite = champ_nombre_get_valeur(&ctx->champ_speed_escape);
+      cfg->vitesse_ralentie = champ_nombre_get_valeur(&ctx->champ_speed_slow);
+
+      const char *f0 = champ_texte_get_texte(&ctx->champ_frame0);
+      const char *f1 = champ_texte_get_texte(&ctx->champ_frame1);
+      const char *f2 = champ_texte_get_texte(&ctx->champ_frame2);
+
+      cfg->chemin_frames[0] = strdup(f0 && strlen(f0) > 0 ? f0 : "resources/images/fishes/sardine/frame1.png");
+      cfg->chemin_frames[1] = strdup(f1 && strlen(f1) > 0 ? f1 : "resources/images/fishes/sardine/frame2.png");
+      cfg->chemin_frames[2] = strdup(f2 && strlen(f2) > 0 ? f2 : "resources/images/fishes/sardine/frame1.png");
+      cfg->nb_frames = 3;
+
+      int diet_idx = 0;
+      for (GList *l = ctx->diet_checklist_items; l; l = l->next)
+      {
+         BoutonChecklist *chk = l->data;
+         if (bouton_checklist_get_etat(chk) == CHECKLIST_CHECKED && diet_idx < 16)
+         {
+            cfg->diet[diet_idx++] = strdup(chk->label);
+         }
+      }
+      cfg->nb_diet = diet_idx;
+
+      // Add to list
+      ui->species_configs = g_list_append(ui->species_configs, cfg);
+
+      // Persist to XML
+      save_species_configs_to_xml(ui);
+
+      // If "Create and put in bassin", spawn it
+      if (reponse == 11)
+      {
+         add_fish_programmatic(ui, cfg->nom, FALSE, -1);
+      }
+
+      update_sidebar_list(ui);
+      update_status_bar(ui);
+   }
+}
+
+void open_create_species_dialog(BassinUI *ui)
+{
+   SpeciesCreationCtx *ctx = g_new0(SpeciesCreationCtx, 1);
+   ctx->ui = ui;
+
+   Dialog *d = g_new0(Dialog, 1);
+   dialog_initialiser(d);
+   ctx->dialog = d;
+
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      d->parent = GTK_WINDOW(toplevel);
+   }
+
+   dialog_set_titre(d, "✨ Créer une Nouvelle Espèce");
+
+   // Custom buttons
+   dialog_ajouter_bouton(d, "Annuler", NULL, DIALOG_REPONSE_ANNULER, FALSE);
+   dialog_ajouter_bouton(d, "Créer", "document-save-symbolic", 10, FALSE);
+   dialog_ajouter_bouton(d, "Créer et mettre dans le bassin", "list-add-symbolic", 11, TRUE);
+
+   d->on_reponse = on_create_species_response;
+   d->user_data = ctx;
+
+   // Main content box
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+
+   // 1. Nom
+   champ_texte_initialiser(&ctx->champ_nom);
+   ctx->champ_nom.placeholder = "Ex: Thon, Dorade...";
+   ctx->champ_nom.required = TRUE;
+   champ_texte_set_texte(&ctx->champ_nom, "Poisson-perso");
+   GtkWidget *w_nom = champ_texte_creer(&ctx->champ_nom);
+   add_form_row(box, "Nom de l'espèce :", w_nom);
+
+   // 2. Type
+   champ_select_initialiser(&ctx->champ_type);
+   champ_select_add_item(&ctx->champ_type, "prey");
+   champ_select_add_item(&ctx->champ_type, "predator");
+   champ_select_add_item(&ctx->champ_type, "ally");
+   champ_select_set_index(&ctx->champ_type, 0); // prey by default
+   GtkWidget *w_type = champ_select_creer(&ctx->champ_type);
+   add_form_row(box, "Type (comportement) :", w_type);
+
+   // 3. Niveau
+   champ_nombre_initialiser(&ctx->champ_level);
+   champ_nombre_set_bornes(&ctx->champ_level, 1, 5);
+   champ_nombre_set_valeur(&ctx->champ_level, 1);
+   champ_nombre_set_digits(&ctx->champ_level, 0);
+   GtkWidget *w_level = champ_nombre_creer(&ctx->champ_level);
+   add_form_row(box, "Niveau de force (1-5) :", w_level);
+
+   // 4. Taille
+   champ_nombre_initialiser(&ctx->champ_size);
+   champ_nombre_set_bornes(&ctx->champ_size, 10, 300);
+   champ_nombre_set_valeur(&ctx->champ_size, 64);
+   champ_nombre_set_digits(&ctx->champ_size, 0);
+   GtkWidget *w_size = champ_nombre_creer(&ctx->champ_size);
+   add_form_row(box, "Taille par défaut (pixels) :", w_size);
+
+   // 5. Périmètre détection
+   champ_nombre_initialiser(&ctx->champ_detection);
+   champ_nombre_set_bornes(&ctx->champ_detection, 10, 1000);
+   champ_nombre_set_valeur(&ctx->champ_detection, 100);
+   champ_nombre_set_digits(&ctx->champ_detection, 0);
+   GtkWidget *w_detection = champ_nombre_creer(&ctx->champ_detection);
+   add_form_row(box, "Périmètre de détection (pixels) :", w_detection);
+
+   // 6. Vitesses
+   GtkWidget *speeds_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+   
+   GtkWidget *col_norm = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   GtkWidget *lbl_norm = gtk_label_new("Normale");
+   gtk_widget_set_halign(lbl_norm, GTK_ALIGN_START);
+   champ_nombre_initialiser(&ctx->champ_speed_norm);
+   champ_nombre_set_bornes(&ctx->champ_speed_norm, 5, 500);
+   champ_nombre_set_valeur(&ctx->champ_speed_norm, 50);
+   champ_nombre_set_digits(&ctx->champ_speed_norm, 0);
+   gtk_box_append(GTK_BOX(col_norm), lbl_norm);
+   gtk_box_append(GTK_BOX(col_norm), champ_nombre_creer(&ctx->champ_speed_norm));
+   gtk_box_append(GTK_BOX(speeds_box), col_norm);
+   gtk_widget_set_hexpand(col_norm, TRUE);
+
+   GtkWidget *col_esc = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   GtkWidget *lbl_esc = gtk_label_new("Fuite");
+   gtk_widget_set_halign(lbl_esc, GTK_ALIGN_START);
+   champ_nombre_initialiser(&ctx->champ_speed_escape);
+   champ_nombre_set_bornes(&ctx->champ_speed_escape, 5, 500);
+   champ_nombre_set_valeur(&ctx->champ_speed_escape, 80);
+   champ_nombre_set_digits(&ctx->champ_speed_escape, 0);
+   gtk_box_append(GTK_BOX(col_esc), lbl_esc);
+   gtk_box_append(GTK_BOX(col_esc), champ_nombre_creer(&ctx->champ_speed_escape));
+   gtk_box_append(GTK_BOX(speeds_box), col_esc);
+   gtk_widget_set_hexpand(col_esc, TRUE);
+
+   GtkWidget *col_slow = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   GtkWidget *lbl_slow = gtk_label_new("Ralentie");
+   gtk_widget_set_halign(lbl_slow, GTK_ALIGN_START);
+   champ_nombre_initialiser(&ctx->champ_speed_slow);
+   champ_nombre_set_bornes(&ctx->champ_speed_slow, 5, 500);
+   champ_nombre_set_valeur(&ctx->champ_speed_slow, 25);
+   champ_nombre_set_digits(&ctx->champ_speed_slow, 0);
+   gtk_box_append(GTK_BOX(col_slow), lbl_slow);
+   gtk_box_append(GTK_BOX(col_slow), champ_nombre_creer(&ctx->champ_speed_slow));
+   gtk_box_append(GTK_BOX(speeds_box), col_slow);
+   gtk_widget_set_hexpand(col_slow, TRUE);
+
+   add_form_row(box, "Vitesses de déplacement (px/s) :", speeds_box);
+
+   // 7. Animation Frames
+   GtkWidget *frames_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+
+   champ_texte_initialiser(&ctx->champ_frame0);
+   ctx->champ_frame0.placeholder = "Frame 1 path";
+   champ_texte_set_texte(&ctx->champ_frame0, "resources/images/fishes/sardine/frame1.png");
+   gtk_box_append(GTK_BOX(frames_box), champ_texte_creer(&ctx->champ_frame0));
+
+   champ_texte_initialiser(&ctx->champ_frame1);
+   ctx->champ_frame1.placeholder = "Frame 2 path";
+   champ_texte_set_texte(&ctx->champ_frame1, "resources/images/fishes/sardine/frame2.png");
+   gtk_box_append(GTK_BOX(frames_box), champ_texte_creer(&ctx->champ_frame1));
+
+   champ_texte_initialiser(&ctx->champ_frame2);
+   ctx->champ_frame2.placeholder = "Frame 3 path";
+   champ_texte_set_texte(&ctx->champ_frame2, "resources/images/fishes/sardine/frame1.png");
+   gtk_box_append(GTK_BOX(frames_box), champ_texte_creer(&ctx->champ_frame2));
+
+   add_form_row(box, "Chemins des images d'animation (Frames 1, 2, 3) :", frames_box);
+
+   // 8. Régime alimentaire
+   GtkWidget *diet_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+   ctx->diet_checklist_items = NULL;
+
+   for (GList *l = ui->species_configs; l; l = l->next)
+   {
+      SpeciesConfig *other_cfg = l->data;
+      BoutonChecklist *chk = g_new0(BoutonChecklist, 1);
+      bouton_checklist_initialiser(chk);
+      chk->label = g_strdup(other_cfg->nom);
+      chk->etat = CHECKLIST_UNCHECKED;
+
+      GtkWidget *w_chk = bouton_checklist_creer(chk);
+      gtk_box_append(GTK_BOX(diet_box), w_chk);
+      ctx->diet_checklist_items = g_list_append(ctx->diet_checklist_items, chk);
+   }
+   add_form_row(box, "Régime alimentaire (mange d'autres espèces) :", diet_box);
+
+   // Wrap everything in a scrolled window
+   GtkWidget *scroll = gtk_scrolled_window_new();
+   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(scroll), TRUE);
+   gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroll), 480);
+   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), box);
+
+   dialog_set_contenu(d, scroll);
+   dialog_creer(d);
+
+   // Connect destroy signals
+   g_signal_connect_swapped(d->window, "destroy", G_CALLBACK(dialog_free), d);
+   g_signal_connect(d->window, "destroy", G_CALLBACK(on_create_species_dialog_destroy), ctx);
+
+   dialog_afficher(d);
+}
+
+static void on_create_new_species_clicked(GtkButton *btn, gpointer user_data)
+{
+   BassinUI *ui = user_data;
+   GtkWidget *popover = g_object_get_data(G_OBJECT(btn), "popover");
+   if (popover)
+   {
+      gtk_popover_popdown(GTK_POPOVER(popover));
+   }
+   open_create_species_dialog(ui);
+}
+
 void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
 {
    BassinUI *ui = user_data;
@@ -332,6 +657,19 @@ void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
          gtk_box_append(GTK_BOX(box), btn_sp);
       }
    }
+
+   // Separator
+   GtkWidget *sep = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   gtk_widget_set_margin_top(sep, 6);
+   gtk_widget_set_margin_bottom(sep, 6);
+   gtk_box_append(GTK_BOX(box), sep);
+
+   // Create new one button
+   GtkWidget *btn_create_new = gtk_button_new_with_label("✨ Create new one");
+   gtk_widget_add_css_class(btn_create_new, "principal");
+   g_object_set_data(G_OBJECT(btn_create_new), "popover", popover);
+   g_signal_connect(btn_create_new, "clicked", G_CALLBACK(on_create_new_species_clicked), ui);
+   gtk_box_append(GTK_BOX(box), btn_create_new);
 
    gtk_popover_set_child(GTK_POPOVER(popover), box);
    gtk_popover_popup(GTK_POPOVER(popover));
@@ -438,7 +776,7 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
 
    slider_initialiser(&ui->settings_sld_fish_size);
    slider_set_bornes(&ui->settings_sld_fish_size, 32, 128);
-   slider_set_valeur(&ui->settings_sld_fish_size, ui->config_fish_size);
+   slider_set_valeur(&ui->settings_sld_fish_size, ui->config_fish_size > 0 ? ui->config_fish_size : 64);
    slider_set_digits(&ui->settings_sld_fish_size, 0);
    slider_set_afficher_valeur(&ui->settings_sld_fish_size, TRUE);
    GtkWidget *w_sld_size = slider_creer(&ui->settings_sld_fish_size);

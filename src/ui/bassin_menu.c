@@ -212,5 +212,10 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
    g_signal_connect(btn_settings, "clicked", G_CALLBACK(on_settings_clicked), ui);
    gtk_box_append(GTK_BOX(sim_controls), btn_settings);
 
+   // Toggle Sidebar button
+   GtkWidget *btn_toggle_sidebar = gtk_button_new_with_label("📋 Sidebar");
+   g_signal_connect(btn_toggle_sidebar, "clicked", G_CALLBACK(on_toggle_sidebar_clicked), ui);
+   gtk_box_append(GTK_BOX(sim_controls), btn_toggle_sidebar);
+
    gtk_box_append(GTK_BOX(header_box), sim_controls);
 }
