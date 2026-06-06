@@ -822,14 +822,91 @@ void create_poisson_widget(BassinUI *ui, Poisson *p)
    gtk_fixed_put(GTK_FIXED(ui->canvas), container, (int)p->x, (int)p->y);
 }
 
+void show_shortcuts_help_dialog(BassinUI *ui)
+{
+   if (!ui) return;
+
+   Dialog *help = g_new0(Dialog, 1);
+   dialog_initialiser(help);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      help->parent = GTK_WINDOW(toplevel);
+   }
+
+   dialog_set_titre(help, "⌨️ Raccourcis Clavier");
+   help->boutons_preset = DIALOG_BOUTONS_OK;
+
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
+   gtk_widget_set_margin_start(box, 20);
+   gtk_widget_set_margin_end(box, 20);
+   gtk_widget_set_margin_top(box, 20);
+   gtk_widget_set_margin_bottom(box, 20);
+
+   GtkWidget *lbl_intro = gtk_label_new(NULL);
+   gtk_label_set_markup(GTK_LABEL(lbl_intro), "<span size='large' weight='bold'>Liste des raccourcis disponibles</span>");
+   gtk_box_append(GTK_BOX(box), lbl_intro);
+
+   GtkWidget *grid = gtk_grid_new();
+   gtk_grid_set_column_spacing(GTK_GRID(grid), 30);
+   gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
+   gtk_widget_set_halign(grid, GTK_ALIGN_CENTER);
+
+   const char *shortcuts[][2] = {
+      {"<b>F1</b>",             "Afficher cette aide"},
+      {"<b>F11</b> / <b>Ctrl+F</b>", "Plein écran"},
+      {"<b>Ctrl+H</b>",         "Mode Zen (Masquer l'UI)"},
+      {"<b>Ctrl+D</b>",         "Mode Débogage"},
+      {"<b>Ctrl+S</b>",         "Paramètres"},
+      {"<b>Ctrl+N</b>",         "Ajouter un poisson"},
+      {"<b>Ctrl+P</b>",         "Lecture / Pause"},
+      {"<b>Ctrl+B</b>",         "Afficher/Masquer la barre latérale"},
+      {"<b>Ctrl+R</b>",         "Réinitialiser la simulation"},
+      {NULL, NULL}
+   };
+
+   for (int i = 0; shortcuts[i][0] != NULL; i++)
+   {
+      GtkWidget *lbl_key = gtk_label_new(NULL);
+      gtk_label_set_markup(GTK_LABEL(lbl_key), shortcuts[i][0]);
+      gtk_widget_set_halign(lbl_key, GTK_ALIGN_END);
+
+      GtkWidget *lbl_desc = gtk_label_new(shortcuts[i][1]);
+      gtk_widget_set_halign(lbl_desc, GTK_ALIGN_START);
+
+      gtk_grid_attach(GTK_GRID(grid), lbl_key, 0, i, 1, 1);
+      gtk_grid_attach(GTK_GRID(grid), lbl_desc, 1, i, 1, 1);
+   }
+
+   gtk_box_append(GTK_BOX(box), grid);
+
+   dialog_set_contenu(help, box);
+   dialog_creer(help);
+   dialog_afficher(help);
+
+   g_signal_connect_swapped(help->window, "destroy", G_CALLBACK(dialog_free), help);
+}
+
 // Controller key bindings and destroy callbacks
 static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data)
 {
    (void)controller;
    (void)keycode;
    BassinUI *ui = user_data;
+   GtkRoot *root = gtk_widget_get_root(ui->root);
+   GtkWindow *window = GTK_IS_WINDOW(root) ? GTK_WINDOW(root) : NULL;
 
-   if ((keyval == GDK_KEY_d || keyval == GDK_KEY_D) && (state & GDK_CONTROL_MASK) != 0)
+   gboolean ctrl = (state & GDK_CONTROL_MASK) != 0;
+
+   // F1 : Help
+   if (keyval == GDK_KEY_F1)
+   {
+      show_shortcuts_help_dialog(ui);
+      return TRUE;
+   }
+
+   // Ctrl+D : Debug Mode
+   if ((keyval == GDK_KEY_d || keyval == GDK_KEY_D) && ctrl)
    {
       ui->debug_mode = !ui->debug_mode;
       g_print("Debug mode toggled: %d\n", ui->debug_mode);
@@ -837,14 +914,67 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
       {
          gtk_widget_queue_draw(ui->debug_overlay);
       }
-      return TRUE; // handled
+      return TRUE;
    }
-   if ((keyval == GDK_KEY_h || keyval == GDK_KEY_H) && (state & GDK_CONTROL_MASK) != 0)
+
+   // Ctrl+H : Zen Mode
+   if ((keyval == GDK_KEY_h || keyval == GDK_KEY_H) && ctrl)
    {
       ui->zen_mode = !ui->zen_mode;
       apply_zen_mode(ui);
-      return TRUE; // handled
+      return TRUE;
    }
+
+   // Ctrl+S : Settings
+   if ((keyval == GDK_KEY_s || keyval == GDK_KEY_S) && ctrl)
+   {
+      on_settings_clicked(NULL, ui);
+      return TRUE;
+   }
+
+   // Ctrl+N : Add New Fish
+   if ((keyval == GDK_KEY_n || keyval == GDK_KEY_N) && ctrl)
+   {
+      on_add_poisson_btn_clicked(NULL, ui);
+      return TRUE;
+   }
+
+   // Ctrl+P : Play / Pause
+   if ((keyval == GDK_KEY_p || keyval == GDK_KEY_P) && ctrl)
+   {
+      on_play_pause_clicked(NULL, ui);
+      return TRUE;
+   }
+
+   // Ctrl+B : Toggle Sidebar
+   if ((keyval == GDK_KEY_b || keyval == GDK_KEY_B) && ctrl)
+   {
+      on_toggle_sidebar_clicked(NULL, ui);
+      return TRUE;
+   }
+
+   // F11 or Ctrl+F : Fullscreen
+   if (keyval == GDK_KEY_F11 || ((keyval == GDK_KEY_f || keyval == GDK_KEY_F) && ctrl))
+   {
+      if (window)
+      {
+         static gboolean is_fullscreen = FALSE;
+         if (!is_fullscreen)
+            gtk_window_fullscreen(window);
+         else
+            gtk_window_unfullscreen(window);
+         is_fullscreen = !is_fullscreen;
+      }
+      return TRUE;
+   }
+
+   // Ctrl+R : Restart
+   if ((keyval == GDK_KEY_r || keyval == GDK_KEY_R) && ctrl)
+   {
+      on_restart_clicked(NULL, ui);
+      return TRUE;
+   }
+
    return FALSE;
 }
 

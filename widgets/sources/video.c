@@ -115,6 +115,18 @@ static void video_apply_css(Video *cfg)
             "}\n",
             cfg->id_css);
 
+   if (!cfg->controles)
+   {
+      snprintf(css + strlen(css), sizeof(css) - strlen(css),
+               "video mediacontrols, video revealer, video image.osd {\n"
+               "  opacity: 0;\n"
+               "  min-height: 0;\n"
+               "  min-width: 0;\n"
+               "  margin: 0;\n"
+               "  padding: 0;\n"
+               "}\n");
+   }
+
    gtk_css_provider_load_from_string(provider, css);
 
    gtk_style_context_add_provider(

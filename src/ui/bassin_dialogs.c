@@ -1227,6 +1227,21 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    gtk_box_append(GTK_BOX(row_status), ui->settings_sw_hide_status);
    gtk_box_append(GTK_BOX(box), row_status);
 
+   // Separator
+   GtkWidget *sep_help = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
+   gtk_widget_set_margin_top(sep_help, 8);
+   gtk_widget_set_margin_bottom(sep_help, 8);
+   gtk_box_append(GTK_BOX(box), sep_help);
+
+   // External function declaration (defined in screen_bassin.c)
+   extern void show_shortcuts_help_dialog(BassinUI *ui);
+
+   // Keyboard Shortcuts Button
+   GtkWidget *btn_shortcuts = gtk_button_new_with_label("⌨️ Raccourcis Clavier");
+   gtk_widget_add_css_class(btn_shortcuts, "secondaire");
+   g_signal_connect_swapped(btn_shortcuts, "clicked", G_CALLBACK(show_shortcuts_help_dialog), ui);
+   gtk_box_append(GTK_BOX(box), btn_shortcuts);
+
    dialog_set_contenu(&ui->settings_dialog, box);
    dialog_creer(&ui->settings_dialog);
    dialog_afficher(&ui->settings_dialog);

@@ -2,18 +2,18 @@
 
 #include "ui/screen_bassin.h"
 #include "ui/screen_stubs.h"
+#include "fenetre.h"
 
-GtkWidget *g_window = NULL;
+Fenetre g_app_window;
 
 static void show_screen(GtkWidget *child)
 {
-    if (!g_window)
+    if (!g_app_window.wind)
     {
         return;
     }
 
-    gtk_window_set_child(GTK_WINDOW(g_window), NULL);
-    gtk_window_set_child(GTK_WINDOW(g_window), child);
+    fenetre_ajouter(&g_app_window, child);
 }
 
 void nav_to_accueil(void)
@@ -45,15 +45,25 @@ static void activate(GtkApplication *app, gpointer user_data)
 {
     (void)user_data;
 
-    GtkWidget *window = gtk_application_window_new(app);
-    g_window = window;
+    fenetre_initialiser(&g_app_window);
 
-    gtk_window_set_title(GTK_WINDOW(window), "Banc de poisson");
-    gtk_window_set_default_size(GTK_WINDOW(window), 1280, 720);
+    if (g_app_window.title)
+        free(g_app_window.title);
+    g_app_window.title = g_strdup("DEEP SHARK ATTACK");
 
-    nav_to_bassin();
+    g_app_window.taille.width = 1280;
+    g_app_window.taille.height = 720;
 
-    gtk_window_present(GTK_WINDOW(window));
+    g_app_window.icon_path = "resources/images/app.png";
+    g_app_window.ico_path = "resources/images/app.ico";
+
+    fenetre_creer(&g_app_window, app);
+#ifdef _WIN32
+    g_timeout_add(100, (GSourceFunc)fenetre_appliquer_icone_taskbar, &g_app_window);
+#endif
+    nav_to_accueil();
+
+    gtk_window_present(GTK_WINDOW(g_app_window.wind));
 }
 
 int main(int argc, char *argv[])
