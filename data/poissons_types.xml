@@ -33,4 +33,9 @@
         <frame>resources/images/Puffer_big_no_background.png</frame>
         <frame>resources/images/Puffer_normal_no_background.png</frame>
     </species>
+        <species name="Sardine" type="prey" speed_norm="170.0" speed_escape="270.0" speed_slow="20.0" size="30" detection="100">
+        <frame>resources/images/sardine.png</frame>
+        <frame>resources/images/sardine2.png</frame>
+        <frame>resources/images/sardine.png</frame>
+    </species>
 </species_list>

@@ -299,7 +299,9 @@ static GtkWidget *menu_construire_item(Menu *cfg, MenuItem *item)
    /* Indicateur de sous-menu (flèche) */
    if (item->nb_sous_items > 0)
    {
-      int orient;
+      GtkOrientation orient = (cfg->orientation == MENU_VERTICAL)
+                                 ? GTK_ORIENTATION_VERTICAL
+                                 : GTK_ORIENTATION_HORIZONTAL;
       const char *arrow = (orient == GTK_ORIENTATION_VERTICAL)
                              ? "pan-end-symbolic"   // enfants empilés verticalement → flèche droite →
                              : "pan-down-symbolic"; // enfants côte à côte horizontalement → flèche bas ↓
