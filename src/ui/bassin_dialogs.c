@@ -1042,11 +1042,11 @@ static void on_settings_reponse(int reponse, gpointer user_data)
          free(ui->config_bg_path);
       if (bg_idx == 0)
       {
-         ui->config_bg_path = strdup("resources/images/background_banc.png");
+         ui->config_bg_path = strdup("resources/images/fond/background_banc.png");
       }
       else
       {
-         ui->config_bg_path = strdup("resources/images/background2.png");
+         ui->config_bg_path = strdup("resources/images/fond/background2.png");
       }
 
       int canvas_idx = champ_select_get_index(&ui->settings_sel_canvas);

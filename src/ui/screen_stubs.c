@@ -36,7 +36,7 @@ GtkWidget *screen_accueil_create(void)
    gtk_widget_set_vexpand(overlay, TRUE);
 
    // Background Video (using GtkMediaFile + GtkPicture for NO controls)
-   GtkMediaStream *stream = gtk_media_file_new_for_filename("resources/images/background.mp4");
+   GtkMediaStream *stream = gtk_media_file_new_for_filename("resources/images/fond/background.mp4");
    gtk_media_stream_set_loop(stream, TRUE);
    
    GtkWidget *w_vid = gtk_picture_new_for_paintable(GDK_PAINTABLE(stream));
@@ -58,7 +58,7 @@ GtkWidget *screen_accueil_create(void)
    gtk_overlay_add_overlay(GTK_OVERLAY(overlay), content);
 
    // Title Image
-   GtkWidget *title_img = gtk_picture_new_for_filename("resources/images/title_home_page-removebg-preview.png");
+   GtkWidget *title_img = gtk_picture_new_for_filename("resources/images/fond/title_home_page-removebg-preview.png");
    gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(title_img), TRUE);
    gtk_widget_set_size_request(title_img, 800, 400);
    gtk_box_append(GTK_BOX(content), title_img);

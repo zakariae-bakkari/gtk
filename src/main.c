@@ -54,8 +54,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     g_app_window.taille.width = 1280;
     g_app_window.taille.height = 720;
 
-    g_app_window.icon_path = "resources/images/app.png";
-    g_app_window.ico_path = "resources/images/app.ico";
+    g_app_window.icon_path = "resources/icons/app.png";
+    g_app_window.ico_path = "resources/icons/app.ico";
 
     fenetre_creer(&g_app_window, app);
 #ifdef _WIN32

@@ -1345,7 +1345,7 @@ GtkWidget *screen_bassin_create(void)
 
    // Default configuration values
    ui->config_fish_size = 0;
-   ui->config_bg_path = strdup("resources/images/background_banc.png");
+   ui->config_bg_path = strdup("resources/images/fond/background_banc.png");
    ui->config_canvas_width = 900;
    ui->config_canvas_height = 600;
    ui->config_hide_health_bar = FALSE;

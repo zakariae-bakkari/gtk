@@ -1,5 +1,5 @@
 <bassin>
-  <canvas width="1073" height="622" fish_size="127" bg="resources/images/background_banc.png" elapsed_time="0.198000" num_bancs="2"/>
+  <canvas width="1073" height="622" fish_size="127" bg="resources/images/fond/background_banc.png" elapsed_time="0.198000" num_bancs="2"/>
   <poissons>
     <poisson id="9" nom="scate" x="916.123368" y="369.086062" vx="-33.722139" vy="-21.513190" id_banc="-1" est_leader="false" sante="100.000000"/>
     <poisson id="8" nom="Eel" x="884.518894" y="239.443125" vx="-48.284521" vy="12.984799" id_banc="2" est_leader="false" sante="100.000000"/>
