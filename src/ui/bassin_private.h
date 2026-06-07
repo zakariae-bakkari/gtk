@@ -133,6 +133,7 @@ typedef struct
 
 void spawn_floating_kill(BassinUI *ui, double x, double y);
 void update_fish_widget_tags(BassinUI *ui, Poisson *p);
+GtkWidget *get_fish_picture_widget(Poisson *p);
 
 void apply_zen_mode(BassinUI *ui);
 void apply_fish_visibility_configs(BassinUI *ui);

@@ -26,14 +26,16 @@ static void on_sidebar_item_clicked(GtkGestureClick *gesture, int n_press, doubl
       for (GList *l = ui->poissons; l; l = l->next)
       {
          Poisson *other = l->data;
-         if (other->widget_image)
+         GtkWidget *img_widget = get_fish_picture_widget(other);
+         if (img_widget)
          {
-            gtk_widget_remove_css_class(other->widget_image, "fish-selected");
+            gtk_widget_remove_css_class(img_widget, "fish-selected");
          }
       }
-      if (p->widget_image)
+      GtkWidget *img_widget = get_fish_picture_widget(p);
+      if (img_widget)
       {
-         gtk_widget_add_css_class(p->widget_image, "fish-selected");
+         gtk_widget_add_css_class(img_widget, "fish-selected");
       }
       show_fish_details_dialog(ui, p);
    }

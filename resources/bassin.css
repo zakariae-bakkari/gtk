@@ -81,7 +81,7 @@
 }
 .fish-selected {
   border: 2px solid #3498DB;
-  border-radius: 8px;
+  border-radius: 50%;
   box-shadow: 0 0 12px #3498DB;
   padding: 4px;
   background-color: rgba(52, 152, 219, 0.15);
@@ -126,7 +126,7 @@
 
 .fish-controlled {
   border: 2px solid #F1C40F;
-  border-radius: 8px;
+  border-radius: 50%;
   box-shadow: 0 0 15px #F1C40F;
   padding: 4px;
   background-color: rgba(241, 196, 15, 0.2);

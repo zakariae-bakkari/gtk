@@ -489,14 +489,22 @@ void open_delete_species_confirmation(BassinUI *ui, const char *species_name)
                                 ctx);
 }
 
+GtkWidget *get_fish_picture_widget(Poisson *p)
+{
+   if (!p || !p->widget_image)
+      return NULL;
+   GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
+   GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
+   GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
+   return img_widget;
+}
+
 void update_fish_widget_tags(BassinUI *ui, Poisson *p)
 {
    if (!p || !p->widget_image)
       return;
 
-   GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
-   GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
-   GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
+   GtkWidget *img_widget = get_fish_picture_widget(p);
    GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(img_widget) : NULL;
 
    if (lbl_tag && GTK_IS_LABEL(lbl_tag))
@@ -505,11 +513,13 @@ void update_fish_widget_tags(BassinUI *ui, Poisson *p)
       if (ui->controlled_fish == p)
       {
          sprintf(tag_buf, "🕹️ [JOUEUR] %s", p->nom);
-         gtk_widget_add_css_class(p->widget_image, "fish-controlled");
+         if (img_widget)
+            gtk_widget_add_css_class(img_widget, "fish-controlled");
       }
       else
       {
-         gtk_widget_remove_css_class(p->widget_image, "fish-controlled");
+         if (img_widget)
+            gtk_widget_remove_css_class(img_widget, "fish-controlled");
          if (is_predator(ui, p))
          {
             sprintf(tag_buf, "%s Alpha", p->nom);
@@ -829,16 +839,18 @@ static void on_fish_clicked(GtkGestureClick *gesture, int n_press, double x, dou
    for (GList *l = ui->poissons; l; l = l->next)
    {
       Poisson *other = l->data;
-      if (other->widget_image)
+      GtkWidget *img_widget = get_fish_picture_widget(other);
+      if (img_widget)
       {
-         gtk_widget_remove_css_class(other->widget_image, "fish-selected");
+         gtk_widget_remove_css_class(img_widget, "fish-selected");
       }
    }
 
    // 2. Add highlight CSS class to clicked fish
-   if (p->widget_image)
+   GtkWidget *img_widget = get_fish_picture_widget(p);
+   if (img_widget)
    {
-      gtk_widget_add_css_class(p->widget_image, "fish-selected");
+      gtk_widget_add_css_class(img_widget, "fish-selected");
    }
 
    // 3. Open the fish details dialog using the custom show_fish_details_dialog function

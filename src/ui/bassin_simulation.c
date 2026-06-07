@@ -595,7 +595,7 @@ gboolean update_simulation(gpointer user_data)
              double angle_deg = 0.0;
              if (flipped)
              {
-                angle_deg = atan2(-p->vy, -p->vx) * 180.0 / M_PI;
+                angle_deg = -atan2(-p->vy, -p->vx) * 180.0 / M_PI;
              }
              else
              {
