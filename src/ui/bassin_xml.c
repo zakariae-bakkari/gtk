@@ -368,6 +368,7 @@ void load_settings_from_xml(BassinUI *ui)
    ui->config_hide_health_bar = attr_bool(root, "hide_health_bar", ui->config_hide_health_bar);
    ui->config_hide_fish_name = attr_bool(root, "hide_fish_name", ui->config_hide_fish_name);
    ui->config_hide_status_bar = attr_bool(root, "hide_status_bar", ui->config_hide_status_bar);
+   ui->config_always_eat = attr_bool(root, "always_eat", ui->config_always_eat);
 
    const char *sh_play = xml_attr_get(root, "shortcut_play");
    if (sh_play)
@@ -411,6 +412,12 @@ void load_settings_from_xml(BassinUI *ui)
       g_free(ui->shortcut_restart);
       ui->shortcut_restart = g_strdup(sh_restart);
    }
+   const char *sh_food = xml_attr_get(root, "shortcut_food");
+   if (sh_food)
+   {
+      g_free(ui->shortcut_food);
+      ui->shortcut_food = g_strdup(sh_food);
+   }
 
    xml_node_free(root);
 }
@@ -428,22 +435,24 @@ void save_settings_to_xml(BassinUI *ui)
       return;
    }
 
-   fprintf(f, "<settings fish_size=\"%d\" bg_path=\"%s\" canvas_width=\"%d\" canvas_height=\"%d\" hide_health_bar=\"%s\" hide_fish_name=\"%s\" hide_status_bar=\"%s\" ",
+   fprintf(f, "<settings fish_size=\"%d\" bg_path=\"%s\" canvas_width=\"%d\" canvas_height=\"%d\" hide_health_bar=\"%s\" hide_fish_name=\"%s\" hide_status_bar=\"%s\" always_eat=\"%s\" ",
            ui->config_fish_size,
            ui->config_bg_path ? ui->config_bg_path : "",
            ui->config_canvas_width,
            ui->config_canvas_height,
            ui->config_hide_health_bar ? "true" : "false",
            ui->config_hide_fish_name ? "true" : "false",
-           ui->config_hide_status_bar ? "true" : "false");
+           ui->config_hide_status_bar ? "true" : "false",
+           ui->config_always_eat ? "true" : "false");
 
-   fprintf(f, "shortcut_play=\"%s\" shortcut_zen=\"%s\" shortcut_debug=\"%s\" shortcut_settings=\"%s\" shortcut_add=\"%s\" shortcut_sidebar=\"%s\" shortcut_restart=\"%s\"/>\n",
+   fprintf(f, "shortcut_play=\"%s\" shortcut_zen=\"%s\" shortcut_debug=\"%s\" shortcut_settings=\"%s\" shortcut_add=\"%s\" shortcut_sidebar=\"%s\" shortcut_restart=\"%s\" shortcut_food=\"%s\"/>\n",
            ui->shortcut_play ? ui->shortcut_play : "",
            ui->shortcut_zen ? ui->shortcut_zen : "",
            ui->shortcut_debug ? ui->shortcut_debug : "",
            ui->shortcut_settings ? ui->shortcut_settings : "",
            ui->shortcut_add ? ui->shortcut_add : "",
            ui->shortcut_sidebar ? ui->shortcut_sidebar : "",
-           ui->shortcut_restart ? ui->shortcut_restart : "");
+           ui->shortcut_restart ? ui->shortcut_restart : "",
+           ui->shortcut_food ? ui->shortcut_food : "");
    fclose(f);
 }

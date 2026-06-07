@@ -51,8 +51,7 @@ static void activate(GtkApplication *app, gpointer user_data)
         free(g_app_window.title);
     g_app_window.title = g_strdup("DEEP SHARK ATTACK");
 
-    g_app_window.taille.width = 1280;
-    g_app_window.taille.height = 720;
+    g_app_window.demarrer_maximisee = TRUE;
 
     g_app_window.icon_path = "resources/icons/app.png";
     g_app_window.ico_path = "resources/icons/app.ico";

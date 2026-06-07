@@ -1077,6 +1077,7 @@ static void on_settings_reponse(int reponse, gpointer user_data)
       ui->config_hide_health_bar = gtk_switch_get_active(GTK_SWITCH(ui->settings_sw_hide_health));
       ui->config_hide_fish_name = gtk_switch_get_active(GTK_SWITCH(ui->settings_sw_hide_name));
       ui->config_hide_status_bar = gtk_switch_get_active(GTK_SWITCH(ui->settings_sw_hide_status));
+      ui->config_always_eat = gtk_switch_get_active(GTK_SWITCH(ui->settings_sw_always_eat));
 
       apply_fish_visibility_configs(ui);
       if (!ui->zen_mode)
@@ -1274,6 +1275,18 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    gtk_box_append(GTK_BOX(row_status), lbl_status);
    gtk_box_append(GTK_BOX(row_status), ui->settings_sw_hide_status);
    gtk_box_append(GTK_BOX(box), row_status);
+
+   // Always eat switch row
+   GtkWidget *row_always_eat = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+   GtkWidget *lbl_always_eat = gtk_label_new("Manger même avec santé pleine");
+   gtk_widget_set_hexpand(lbl_always_eat, TRUE);
+   gtk_widget_set_halign(lbl_always_eat, GTK_ALIGN_START);
+   ui->settings_sw_always_eat = gtk_switch_new();
+   gtk_switch_set_active(GTK_SWITCH(ui->settings_sw_always_eat), ui->config_always_eat);
+   gtk_widget_set_halign(ui->settings_sw_always_eat, GTK_ALIGN_END);
+   gtk_box_append(GTK_BOX(row_always_eat), lbl_always_eat);
+   gtk_box_append(GTK_BOX(row_always_eat), ui->settings_sw_always_eat);
+   gtk_box_append(GTK_BOX(box), row_always_eat);
 
    // Separator
    GtkWidget *sep_help = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);

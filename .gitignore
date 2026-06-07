@@ -44,7 +44,7 @@ meson-info/
 .DS_Store
 Thumbs.db
 desktop.ini
-
+release
 # =========================
 # GTK / GResource generated
 # =========================

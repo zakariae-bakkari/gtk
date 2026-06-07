@@ -97,4 +97,14 @@
         <eats>scate</eats>
         <eats>Eel</eats>
     </species>
+    <species name="zakariae" type="prey" level="0" speed_norm="0.0" speed_escape="0.0" speed_slow="0.0" size="0" detection="0" health="0.0">
+        <frame>resources/images/fishes/zakariae/frame1.png</frame>
+        <frame>resources/images/fishes/zakariae/frame2.png</frame>
+        <frame>resources/images/fishes/zakariae/frame3.png</frame>
+        <eats>turtle</eats>
+        <eats>Garfish</eats>
+        <eats>tuna</eats>
+        <eats>Dolphin</eats>
+        <eats>orka</eats>
+    </species>
 </species_list>

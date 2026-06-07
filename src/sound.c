@@ -16,7 +16,8 @@ static const char *sound_paths[SOUND_COUNT] = {
     "resources/sounds/hook_cast.wav",
     "resources/sounds/victory.wav",
     "resources/sounds/game_over.wav",
-    "resources/sounds/shark_alert.wav"
+    "resources/sounds/shark_alert.wav",
+    "resources/sounds/coin.wav"
 };
 
 void sound_init(void) {
