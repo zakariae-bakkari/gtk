@@ -90,6 +90,22 @@ void spawn_floating_damage(BassinUI *ui, double x, double y, double damage)
    g_timeout_add(33, animate_floating_damage_tick, fd);
 }
 
+void spawn_floating_kill(BassinUI *ui, double x, double y)
+{
+   FloatingDamage *fd = g_new0(FloatingDamage, 1);
+   fd->label = gtk_label_new("+1 Kill");
+   fd->x = x;
+   fd->y = y;
+   fd->vy = -1.5;
+   fd->ticks_remaining = 20;
+   fd->ui = ui;
+
+   gtk_widget_add_css_class(fd->label, "floating-kill");
+   gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
+
+   g_timeout_add(33, animate_floating_damage_tick, fd);
+}
+
 // Drag structures and handlers
 typedef struct
 {
@@ -473,6 +489,78 @@ void open_delete_species_confirmation(BassinUI *ui, const char *species_name)
                                 ctx);
 }
 
+void update_fish_widget_tags(BassinUI *ui, Poisson *p)
+{
+   if (!p || !p->widget_image)
+      return;
+
+   GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
+   GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
+   GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
+   GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(img_widget) : NULL;
+
+   if (lbl_tag && GTK_IS_LABEL(lbl_tag))
+   {
+      char tag_buf[128];
+      if (ui->controlled_fish == p)
+      {
+         sprintf(tag_buf, "🕹️ [JOUEUR] %s", p->nom);
+         gtk_widget_add_css_class(p->widget_image, "fish-controlled");
+      }
+      else
+      {
+         gtk_widget_remove_css_class(p->widget_image, "fish-controlled");
+         if (is_predator(ui, p))
+         {
+            sprintf(tag_buf, "%s Alpha", p->nom);
+         }
+         else if (is_ally(ui, p))
+         {
+            sprintf(tag_buf, "%s", p->nom);
+         }
+         else
+         {
+            const char *short_nom = p->nom;
+            if (strcmp(p->nom, "Poisson clown") == 0) short_nom = "Clown";
+            else if (strcmp(p->nom, "Poisson-globe") == 0) short_nom = "Globe";
+            sprintf(tag_buf, "%s #%d", short_nom, p->id);
+         }
+      }
+      gtk_label_set_text(GTK_LABEL(lbl_tag), tag_buf);
+   }
+}
+
+static void on_control_fish_clicked(GtkButton *btn, gpointer user_data)
+{
+   (void)user_data;
+   BassinUI *ui = g_object_get_data(G_OBJECT(btn), "ui");
+   Poisson *p = g_object_get_data(G_OBJECT(btn), "poisson");
+   Dialog *dialog = g_object_get_data(G_OBJECT(btn), "dialog");
+
+   if (ui && p)
+   {
+      Poisson *old = ui->controlled_fish;
+      ui->controlled_fish = p;
+
+      // Reset velocities
+      p->vx = 0.0;
+      p->vy = 0.0;
+
+      // Update tags
+      if (old)
+         update_fish_widget_tags(ui, old);
+      update_fish_widget_tags(ui, p);
+
+      // Play sound effect
+      sound_play(SOUND_SPLASH);
+
+      if (dialog)
+      {
+         dialog_fermer(dialog);
+      }
+   }
+}
+
 void show_fish_details_dialog(BassinUI *ui, Poisson *p)
 {
    if (!ui || !p)
@@ -674,6 +762,16 @@ void show_fish_details_dialog(BassinUI *ui, Poisson *p)
       gtk_box_append(GTK_BOX(box), grid);
    }
 
+   // Control button
+   GtkWidget *btn_control = gtk_button_new_with_label("🕹️ Prendre le contrôle");
+   gtk_widget_add_css_class(btn_control, "suggested-action");
+   gtk_widget_set_margin_top(btn_control, 10);
+   g_object_set_data(G_OBJECT(btn_control), "ui", ui);
+   g_object_set_data(G_OBJECT(btn_control), "poisson", p);
+   g_object_set_data(G_OBJECT(btn_control), "dialog", details);
+   g_signal_connect(btn_control, "clicked", G_CALLBACK(on_control_fish_clicked), NULL);
+   gtk_box_append(GTK_BOX(box), btn_control);
+
    GtkWidget *scroll = gtk_scrolled_window_new();
    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
    gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(scroll), TRUE);
@@ -852,16 +950,32 @@ void show_shortcuts_help_dialog(BassinUI *ui)
    gtk_grid_set_row_spacing(GTK_GRID(grid), 10);
    gtk_widget_set_halign(grid, GTK_ALIGN_CENTER);
 
+   char play_str[128];
+   char zen_str[128];
+   char debug_str[128];
+   char settings_str[128];
+   char add_str[128];
+   char sidebar_str[128];
+   char restart_str[128];
+
+   snprintf(play_str, sizeof(play_str), "<b>%s</b>", ui->shortcut_play ? ui->shortcut_play : "Non configuré");
+   snprintf(zen_str, sizeof(zen_str), "<b>%s</b>", ui->shortcut_zen ? ui->shortcut_zen : "Non configuré");
+   snprintf(debug_str, sizeof(debug_str), "<b>%s</b>", ui->shortcut_debug ? ui->shortcut_debug : "Non configuré");
+   snprintf(settings_str, sizeof(settings_str), "<b>%s</b>", ui->shortcut_settings ? ui->shortcut_settings : "Non configuré");
+   snprintf(add_str, sizeof(add_str), "<b>%s</b>", ui->shortcut_add ? ui->shortcut_add : "Non configuré");
+   snprintf(sidebar_str, sizeof(sidebar_str), "<b>%s</b>", ui->shortcut_sidebar ? ui->shortcut_sidebar : "Non configuré");
+   snprintf(restart_str, sizeof(restart_str), "<b>%s</b>", ui->shortcut_restart ? ui->shortcut_restart : "Non configuré");
+
    const char *shortcuts[][2] = {
       {"<b>F1</b>",             "Afficher cette aide"},
       {"<b>F11</b> / <b>Ctrl+F</b>", "Plein écran"},
-      {"<b>Ctrl+H</b>",         "Mode Zen (Masquer l'UI)"},
-      {"<b>Ctrl+D</b>",         "Mode Débogage"},
-      {"<b>Ctrl+S</b>",         "Paramètres"},
-      {"<b>Ctrl+N</b>",         "Ajouter un poisson"},
-      {"<b>Ctrl+P</b>",         "Lecture / Pause"},
-      {"<b>Ctrl+B</b>",         "Afficher/Masquer la barre latérale"},
-      {"<b>Ctrl+R</b>",         "Réinitialiser la simulation"},
+      {zen_str,                 "Mode Zen (Masquer l'UI)"},
+      {debug_str,               "Mode Débogage"},
+      {settings_str,             "Paramètres"},
+      {add_str,                 "Ajouter un poisson"},
+      {play_str,                 "Lecture / Pause"},
+      {sidebar_str,             "Afficher/Masquer la barre latérale"},
+      {restart_str,             "Réinitialiser la simulation"},
       {NULL, NULL}
    };
 
@@ -888,6 +1002,116 @@ void show_shortcuts_help_dialog(BassinUI *ui)
 }
 
 // Controller key bindings and destroy callbacks
+static gboolean parse_shortcut(const char *str, guint *out_keyval, GdkModifierType *out_mods)
+{
+   if (!str || strlen(str) == 0)
+      return FALSE;
+
+   char *buf = g_strdup(str);
+   GString *gstr = g_string_new("");
+   
+   char **parts = g_strsplit(buf, "+", -1);
+   int i = 0;
+   while (parts[i] != NULL)
+   {
+      char *part = parts[i];
+      g_strstrip(part);
+      
+      if (parts[i+1] == NULL)
+      {
+         if (strlen(part) == 1)
+         {
+            g_string_append_c(gstr, g_ascii_tolower(part[0]));
+         }
+         else
+         {
+            g_string_append(gstr, part);
+         }
+      }
+      else
+      {
+         if (g_ascii_strcasecmp(part, "Ctrl") == 0 || g_ascii_strcasecmp(part, "Control") == 0)
+         {
+            g_string_append(gstr, "<Control>");
+         }
+         else if (g_ascii_strcasecmp(part, "Alt") == 0)
+         {
+            g_string_append(gstr, "<Alt>");
+         }
+         else if (g_ascii_strcasecmp(part, "Shift") == 0)
+         {
+            g_string_append(gstr, "<Shift>");
+         }
+         else
+         {
+            g_string_append_printf(gstr, "<%s>", part);
+         }
+      }
+      i++;
+   }
+   g_strfreev(parts);
+   g_free(buf);
+
+   guint key = 0;
+   GdkModifierType mods = 0;
+   gboolean ok = gtk_accelerator_parse(gstr->str, &key, &mods);
+   g_string_free(gstr, TRUE);
+
+   if (ok && key != 0)
+   {
+      *out_keyval = key;
+      *out_mods = mods;
+      return TRUE;
+   }
+   return FALSE;
+}
+
+static gboolean match_shortcut(const char *shortcut_str, guint keyval, GdkModifierType state)
+{
+   guint target_key = 0;
+   GdkModifierType target_mods = 0;
+   if (!parse_shortcut(shortcut_str, &target_key, &target_mods))
+      return FALSE;
+
+   GdkModifierType clean_state = state & (GDK_CONTROL_MASK | GDK_ALT_MASK | GDK_SHIFT_MASK | GDK_META_MASK);
+   
+   guint clean_keyval = gdk_keyval_to_lower(keyval);
+   guint clean_target_key = gdk_keyval_to_lower(target_key);
+
+   return (clean_keyval == clean_target_key && clean_state == target_mods);
+}
+
+static void on_key_released(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data)
+{
+   (void)controller;
+   (void)keycode;
+   (void)state;
+   BassinUI *ui = user_data;
+   if (!ui || !ui->controlled_fish)
+      return;
+
+   if (keyval == GDK_KEY_Up || keyval == GDK_KEY_w || keyval == GDK_KEY_W || keyval == GDK_KEY_z || keyval == GDK_KEY_Z)
+   {
+      if (ui->controlled_fish->vy < 0)
+         ui->controlled_fish->vy = 0;
+   }
+   else if (keyval == GDK_KEY_Down || keyval == GDK_KEY_s || keyval == GDK_KEY_S)
+   {
+      if (ui->controlled_fish->vy > 0)
+         ui->controlled_fish->vy = 0;
+   }
+   else if (keyval == GDK_KEY_Left || keyval == GDK_KEY_a || keyval == GDK_KEY_A || keyval == GDK_KEY_q || keyval == GDK_KEY_Q)
+   {
+      if (ui->controlled_fish->vx < 0)
+         ui->controlled_fish->vx = 0;
+   }
+   else if (keyval == GDK_KEY_Right || keyval == GDK_KEY_d || keyval == GDK_KEY_D)
+   {
+      if (ui->controlled_fish->vx > 0)
+         ui->controlled_fish->vx = 0;
+   }
+}
+
 static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data)
 {
    (void)controller;
@@ -898,6 +1122,45 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
 
    gboolean ctrl = (state & GDK_CONTROL_MASK) != 0;
 
+   // Playable controlled fish driving controls
+   if (ui->controlled_fish && !ctrl)
+   {
+      if (keyval == GDK_KEY_Escape)
+      {
+         Poisson *old = ui->controlled_fish;
+         ui->controlled_fish = NULL;
+         update_fish_widget_tags(ui, old);
+         return TRUE;
+      }
+
+      double speed = ui->controlled_fish->vitesse_normale * 1.5;
+      gboolean handled = FALSE;
+
+      if (keyval == GDK_KEY_Up || keyval == GDK_KEY_w || keyval == GDK_KEY_W || keyval == GDK_KEY_z || keyval == GDK_KEY_Z)
+      {
+         ui->controlled_fish->vy = -speed;
+         handled = TRUE;
+      }
+      else if (keyval == GDK_KEY_Down || keyval == GDK_KEY_s || keyval == GDK_KEY_S)
+      {
+         ui->controlled_fish->vy = speed;
+         handled = TRUE;
+      }
+      else if (keyval == GDK_KEY_Left || keyval == GDK_KEY_a || keyval == GDK_KEY_A || keyval == GDK_KEY_q || keyval == GDK_KEY_Q)
+      {
+         ui->controlled_fish->vx = -speed;
+         handled = TRUE;
+      }
+      else if (keyval == GDK_KEY_Right || keyval == GDK_KEY_d || keyval == GDK_KEY_D)
+      {
+         ui->controlled_fish->vx = speed;
+         handled = TRUE;
+      }
+
+      if (handled)
+         return TRUE;
+   }
+
    // F1 : Help
    if (keyval == GDK_KEY_F1)
    {
@@ -905,8 +1168,8 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
       return TRUE;
    }
 
-   // Ctrl+D : Debug Mode
-   if ((keyval == GDK_KEY_d || keyval == GDK_KEY_D) && ctrl)
+   // Debug Mode
+   if (match_shortcut(ui->shortcut_debug, keyval, state))
    {
       ui->debug_mode = !ui->debug_mode;
       g_print("Debug mode toggled: %d\n", ui->debug_mode);
@@ -917,37 +1180,37 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
       return TRUE;
    }
 
-   // Ctrl+H : Zen Mode
-   if ((keyval == GDK_KEY_h || keyval == GDK_KEY_H) && ctrl)
+   // Zen Mode
+   if (match_shortcut(ui->shortcut_zen, keyval, state))
    {
       ui->zen_mode = !ui->zen_mode;
       apply_zen_mode(ui);
       return TRUE;
    }
 
-   // Ctrl+S : Settings
-   if ((keyval == GDK_KEY_s || keyval == GDK_KEY_S) && ctrl)
+   // Settings
+   if (match_shortcut(ui->shortcut_settings, keyval, state))
    {
       on_settings_clicked(NULL, ui);
       return TRUE;
    }
 
-   // Ctrl+N : Add New Fish
-   if ((keyval == GDK_KEY_n || keyval == GDK_KEY_N) && ctrl)
+   // Add New Fish
+   if (match_shortcut(ui->shortcut_add, keyval, state))
    {
       on_add_poisson_btn_clicked(NULL, ui);
       return TRUE;
    }
 
-   // Ctrl+P : Play / Pause
-   if ((keyval == GDK_KEY_p || keyval == GDK_KEY_P) && ctrl)
+   // Play / Pause
+   if (match_shortcut(ui->shortcut_play, keyval, state))
    {
       on_play_pause_clicked(NULL, ui);
       return TRUE;
    }
 
-   // Ctrl+B : Toggle Sidebar
-   if ((keyval == GDK_KEY_b || keyval == GDK_KEY_B) && ctrl)
+   // Toggle Sidebar
+   if (match_shortcut(ui->shortcut_sidebar, keyval, state))
    {
       on_toggle_sidebar_clicked(NULL, ui);
       return TRUE;
@@ -968,8 +1231,8 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
       return TRUE;
    }
 
-   // Ctrl+R : Restart
-   if ((keyval == GDK_KEY_r || keyval == GDK_KEY_R) && ctrl)
+   // Restart
+   if (match_shortcut(ui->shortcut_restart, keyval, state))
    {
       on_restart_clicked(NULL, ui);
       return TRUE;
@@ -1070,7 +1333,7 @@ GtkWidget *screen_bassin_create(void)
 
    // Default configuration values
    ui->config_fish_size = 0;
-   ui->config_bg_path = "resources/images/background_banc.png";
+   ui->config_bg_path = strdup("resources/images/background_banc.png");
    ui->config_canvas_width = 900;
    ui->config_canvas_height = 600;
    ui->config_hide_health_bar = FALSE;
@@ -1078,6 +1341,18 @@ GtkWidget *screen_bassin_create(void)
    ui->config_hide_status_bar = FALSE;
    ui->zen_mode = FALSE;
    ui->sidebar_was_visible = TRUE;
+
+   // Default customizable shortcuts
+   ui->shortcut_play = g_strdup("Ctrl+P");
+   ui->shortcut_zen = g_strdup("Ctrl+H");
+   ui->shortcut_debug = g_strdup("Ctrl+D");
+   ui->shortcut_settings = g_strdup("Ctrl+S");
+   ui->shortcut_add = g_strdup("Ctrl+N");
+   ui->shortcut_sidebar = g_strdup("Ctrl+B");
+   ui->shortcut_restart = g_strdup("Ctrl+R");
+
+   // Load saved settings from settings.xml
+   load_settings_from_xml(ui);
 
    // Root layout box (vertical)
    ui->root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -1207,6 +1482,7 @@ GtkWidget *screen_bassin_create(void)
    // Setup key controller for debug mode shortcut (Ctrl+D)
    GtkEventController *key_controller = gtk_event_controller_key_new();
    g_signal_connect(key_controller, "key-pressed", G_CALLBACK(on_key_pressed), ui);
+   g_signal_connect(key_controller, "key-released", G_CALLBACK(on_key_released), ui);
    gtk_widget_add_controller(ui->root, key_controller);
 
    // Connect destroy handler to stop timer on exit
@@ -1221,6 +1497,14 @@ GtkWidget *screen_bassin_create(void)
    ui->elapsed_time = 0.0;
    update_sidebar_list(ui);
    update_status_bar(ui);
+
+   // Apply loaded settings visibility configuration
+   apply_fish_visibility_configs(ui);
+   if (!ui->zen_mode)
+   {
+      gtk_widget_set_visible(ui->status_bar_widget, !ui->config_hide_status_bar);
+      gtk_widget_set_visible(ui->sep_bottom_widget, !ui->config_hide_status_bar);
+   }
 
    return ui->root;
 }

@@ -73,6 +73,7 @@ void load_species_configs(BassinUI *ui)
          cfg->vitesse_ralentie = xml_attr_get(child, "speed_slow") ? atof(xml_attr_get(child, "speed_slow")) : 25.0;
          cfg->taille = attr_int(child, "size", 64);
          cfg->perimetre_detection = attr_int(child, "detection", 100);
+         cfg->health = xml_attr_get(child, "health") ? atof(xml_attr_get(child, "health")) : 100.0;
 
          int frame_idx = 0;
          int diet_idx = 0;
@@ -198,7 +199,11 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
 
          const char *bg = xml_attr_get(child, "bg");
          if (bg)
+         {
+            if (ui->config_bg_path)
+               free(ui->config_bg_path);
             ui->config_bg_path = strdup(bg);
+         }
 
          gtk_widget_set_size_request(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
          if (ui->debug_overlay)
@@ -251,6 +256,7 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
                      scale = 1.5;
                   p->taille = (ui->config_fish_size > 0 ? ui->config_fish_size : cfg->taille) * scale;
                   p->perimetre_detection = cfg->perimetre_detection;
+                  p->sante_max = cfg->health > 0.0 ? cfg->health : 100.0;
                   poisson_set_default_frames(p, cfg->chemin_frames[0], cfg->chemin_frames[1], cfg->chemin_frames[2]);
                }
 
@@ -319,8 +325,8 @@ void save_species_configs_to_xml(BassinUI *ui)
    for (GList *l = ui->species_configs; l; l = l->next)
    {
       SpeciesConfig *cfg = l->data;
-      fprintf(f, "    <species name=\"%s\" type=\"%s\" level=\"%d\" speed_norm=\"%.1f\" speed_escape=\"%.1f\" speed_slow=\"%.1f\" size=\"%d\" detection=\"%d\">\n",
-              cfg->nom, cfg->type, cfg->level, cfg->vitesse_normale, cfg->vitesse_fuite, cfg->vitesse_ralentie, cfg->taille, cfg->perimetre_detection);
+      fprintf(f, "    <species name=\"%s\" type=\"%s\" level=\"%d\" speed_norm=\"%.1f\" speed_escape=\"%.1f\" speed_slow=\"%.1f\" size=\"%d\" detection=\"%d\" health=\"%.1f\">\n",
+              cfg->nom, cfg->type, cfg->level, cfg->vitesse_normale, cfg->vitesse_fuite, cfg->vitesse_ralentie, cfg->taille, cfg->perimetre_detection, cfg->health);
       for (int i = 0; i < cfg->nb_frames; i++)
       {
          fprintf(f, "        <frame>%s</frame>\n", cfg->chemin_frames[i]);
@@ -332,5 +338,112 @@ void save_species_configs_to_xml(BassinUI *ui)
       fprintf(f, "    </species>\n");
    }
    fprintf(f, "</species_list>\n");
+   fclose(f);
+}
+
+void load_settings_from_xml(BassinUI *ui)
+{
+   XmlNode *root = xml_parser_parse_file("data/settings.xml");
+   if (!root)
+   {
+      root = xml_parser_parse_file("../data/settings.xml");
+   }
+   if (!root)
+   {
+      return;
+   }
+
+   ui->config_fish_size = attr_int(root, "fish_size", ui->config_fish_size);
+
+   const char *bg = xml_attr_get(root, "bg_path");
+   if (bg)
+   {
+      if (ui->config_bg_path)
+         free(ui->config_bg_path);
+      ui->config_bg_path = strdup(bg);
+   }
+
+   ui->config_canvas_width = attr_int(root, "canvas_width", ui->config_canvas_width);
+   ui->config_canvas_height = attr_int(root, "canvas_height", ui->config_canvas_height);
+   ui->config_hide_health_bar = attr_bool(root, "hide_health_bar", ui->config_hide_health_bar);
+   ui->config_hide_fish_name = attr_bool(root, "hide_fish_name", ui->config_hide_fish_name);
+   ui->config_hide_status_bar = attr_bool(root, "hide_status_bar", ui->config_hide_status_bar);
+
+   const char *sh_play = xml_attr_get(root, "shortcut_play");
+   if (sh_play)
+   {
+      g_free(ui->shortcut_play);
+      ui->shortcut_play = g_strdup(sh_play);
+   }
+   const char *sh_zen = xml_attr_get(root, "shortcut_zen");
+   if (sh_zen)
+   {
+      g_free(ui->shortcut_zen);
+      ui->shortcut_zen = g_strdup(sh_zen);
+   }
+   const char *sh_debug = xml_attr_get(root, "shortcut_debug");
+   if (sh_debug)
+   {
+      g_free(ui->shortcut_debug);
+      ui->shortcut_debug = g_strdup(sh_debug);
+   }
+   const char *sh_settings = xml_attr_get(root, "shortcut_settings");
+   if (sh_settings)
+   {
+      g_free(ui->shortcut_settings);
+      ui->shortcut_settings = g_strdup(sh_settings);
+   }
+   const char *sh_add = xml_attr_get(root, "shortcut_add");
+   if (sh_add)
+   {
+      g_free(ui->shortcut_add);
+      ui->shortcut_add = g_strdup(sh_add);
+   }
+   const char *sh_sidebar = xml_attr_get(root, "shortcut_sidebar");
+   if (sh_sidebar)
+   {
+      g_free(ui->shortcut_sidebar);
+      ui->shortcut_sidebar = g_strdup(sh_sidebar);
+   }
+   const char *sh_restart = xml_attr_get(root, "shortcut_restart");
+   if (sh_restart)
+   {
+      g_free(ui->shortcut_restart);
+      ui->shortcut_restart = g_strdup(sh_restart);
+   }
+
+   xml_node_free(root);
+}
+
+void save_settings_to_xml(BassinUI *ui)
+{
+   FILE *f = fopen("data/settings.xml", "w");
+   if (!f)
+   {
+      f = fopen("../data/settings.xml", "w");
+   }
+   if (!f)
+   {
+      fprintf(stderr, "[Error] Failed to open settings.xml for saving settings\n");
+      return;
+   }
+
+   fprintf(f, "<settings fish_size=\"%d\" bg_path=\"%s\" canvas_width=\"%d\" canvas_height=\"%d\" hide_health_bar=\"%s\" hide_fish_name=\"%s\" hide_status_bar=\"%s\" ",
+           ui->config_fish_size,
+           ui->config_bg_path ? ui->config_bg_path : "",
+           ui->config_canvas_width,
+           ui->config_canvas_height,
+           ui->config_hide_health_bar ? "true" : "false",
+           ui->config_hide_fish_name ? "true" : "false",
+           ui->config_hide_status_bar ? "true" : "false");
+
+   fprintf(f, "shortcut_play=\"%s\" shortcut_zen=\"%s\" shortcut_debug=\"%s\" shortcut_settings=\"%s\" shortcut_add=\"%s\" shortcut_sidebar=\"%s\" shortcut_restart=\"%s\"/>\n",
+           ui->shortcut_play ? ui->shortcut_play : "",
+           ui->shortcut_zen ? ui->shortcut_zen : "",
+           ui->shortcut_debug ? ui->shortcut_debug : "",
+           ui->shortcut_settings ? ui->shortcut_settings : "",
+           ui->shortcut_add ? ui->shortcut_add : "",
+           ui->shortcut_sidebar ? ui->shortcut_sidebar : "",
+           ui->shortcut_restart ? ui->shortcut_restart : "");
    fclose(f);
 }

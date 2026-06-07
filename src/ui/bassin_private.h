@@ -12,6 +12,8 @@
 #include "../../widgets/headers/bouton_radio.h"
 #include "../../widgets/headers/texte.h"
 #include "../../widgets/headers/image.h"
+#include "../../widgets/headers/champ_texte.h"
+#include "../sound.h"
 
 // Forward declaration of SpeciesConfig
 typedef struct
@@ -28,6 +30,7 @@ typedef struct
    int level;
    char *diet[16]; // list of species names that this fish can eat
    int nb_diet;
+   double health;
 } SpeciesConfig;
 
 typedef struct
@@ -101,7 +104,35 @@ typedef struct
    GtkWidget *sep_top_widget;
    GtkWidget *sep_bottom_widget;
    GtkWidget *status_bar_widget;
+
+   // Play/Pause button reference
+   GtkWidget *btn_play;
+
+   // Customizable shortcuts configurations
+   char *shortcut_play;
+   char *shortcut_zen;
+   char *shortcut_debug;
+   char *shortcut_settings;
+   char *shortcut_add;
+   char *shortcut_sidebar;
+   char *shortcut_restart;
+
+   // Settings dialog shortcut fields
+   ChampTexte settings_txt_shortcut_play;
+   ChampTexte settings_txt_shortcut_zen;
+   ChampTexte settings_txt_shortcut_debug;
+   ChampTexte settings_txt_shortcut_settings;
+   ChampTexte settings_txt_shortcut_add;
+   ChampTexte settings_txt_shortcut_sidebar;
+   ChampTexte settings_txt_shortcut_restart;
+
+   // Playable fish fields
+   Poisson *controlled_fish;
+   double time_since_last_alert;
 } BassinUI;
+
+void spawn_floating_kill(BassinUI *ui, double x, double y);
+void update_fish_widget_tags(BassinUI *ui, Poisson *p);
 
 void apply_zen_mode(BassinUI *ui);
 void apply_fish_visibility_configs(BassinUI *ui);
@@ -147,6 +178,8 @@ void bassin_save_to_xml(BassinUI *ui, const char *filename);
 void bassin_load_from_xml(BassinUI *ui, const char *filename);
 void on_save_clicked(GtkWidget *widget, gpointer user_data);
 void on_load_clicked(GtkWidget *widget, gpointer user_data);
+void load_settings_from_xml(BassinUI *ui);
+void save_settings_to_xml(BassinUI *ui);
 
 // Module: Dialogs
 void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data);

@@ -98,4 +98,18 @@
         <eats>scate</eats>
         <eats>Swordfish</eats>
     </species>
+    <species name="test-2" type="predator" level="3" speed_norm="100.0" speed_escape="100.0" speed_slow="11.0" size="100" detection="100">
+        <frame>resources/images/fishes/test-2/frame1.jpg</frame>
+        <frame>resources/images/fishes/test-2/frame2.jpg</frame>
+        <frame>resources/images/fishes/test-2/frame3.jpg</frame>
+        <eats>scate</eats>
+    </species>
+    <species name="new " type="predator" level="3" speed_norm="100.0" speed_escape="100.0" speed_slow="60.0" size="100" detection="99">
+        <frame>resources/images/fishes/new_/frame1.jpg</frame>
+        <frame>resources/images/fishes/new_/frame2.jpg</frame>
+        <frame>resources/images/fishes/new_/frame3.png</frame>
+        <eats>turtle</eats>
+        <eats>Garfish</eats>
+        <eats>tuna</eats>
+    </species>
 </species_list>

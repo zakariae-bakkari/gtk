@@ -349,6 +349,13 @@ GtkWidget *champ_texte_creer(ChampTexte *cfg)
    cfg->widget = gtk_entry_new();
    gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_texte");
 
+   if (cfg->valeur_initiale)
+   {
+      gtk_editable_set_text(GTK_EDITABLE(cfg->widget), cfg->valeur_initiale);
+      free(cfg->valeur_initiale);
+      cfg->valeur_initiale = NULL;
+   }
+
    if (cfg->placeholder)
       gtk_entry_set_placeholder_text(GTK_ENTRY(cfg->widget), cfg->placeholder);
 
@@ -439,9 +446,18 @@ const char *champ_texte_get_texte(ChampTexte *cfg)
 
 void champ_texte_set_texte(ChampTexte *cfg, const char *texte)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   gtk_editable_set_text(GTK_EDITABLE(cfg->widget), texte ? texte : "");
+   if (cfg->widget)
+   {
+      gtk_editable_set_text(GTK_EDITABLE(cfg->widget), texte ? texte : "");
+   }
+   else
+   {
+      if (cfg->valeur_initiale)
+         free(cfg->valeur_initiale);
+      cfg->valeur_initiale = texte ? strdup(texte) : NULL;
+   }
 }
 
 void champ_texte_set_placeholder(ChampTexte *cfg, const char *ph)
@@ -549,14 +565,17 @@ void champ_texte_set_size(ChampTexte *cfg, int width, int height)
 
 void champ_texte_set_icons(ChampTexte *cfg, const char *icon_primary, const char *icon_secondary)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->icon_primary = icon_primary;
    cfg->icon_secondary = icon_secondary;
-   gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                     GTK_ENTRY_ICON_PRIMARY, icon_primary);
-   gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
-                                     GTK_ENTRY_ICON_SECONDARY, icon_secondary);
+   if (cfg->widget)
+   {
+      gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
+                                        GTK_ENTRY_ICON_PRIMARY, icon_primary);
+      gtk_entry_set_icon_from_icon_name(GTK_ENTRY(cfg->widget),
+                                        GTK_ENTRY_ICON_SECONDARY, icon_secondary);
+   }
 }
 
 gboolean champ_texte_valider(ChampTexte *cfg)
@@ -581,6 +600,11 @@ void champ_texte_free(ChampTexte *cfg)
    {
       g_free(cfg->erreur_couleur);
       cfg->erreur_couleur = NULL;
+   }
+   if (cfg->valeur_initiale)
+   {
+      free(cfg->valeur_initiale);
+      cfg->valeur_initiale = NULL;
    }
 
    widget_style_free(&cfg->style);

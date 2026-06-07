@@ -26,6 +26,8 @@ void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, 
       p->vitesse_normale = cfg->vitesse_normale;
       p->vitesse_fuite = cfg->vitesse_fuite;
       p->vitesse_ralentie = cfg->vitesse_ralentie;
+      p->sante_max = cfg->health > 0.0 ? cfg->health : 100.0;
+      p->sante = p->sante_max;
       double scale = 1.0;
       if (strcmp(cfg->type, "predator") == 0)
          scale = 1.8;
@@ -293,6 +295,7 @@ typedef struct
    ChampTexte champ_frame1;
    ChampTexte champ_frame2;
    GList *diet_checklist_items; // list of BoutonChecklist*
+   ChampNombre champ_health;
 } SpeciesCreationCtx;
 
 static void add_form_row(GtkWidget *box, const char *label_text, GtkWidget *field_widget)
@@ -307,42 +310,6 @@ static void add_form_row(GtkWidget *box, const char *label_text, GtkWidget *fiel
    gtk_box_append(GTK_BOX(row), field_widget);
    gtk_box_append(GTK_BOX(box), row);
 }
-
-static void safe_free_widget_style(WidgetStyle *style)
-{
-   if (!style)
-      return;
-   free(style->bg_normal);
-   free(style->fg_normal);
-   free(style->couleur_bordure);
-   free(style->couleur_bordure_error);
-   free(style->bg_error);
-}
-
-static void safe_free_champ_texte(ChampTexte *cfg)
-{
-   free(cfg->id_css);
-   free(cfg->placeholder);
-   free(cfg->erreur_couleur);
-   safe_free_widget_style(&cfg->style);
-}
-
-static void safe_free_champ_select(ChampSelect *cfg)
-{
-   free(cfg->id_css);
-   if (cfg->model)
-   {
-      g_object_unref(cfg->model);
-   }
-   safe_free_widget_style(&cfg->style);
-}
-
-static void safe_free_champ_nombre(ChampNombre *cfg)
-{
-   free(cfg->id_css);
-   safe_free_widget_style(&cfg->style);
-}
-
 static void on_create_species_dialog_destroy(GtkWidget *widget, gpointer user_data)
 {
    (void)widget;
@@ -352,17 +319,18 @@ static void on_create_species_dialog_destroy(GtkWidget *widget, gpointer user_da
 
    g_free(ctx->edit_species_name);
 
-   safe_free_champ_texte(&ctx->champ_nom);
-   safe_free_champ_select(&ctx->champ_type);
-   safe_free_champ_nombre(&ctx->champ_level);
-   safe_free_champ_nombre(&ctx->champ_size);
-   safe_free_champ_nombre(&ctx->champ_detection);
-   safe_free_champ_nombre(&ctx->champ_speed_norm);
-   safe_free_champ_nombre(&ctx->champ_speed_escape);
-   safe_free_champ_nombre(&ctx->champ_speed_slow);
-   safe_free_champ_texte(&ctx->champ_frame0);
-   safe_free_champ_texte(&ctx->champ_frame1);
-   safe_free_champ_texte(&ctx->champ_frame2);
+   champ_texte_free(&ctx->champ_nom);
+   champ_select_free(&ctx->champ_type);
+   champ_nombre_free(&ctx->champ_level);
+   champ_nombre_free(&ctx->champ_size);
+   champ_nombre_free(&ctx->champ_detection);
+   champ_nombre_free(&ctx->champ_health);
+   champ_nombre_free(&ctx->champ_speed_norm);
+   champ_nombre_free(&ctx->champ_speed_escape);
+   champ_nombre_free(&ctx->champ_speed_slow);
+   champ_texte_free(&ctx->champ_frame0);
+   champ_texte_free(&ctx->champ_frame1);
+   champ_texte_free(&ctx->champ_frame2);
 
    for (GList *l = ctx->diet_checklist_items; l; l = l->next)
    {
@@ -452,6 +420,7 @@ static void on_create_species_response(int reponse, gpointer user_data)
       cfg->level = (int)champ_nombre_get_valeur(&ctx->champ_level);
       cfg->taille = (int)champ_nombre_get_valeur(&ctx->champ_size);
       cfg->perimetre_detection = (int)champ_nombre_get_valeur(&ctx->champ_detection);
+      cfg->health = champ_nombre_get_valeur(&ctx->champ_health);
 
       cfg->vitesse_normale = champ_nombre_get_valeur(&ctx->champ_speed_norm);
       cfg->vitesse_fuite = champ_nombre_get_valeur(&ctx->champ_speed_escape);
@@ -574,6 +543,9 @@ static void on_create_species_response(int reponse, gpointer user_data)
                p->vitesse_ralentie = cfg->vitesse_ralentie;
                p->taille = cfg->taille;
                p->perimetre_detection = cfg->perimetre_detection;
+               p->sante_max = cfg->health > 0.0 ? cfg->health : 100.0;
+               if (p->sante > p->sante_max)
+                  p->sante = p->sante_max;
 
                for (int i = 0; i < 3; i++)
                {
@@ -734,7 +706,7 @@ void open_create_species_dialog(BassinUI *ui, const char *edit_species_name)
 
    // 1. Nom
    champ_texte_initialiser(&ctx->champ_nom);
-   ctx->champ_nom.placeholder = "Ex: Thon, Dorade...";
+   champ_texte_set_placeholder(&ctx->champ_nom, "Ex: Thon, Dorade...");
    ctx->champ_nom.required = TRUE;
    champ_texte_set_texte(&ctx->champ_nom, cfg ? cfg->nom : "Poisson-perso");
    if (cfg)
@@ -783,6 +755,14 @@ void open_create_species_dialog(BassinUI *ui, const char *edit_species_name)
    champ_nombre_set_digits(&ctx->champ_detection, 0);
    GtkWidget *w_detection = champ_nombre_creer(&ctx->champ_detection);
    add_form_row(box, "Périmètre de détection (pixels) :", w_detection);
+ 
+   // 5b. Santé maximale
+   champ_nombre_initialiser(&ctx->champ_health);
+   champ_nombre_set_bornes(&ctx->champ_health, 10, 1000);
+   champ_nombre_set_valeur(&ctx->champ_health, cfg ? cfg->health : 100);
+   champ_nombre_set_digits(&ctx->champ_health, 0);
+   GtkWidget *w_health = champ_nombre_creer(&ctx->champ_health);
+   add_form_row(box, "Santé maximale :", w_health);
 
    // 6. Vitesses
    GtkWidget *speeds_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
@@ -1029,6 +1009,26 @@ void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
    gtk_popover_popup(GTK_POPOVER(popover));
 }
 
+static void on_settings_dialog_destroy(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = (BassinUI *)user_data;
+   if (!ui)
+      return;
+
+   slider_free(&ui->settings_sld_fish_size);
+   champ_select_free(&ui->settings_sel_bg);
+   champ_select_free(&ui->settings_sel_canvas);
+
+   champ_texte_free(&ui->settings_txt_shortcut_play);
+   champ_texte_free(&ui->settings_txt_shortcut_zen);
+   champ_texte_free(&ui->settings_txt_shortcut_debug);
+   champ_texte_free(&ui->settings_txt_shortcut_settings);
+   champ_texte_free(&ui->settings_txt_shortcut_add);
+   champ_texte_free(&ui->settings_txt_shortcut_sidebar);
+   champ_texte_free(&ui->settings_txt_shortcut_restart);
+}
+
 static void on_settings_reponse(int reponse, gpointer user_data)
 {
    BassinUI *ui = user_data;
@@ -1038,13 +1038,15 @@ static void on_settings_reponse(int reponse, gpointer user_data)
       ui->config_fish_size = new_fish_size;
 
       int bg_idx = champ_select_get_index(&ui->settings_sel_bg);
+      if (ui->config_bg_path)
+         free(ui->config_bg_path);
       if (bg_idx == 0)
       {
-         ui->config_bg_path = "resources/images/background_banc.png";
+         ui->config_bg_path = strdup("resources/images/background_banc.png");
       }
       else
       {
-         ui->config_bg_path = "resources/images/background2.png";
+         ui->config_bg_path = strdup("resources/images/background2.png");
       }
 
       int canvas_idx = champ_select_get_index(&ui->settings_sel_canvas);
@@ -1107,6 +1109,52 @@ static void on_settings_reponse(int reponse, gpointer user_data)
             }
          }
       }
+
+      // Save shortcuts settings
+      const char *sh_play = champ_texte_get_texte(&ui->settings_txt_shortcut_play);
+      if (sh_play)
+      {
+         g_free(ui->shortcut_play);
+         ui->shortcut_play = g_strdup(sh_play);
+      }
+      const char *sh_zen = champ_texte_get_texte(&ui->settings_txt_shortcut_zen);
+      if (sh_zen)
+      {
+         g_free(ui->shortcut_zen);
+         ui->shortcut_zen = g_strdup(sh_zen);
+      }
+      const char *sh_debug = champ_texte_get_texte(&ui->settings_txt_shortcut_debug);
+      if (sh_debug)
+      {
+         g_free(ui->shortcut_debug);
+         ui->shortcut_debug = g_strdup(sh_debug);
+      }
+      const char *sh_settings = champ_texte_get_texte(&ui->settings_txt_shortcut_settings);
+      if (sh_settings)
+      {
+         g_free(ui->shortcut_settings);
+         ui->shortcut_settings = g_strdup(sh_settings);
+      }
+      const char *sh_add = champ_texte_get_texte(&ui->settings_txt_shortcut_add);
+      if (sh_add)
+      {
+         g_free(ui->shortcut_add);
+         ui->shortcut_add = g_strdup(sh_add);
+      }
+      const char *sh_sidebar = champ_texte_get_texte(&ui->settings_txt_shortcut_sidebar);
+      if (sh_sidebar)
+      {
+         g_free(ui->shortcut_sidebar);
+         ui->shortcut_sidebar = g_strdup(sh_sidebar);
+      }
+      const char *sh_restart = champ_texte_get_texte(&ui->settings_txt_shortcut_restart);
+      if (sh_restart)
+      {
+         g_free(ui->shortcut_restart);
+         ui->shortcut_restart = g_strdup(sh_restart);
+      }
+
+      save_settings_to_xml(ui);
    }
 
    dialog_fermer(&ui->settings_dialog);
@@ -1242,7 +1290,52 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    g_signal_connect_swapped(btn_shortcuts, "clicked", G_CALLBACK(show_shortcuts_help_dialog), ui);
    gtk_box_append(GTK_BOX(box), btn_shortcuts);
 
-   dialog_set_contenu(&ui->settings_dialog, box);
+   // Raccourcis Clavier Section
+   GtkWidget *lbl_shortcuts_sec = gtk_label_new("Configuration des Raccourcis");
+   gtk_widget_set_halign(lbl_shortcuts_sec, GTK_ALIGN_START);
+   gtk_widget_add_css_class(lbl_shortcuts_sec, "entity-header");
+   gtk_widget_set_margin_top(lbl_shortcuts_sec, 12);
+   gtk_box_append(GTK_BOX(box), lbl_shortcuts_sec);
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_play);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_play, ui->shortcut_play);
+   add_form_row(box, "Lecture / Pause :", champ_texte_creer(&ui->settings_txt_shortcut_play));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_zen);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_zen, ui->shortcut_zen);
+   add_form_row(box, "Mode Zen :", champ_texte_creer(&ui->settings_txt_shortcut_zen));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_debug);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_debug, ui->shortcut_debug);
+   add_form_row(box, "Mode Débogage :", champ_texte_creer(&ui->settings_txt_shortcut_debug));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_settings);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_settings, ui->shortcut_settings);
+   add_form_row(box, "Paramètres :", champ_texte_creer(&ui->settings_txt_shortcut_settings));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_add);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_add, ui->shortcut_add);
+   add_form_row(box, "Ajouter un poisson :", champ_texte_creer(&ui->settings_txt_shortcut_add));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_sidebar);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_sidebar, ui->shortcut_sidebar);
+   add_form_row(box, "Afficher/Masquer barre latérale :", champ_texte_creer(&ui->settings_txt_shortcut_sidebar));
+
+   champ_texte_initialiser(&ui->settings_txt_shortcut_restart);
+   champ_texte_set_texte(&ui->settings_txt_shortcut_restart, ui->shortcut_restart);
+   add_form_row(box, "Réinitialiser la simulation :", champ_texte_creer(&ui->settings_txt_shortcut_restart));
+
+   // Wrap settings layout inside a scrolled window for clean vertical sizing
+   GtkWidget *scroll = gtk_scrolled_window_new();
+   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(scroll), TRUE);
+   gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroll), 480);
+   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), box);
+
+   dialog_set_contenu(&ui->settings_dialog, scroll);
    dialog_creer(&ui->settings_dialog);
+
+   g_signal_connect(ui->settings_dialog.window, "destroy", G_CALLBACK(on_settings_dialog_destroy), ui);
+
    dialog_afficher(&ui->settings_dialog);
 }

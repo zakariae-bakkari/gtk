@@ -276,108 +276,138 @@ double slider_get_valeur(Slider *cfg)
 
 void slider_set_valeur(Slider *cfg, double valeur)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->valeur = valeur;
-   gtk_range_set_value(GTK_RANGE(cfg->widget), valeur);
-   slider_update_label(cfg, valeur);
+   if (cfg->widget)
+   {
+      gtk_range_set_value(GTK_RANGE(cfg->widget), valeur);
+      slider_update_label(cfg, valeur);
+   }
 }
 
 void slider_set_bornes(Slider *cfg, double min, double max)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->min = min;
    cfg->max = max;
-   GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(cfg->widget));
-   gtk_adjustment_set_lower(adj, min);
-   gtk_adjustment_set_upper(adj, max);
-   slider_apply_marques(cfg);
+   if (cfg->widget)
+   {
+      GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(cfg->widget));
+      gtk_adjustment_set_lower(adj, min);
+      gtk_adjustment_set_upper(adj, max);
+      slider_apply_marques(cfg);
+   }
 }
 
 void slider_set_step(Slider *cfg, double step)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->step = step;
-   GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(cfg->widget));
-   gtk_adjustment_set_step_increment(adj, step);
-   gtk_adjustment_set_page_increment(adj, step * 10);
+   if (cfg->widget)
+   {
+      GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(cfg->widget));
+      gtk_adjustment_set_step_increment(adj, step);
+      gtk_adjustment_set_page_increment(adj, step * 10);
+   }
 }
 
 void slider_set_digits(Slider *cfg, guint digits)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->digits = digits;
-   gtk_scale_set_digits(GTK_SCALE(cfg->widget), (int)digits);
+   if (cfg->widget)
+   {
+      gtk_scale_set_digits(GTK_SCALE(cfg->widget), (int)digits);
+   }
 }
 
 void slider_set_orientation(Slider *cfg, SliderOrientation orientation)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->orientation = orientation;
-   gtk_orientable_set_orientation(
-       GTK_ORIENTABLE(cfg->widget),
-       orientation == SLIDER_VERTICAL ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL);
+   if (cfg->widget)
+   {
+      gtk_orientable_set_orientation(
+          GTK_ORIENTABLE(cfg->widget),
+          orientation == SLIDER_VERTICAL ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL);
+   }
 }
 
 void slider_set_inverser(Slider *cfg, gboolean inverser)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->inverser = inverser;
-   gtk_range_set_inverted(GTK_RANGE(cfg->widget), inverser);
+   if (cfg->widget)
+   {
+      gtk_range_set_inverted(GTK_RANGE(cfg->widget), inverser);
+   }
 }
 
 void slider_set_sensitive(Slider *cfg, gboolean sensitive)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->sensitive = sensitive;
-   gtk_widget_set_sensitive(cfg->widget, sensitive);
+   if (cfg->widget)
+   {
+      gtk_widget_set_sensitive(cfg->widget, sensitive);
+   }
 }
 
 void slider_set_afficher_valeur(Slider *cfg, gboolean afficher)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->afficher_valeur = afficher;
-   gtk_scale_set_draw_value(GTK_SCALE(cfg->widget), afficher);
+   if (cfg->widget)
+   {
+      gtk_scale_set_draw_value(GTK_SCALE(cfg->widget), afficher);
+   }
 }
 
 void slider_set_marques(Slider *cfg, SliderMarquesPos pos, double step)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->marques_pos = pos;
    cfg->marques_step = step;
-   slider_apply_marques(cfg);
+   if (cfg->widget)
+   {
+      slider_apply_marques(cfg);
+   }
 }
 
 void slider_set_size(Slider *cfg, int width, int height)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->size.width = width;
    cfg->size.height = height;
-   gtk_widget_set_size_request(cfg->widget,
-                               width > 0 ? width : -1,
-                               height > 0 ? height : -1);
-   if (width > 0)
+   if (cfg->widget)
    {
-      gtk_widget_set_hexpand(cfg->widget, FALSE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
-      gtk_widget_set_hexpand(cfg->container, FALSE);
-      gtk_widget_set_halign(cfg->container, GTK_ALIGN_START);
-   }
-   else
-   {
-      gtk_widget_set_hexpand(cfg->widget, TRUE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
-      gtk_widget_set_hexpand(cfg->container, TRUE);
-      gtk_widget_set_halign(cfg->container, GTK_ALIGN_FILL);
+      gtk_widget_set_size_request(cfg->widget,
+                                  width > 0 ? width : -1,
+                                  height > 0 ? height : -1);
+      if (width > 0)
+      {
+         gtk_widget_set_hexpand(cfg->widget, FALSE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+         gtk_widget_set_hexpand(cfg->container, FALSE);
+         gtk_widget_set_halign(cfg->container, GTK_ALIGN_START);
+      }
+      else
+      {
+         gtk_widget_set_hexpand(cfg->widget, TRUE);
+         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+         gtk_widget_set_hexpand(cfg->container, TRUE);
+         gtk_widget_set_halign(cfg->container, GTK_ALIGN_FILL);
+      }
    }
 }
 

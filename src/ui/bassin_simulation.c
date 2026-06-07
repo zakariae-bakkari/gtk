@@ -128,6 +128,26 @@ void eat_fish(BassinUI *ui, Poisson *prey)
       {
          crediter_mort(prey->dernier_attaquant, prey->nom);
       }
+
+      // If player-controlled fish ate the prey
+      if (ui->controlled_fish && prey->dernier_attaquant == ui->controlled_fish)
+      {
+         spawn_floating_kill(ui, prey->x + prey->taille / 2.0, prey->y + prey->taille / 2.0);
+         sound_play(SOUND_BITE);
+         sound_play(SOUND_VICTORY);
+      }
+   }
+
+   // If the consumed fish is the player-controlled fish
+   if (prey == ui->controlled_fish)
+   {
+      ui->controlled_fish = NULL;
+      sound_play(SOUND_GAME_OVER);
+      GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+      dialog_afficher_erreur(toplevel ? GTK_WINDOW(toplevel) : NULL,
+                             "Défaite",
+                             "Votre poisson a été mangé ! Vous avez perdu.",
+                             NULL, NULL);
    }
 
    if (prey->widget_image)
@@ -147,6 +167,27 @@ gboolean update_simulation(gpointer user_data)
 
    double dt = 0.033 * ui->simulation_speed; // 33ms step multiplied by speed factor
    ui->elapsed_time += dt;
+   ui->time_since_last_alert += dt;
+
+   // Play shark alert sound if player-controlled fish is near a predator
+   if (ui->controlled_fish)
+   {
+      Poisson *pred = find_nearest_predator(ui, ui->controlled_fish);
+      if (pred)
+      {
+         double dx = (pred->x + pred->taille / 2.0) - (ui->controlled_fish->x + ui->controlled_fish->taille / 2.0);
+         double dy = (pred->y + pred->taille / 2.0) - (ui->controlled_fish->y + ui->controlled_fish->taille / 2.0);
+         double dist = sqrt(dx * dx + dy * dy);
+         if (dist < ui->controlled_fish->perimetre_detection)
+         {
+            if (ui->time_since_last_alert >= 4.0)
+            {
+               sound_play(SOUND_SHARK_ALERT);
+               ui->time_since_last_alert = 0.0;
+            }
+         }
+      }
+   }
 
    GList *dead_poissons = NULL;
 
@@ -184,6 +225,30 @@ gboolean update_simulation(gpointer user_data)
    for (GList *l = ui->poissons; l; l = l->next)
    {
       Poisson *p = l->data;
+      if (p == ui->controlled_fish)
+      {
+         // Skip autonomous steering, but check if we can attack preys in range
+         int lvl = get_fish_level(ui, p);
+         if (lvl > 1)
+         {
+            Poisson *target = find_nearest_prey(ui, p);
+            if (target)
+            {
+               double dx = (target->x + target->taille / 2.0) - (p->x + p->taille / 2.0);
+               double dy = (target->y + target->taille / 2.0) - (p->y + p->taille / 2.0);
+               double dist = sqrt(dx * dx + dy * dy);
+               if (dist < (p->taille + target->taille) * 0.5)
+               {
+                  double damage_rate = 180.0;
+                  target->sante -= damage_rate * dt;
+                  target->temps_effet_attaque = 0.5;
+                  target->dernier_attaquant = p;
+                  target->degats_accumules += damage_rate * dt;
+               }
+            }
+         }
+         continue; // Player keyboard velocity drives the fish, skip boids and normal calculations
+      }
       double force_x = 0;
       double force_y = 0;
 

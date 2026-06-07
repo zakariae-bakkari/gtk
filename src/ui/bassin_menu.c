@@ -36,15 +36,19 @@ void on_remove_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
 
 void on_play_pause_clicked(GtkWidget *widget, gpointer user_data)
 {
+   (void)widget;
    BassinUI *ui = user_data;
-   if (!ui || !widget)
+   if (!ui)
       return;
 
    ui->simulation_running = !ui->simulation_running;
-   if (ui->simulation_running)
-      gtk_button_set_label(GTK_BUTTON(widget), "⏸ Pause");
-   else
-      gtk_button_set_label(GTK_BUTTON(widget), "▶ Play");
+   if (ui->btn_play)
+   {
+      if (ui->simulation_running)
+         gtk_button_set_label(GTK_BUTTON(ui->btn_play), "⏸ Pause");
+      else
+         gtk_button_set_label(GTK_BUTTON(ui->btn_play), "▶ Play");
+   }
 
    update_status_bar(ui);
 }
@@ -164,11 +168,6 @@ void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data)
 
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
 {
-   // Title label styled
-   GtkWidget *lbl_title = gtk_label_new("Simulateur de bancs de poissons");
-   gtk_widget_add_css_class(lbl_title, "header-title");
-   gtk_box_append(GTK_BOX(header_box), lbl_title);
-
    // Standard GtkButtons for options
    GtkWidget *btn_add = gtk_button_new_with_label("+ Ajouter");
    gtk_widget_add_css_class(btn_add, "suggested-action");
@@ -204,6 +203,7 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
 
    // Standard GtkButton for Play/Pause
    GtkWidget *btn_play = gtk_button_new_with_label(ui->simulation_running ? "⏸ Pause" : "▶ Play");
+   ui->btn_play = btn_play;
    g_signal_connect(btn_play, "clicked", G_CALLBACK(on_play_pause_clicked), ui);
    gtk_box_append(GTK_BOX(sim_controls), btn_play);
 

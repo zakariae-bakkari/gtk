@@ -73,6 +73,7 @@ typedef struct
    WidgetOnActivate on_activate;
    WidgetOnInvalid on_invalid;
    gpointer user_data;
+   char *valeur_initiale;
 } ChampTexte;
 
 /* Cycle de vie */
