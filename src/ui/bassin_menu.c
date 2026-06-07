@@ -147,9 +147,22 @@ void on_vider_clicked(GtkWidget *widget, gpointer user_data)
       ui->poissons = g_list_delete_link(ui->poissons, node);
    }
 
+   while (ui->foods)
+   {
+      GList *node = ui->foods;
+      Food *f = (Food *)node->data;
+      if (f->widget)
+      {
+         gtk_widget_unparent(f->widget);
+      }
+      g_free(f);
+      ui->foods = g_list_delete_link(ui->foods, node);
+   }
+
    ui->next_id = 1;
    ui->num_bancs = 0;
    ui->elapsed_time = 0.0;
+   ui->controlled_fish = NULL;
 
    update_sidebar_list(ui);
    update_status_bar(ui);
@@ -176,6 +189,18 @@ static void on_random_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
+void on_stop_control_clicked(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = user_data;
+   if (ui && ui->controlled_fish)
+   {
+      Poisson *old = ui->controlled_fish;
+      ui->controlled_fish = NULL;
+      update_fish_widget_tags(ui, old);
+   }
+}
+
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
 {
    // Standard GtkButtons for options
@@ -183,6 +208,10 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
    gtk_widget_add_css_class(btn_add, "suggested-action");
    g_signal_connect(btn_add, "clicked", G_CALLBACK(on_add_poisson_btn_clicked), ui);
    gtk_box_append(GTK_BOX(header_box), btn_add);
+
+   GtkWidget *btn_stop = gtk_button_new_with_label("🎮 Stop Contrôle");
+   g_signal_connect(btn_stop, "clicked", G_CALLBACK(on_stop_control_clicked), ui);
+   gtk_box_append(GTK_BOX(header_box), btn_stop);
 
    GtkWidget *btn_random = gtk_button_new_with_label("🎲 Aléatoire");
    g_signal_connect(btn_random, "clicked", G_CALLBACK(on_random_clicked), ui);
@@ -206,6 +235,11 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
    GtkWidget *btn_load = gtk_button_new_with_label("📂 Charger");
    g_signal_connect(btn_load, "clicked", G_CALLBACK(on_load_clicked), ui);
    gtk_box_append(GTK_BOX(header_box), btn_load);
+
+   GtkWidget *btn_food = gtk_button_new_with_label("🍱 Nourrir");
+   gtk_widget_add_css_class(btn_food, "suggested-action");
+   g_signal_connect(btn_food, "clicked", G_CALLBACK(on_throw_food_clicked), ui);
+   gtk_box_append(GTK_BOX(header_box), btn_food);
 
    // Right-aligned simulation controls
    GtkWidget *sim_controls = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);

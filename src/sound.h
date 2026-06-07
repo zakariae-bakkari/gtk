@@ -12,6 +12,7 @@ typedef enum {
     SOUND_VICTORY,
     SOUND_GAME_OVER,
     SOUND_SHARK_ALERT,
+    SOUND_COIN,
     SOUND_COUNT
 } SoundId;
 

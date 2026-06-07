@@ -106,6 +106,60 @@ void spawn_floating_kill(BassinUI *ui, double x, double y)
    g_timeout_add(33, animate_floating_damage_tick, fd);
 }
 
+void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
+{
+   char buf[32];
+   sprintf(buf, "+%.0f", amount);
+
+   FloatingDamage *fd = g_new0(FloatingDamage, 1);
+   fd->label = gtk_label_new(buf);
+   fd->x = x;
+   fd->y = y;
+   fd->vy = -1.5;
+   fd->ticks_remaining = 20;
+   fd->ui = ui;
+
+   gtk_widget_add_css_class(fd->label, "floating-kill"); // Use green color for healing
+   gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
+
+   g_timeout_add(33, animate_floating_damage_tick, fd);
+}
+
+void spawn_food(BassinUI *ui, double x, double y)
+{
+   Food *f = g_new0(Food, 1);
+   f->id = ++ui->next_food_id;
+   f->x = x;
+   f->y = y;
+   f->vy = 40.0; // Sinking speed
+   f->image_index = (rand() % 3) + 1;
+   
+   // Set health restore based on food type
+   if (f->image_index == 1) f->health_restore = 15.0;
+   else if (f->image_index == 2) f->health_restore = 25.0;
+   else f->health_restore = 40.0;
+
+   char path[128];
+   sprintf(path, "resources/images/fishFood/food%d.png", f->image_index);
+   f->widget = gtk_picture_new_for_filename(path);
+   gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(f->widget), TRUE);
+   gtk_widget_set_size_request(f->widget, 24, 24);
+
+   ui->foods = g_list_append(ui->foods, f);
+   gtk_fixed_put(GTK_FIXED(ui->canvas), f->widget, (int)f->x, (int)f->y);
+   
+   sound_play(SOUND_BUBBLES);
+}
+
+void on_throw_food_clicked(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = user_data;
+   // Throw food at a random top position
+   double rx = (double)(rand() % (ui->config_canvas_width - 100)) + 50.0;
+   spawn_food(ui, rx, 10.0);
+}
+
 // Drag structures and handlers
 typedef struct
 {
@@ -1229,7 +1283,7 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
    }
 
    // F11 or Ctrl+F : Fullscreen
-   if (keyval == GDK_KEY_F11 || ((keyval == GDK_KEY_f || keyval == GDK_KEY_F) && ctrl))
+   if (keyval == GDK_KEY_F11 || (match_shortcut("Ctrl+F", keyval, state)))
    {
       if (window)
       {
@@ -1240,6 +1294,13 @@ static gboolean on_key_pressed(GtkEventControllerKey *controller, guint keyval, 
             gtk_window_unfullscreen(window);
          is_fullscreen = !is_fullscreen;
       }
+      return TRUE;
+   }
+
+   // Ctrl+I : Throw Food
+   if (match_shortcut(ui->shortcut_food, keyval, state))
+   {
+      on_throw_food_clicked(NULL, ui);
       return TRUE;
    }
 
@@ -1362,6 +1423,7 @@ GtkWidget *screen_bassin_create(void)
    ui->shortcut_add = g_strdup("Ctrl+N");
    ui->shortcut_sidebar = g_strdup("Ctrl+B");
    ui->shortcut_restart = g_strdup("Ctrl+R");
+   ui->shortcut_food = g_strdup("Ctrl+I");
 
    // Load saved settings from settings.xml
    load_settings_from_xml(ui);

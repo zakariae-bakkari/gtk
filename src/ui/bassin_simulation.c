@@ -227,6 +227,47 @@ gboolean update_simulation(gpointer user_data)
       Poisson *p = l->data;
       if (p == ui->controlled_fish)
       {
+         // 1.0.1 Controlled fish food consumption
+         if (is_prey(ui, p))
+         {
+            gboolean hungry = (p->sante < p->sante_max) || ui->config_always_eat;
+            if (hungry)
+            {
+               double p_cx = p->x + p->taille / 2.0;
+               double p_cy = p->y + p->taille / 2.0;
+               Food *eaten = NULL;
+
+               for (GList *f_node = ui->foods; f_node; f_node = f_node->next)
+               {
+                  Food *f = f_node->data;
+                  double f_cx = f->x + 12.0;
+                  double f_cy = f->y + 12.0;
+                  double dx = f_cx - p_cx;
+                  double dy = f_cy - p_cy;
+                  double dist = sqrt(dx * dx + dy * dy);
+
+                  if (dist < (p->taille / 2.0 + 12.0))
+                  {
+                     eaten = f;
+                     break;
+                  }
+               }
+
+               if (eaten)
+               {
+                  double heal_amount = eaten->health_restore;
+                  p->sante += heal_amount;
+                  if (p->sante > p->sante_max) p->sante = p->sante_max;
+                  spawn_floating_heal(ui, p->x + p->taille, p->y, heal_amount);
+                  sound_play(SOUND_COIN);
+
+                  if (eaten->widget) gtk_widget_unparent(eaten->widget);
+                  ui->foods = g_list_remove(ui->foods, eaten);
+                  g_free(eaten);
+               }
+            }
+         }
+
          // Skip autonomous steering, but check if we can attack preys in range
          int lvl = get_fish_level(ui, p);
          if (lvl > 1)
@@ -249,6 +290,7 @@ gboolean update_simulation(gpointer user_data)
          }
          continue; // Player keyboard velocity drives the fish, skip boids and normal calculations
       }
+
       double force_x = 0;
       double force_y = 0;
 
@@ -420,9 +462,28 @@ gboolean update_simulation(gpointer user_data)
                }
                else
                {
-                  // Solo random swim
-                  force_x = p->vx;
-                  force_y = p->vy;
+                  // Solo random swim / wandering
+                  if (abs(p->vx) < 5.0 && abs(p->vy) < 5.0)
+                  {
+                     double angle = (double)(rand() % 360) * M_PI / 180.0;
+                     p->vx = cos(angle) * p->vitesse_normale;
+                     p->vy = sin(angle) * p->vitesse_normale;
+                  }
+                  
+                  // Small random perturbations to keep it "alive"
+                  if ((rand() % 100) < 2) // 2% chance per tick to slightly turn
+                  {
+                     double angle_change = ((double)(rand() % 40) - 20.0) * M_PI / 180.0;
+                     double cur_angle = atan2(p->vy, p->vx);
+                     double new_angle = cur_angle + angle_change;
+                     force_x = cos(new_angle) * p->vitesse_normale;
+                     force_y = sin(new_angle) * p->vitesse_normale;
+                  }
+                  else
+                  {
+                     force_x = p->vx;
+                     force_y = p->vy;
+                  }
                }
             }
          }
@@ -432,7 +493,7 @@ gboolean update_simulation(gpointer user_data)
        p->vx = p->vx * 0.85 + force_x * 0.15;
        p->vy = p->vy * 0.85 + force_y * 0.15;
 
-       // Restrict speed to target bounds
+   // Restrict speed to target bounds
        double cur_speed = sqrt(p->vx * p->vx + p->vy * p->vy);
        double tar_speed = (p->etat == ETAT_FUITE) ? p->vitesse_fuite : p->vitesse_normale;
        if (cur_speed > 0)
@@ -440,6 +501,94 @@ gboolean update_simulation(gpointer user_data)
           p->vx = (p->vx / cur_speed) * tar_speed;
           p->vy = (p->vy / cur_speed) * tar_speed;
        }
+
+       // 1.1 Food attraction for preys
+       if (p->etat == ETAT_NORMAL && is_prey(ui, p))
+       {
+          gboolean hungry = (p->sante < p->sante_max) || ui->config_always_eat;
+          if (hungry)
+          {
+             Food *nearest_food = NULL;
+             double min_food_dist = 999999.0;
+             double p_cx = p->x + p->taille / 2.0;
+             double p_cy = p->y + p->taille / 2.0;
+
+             for (GList *f_node = ui->foods; f_node; f_node = f_node->next)
+             {
+                Food *f = f_node->data;
+                double f_cx = f->x + 12.0;
+                double f_cy = f->y + 12.0;
+                double dx = f_cx - p_cx;
+                double dy = f_cy - p_cy;
+                double dist = sqrt(dx * dx + dy * dy);
+                if (dist < min_food_dist && dist < p->perimetre_detection)
+                {
+                   min_food_dist = dist;
+                   nearest_food = f;
+                }
+             }
+
+             if (nearest_food)
+             {
+                double f_cx = nearest_food->x + 12.0;
+                double f_cy = nearest_food->y + 12.0;
+                double dx = f_cx - p_cx;
+                double dy = f_cy - p_cy;
+                double dist = sqrt(dx * dx + dy * dy);
+
+                if (dist > 0)
+                {
+                   // Move toward food center
+                   p->vx = p->vx * 0.7 + (dx / dist) * p->vitesse_normale * 0.3;
+                   p->vy = p->vy * 0.7 + (dy / dist) * p->vitesse_normale * 0.3;
+                }
+
+                // Eating food logic
+                if (dist < (p->taille / 2.0 + 12.0))
+                {
+                   double heal_amount = nearest_food->health_restore;
+                   p->sante += heal_amount;
+                   if (p->sante > p->sante_max) p->sante = p->sante_max;
+                   spawn_floating_heal(ui, p->x + p->taille, p->y, heal_amount);
+                   sound_play(SOUND_COIN);
+
+                   // Remove food
+                   if (nearest_food->widget) gtk_widget_unparent(nearest_food->widget);
+                   ui->foods = g_list_remove(ui->foods, nearest_food);
+                   g_free(nearest_food);
+                }
+             }
+          }
+       }
+    }
+
+    // 1.2 Update Food sinking and floor settling
+    GList *food_node = ui->foods;
+    while (food_node)
+    {
+       GList *next = food_node->next;
+       Food *f = food_node->data;
+       
+       double floor_y = ui->config_canvas_height - 30;
+       
+       if (f->y < floor_y)
+       {
+          f->y += f->vy * dt;
+          if (f->y > floor_y) f->y = floor_y;
+          gtk_fixed_move(GTK_FIXED(ui->canvas), f->widget, (int)f->x, (int)f->y);
+       }
+       else
+       {
+          // Settled at bottom: count 10 seconds (approx 300 ticks at 30fps)
+          f->ticks_at_bottom++;
+          if (f->ticks_at_bottom > 300) 
+          {
+             if (f->widget) gtk_widget_unparent(f->widget);
+             ui->foods = g_list_remove(ui->foods, f);
+             g_free(f);
+          }
+       }
+       food_node = next;
     }
 
     // 2. Apply movement coordinates and check boundary collisions

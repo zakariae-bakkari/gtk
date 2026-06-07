@@ -35,10 +35,23 @@ typedef struct
 
 typedef struct
 {
+   double x, y;
+   double vy;
+   int id;
+   GtkWidget *widget;
+   int image_index; // 1, 2 or 3
+   double health_restore;
+   int ticks_at_bottom;
+} Food;
+
+typedef struct
+{
    GtkWidget *root;
    GtkWidget *canvas;
    GList *poissons; /* list of Poisson* */
+   GList *foods;    /* list of Food* */
    int next_id;
+   int next_food_id;
    GtkWidget *btn_remove;
    gboolean delete_mode;
 
@@ -88,6 +101,7 @@ typedef struct
    gboolean config_hide_health_bar;
    gboolean config_hide_fish_name;
    gboolean config_hide_status_bar;
+   gboolean config_always_eat;
 
    // Settings Dialog fields & switch widgets
    Dialog settings_dialog;
@@ -97,6 +111,7 @@ typedef struct
    GtkWidget *settings_sw_hide_health;
    GtkWidget *settings_sw_hide_name;
    GtkWidget *settings_sw_hide_status;
+   GtkWidget *settings_sw_always_eat;
    GList *species_configs; /* list of SpeciesConfig* */
 
    // Main UI widgets for Zen mode
@@ -116,6 +131,7 @@ typedef struct
    char *shortcut_add;
    char *shortcut_sidebar;
    char *shortcut_restart;
+   char *shortcut_food;
 
    // Settings dialog shortcut fields
    ChampTexte settings_txt_shortcut_play;
@@ -125,6 +141,7 @@ typedef struct
    ChampTexte settings_txt_shortcut_add;
    ChampTexte settings_txt_shortcut_sidebar;
    ChampTexte settings_txt_shortcut_restart;
+   ChampTexte settings_txt_shortcut_food;
 
    // Playable fish fields
    Poisson *controlled_fish;
@@ -146,7 +163,10 @@ gboolean is_predator(BassinUI *ui, Poisson *p);
 gboolean is_ally(BassinUI *ui, Poisson *p);
 gboolean is_prey(BassinUI *ui, Poisson *p);
 void spawn_floating_damage(BassinUI *ui, double x, double y, double damage);
+void spawn_floating_heal(BassinUI *ui, double x, double y, double amount);
 void create_poisson_widget(BassinUI *ui, Poisson *p);
+void spawn_food(BassinUI *ui, double x, double y);
+void on_throw_food_clicked(GtkWidget *widget, gpointer user_data);
 Poisson *find_nearest_prey(BassinUI *ui, Poisson *predator);
 Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish);
 
@@ -154,6 +174,7 @@ Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish);
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box);
 void update_play_pause_button(BassinUI *ui);
 void on_play_pause_clicked(GtkWidget *widget, gpointer user_data);
+void on_stop_control_clicked(GtkWidget *widget, gpointer user_data);
 void on_restart_clicked(GtkWidget *widget, gpointer user_data);
 void on_remove_poisson_btn_clicked(GtkWidget *widget, gpointer user_data);
 void on_vider_clicked(GtkWidget *widget, gpointer user_data);
