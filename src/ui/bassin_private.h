@@ -195,5 +195,6 @@ void open_delete_species_confirmation(BassinUI *ui, const char *species_name);
 void save_species_configs_to_xml(BassinUI *ui);
 void on_toggle_sidebar_clicked(GtkWidget *widget, gpointer user_data);
 void on_image_widget_destroy(GtkWidget *widget, gpointer user_data);
+void open_random_load_dialog(BassinUI *ui);
 
 #endif // BASSIN_PRIVATE_H

@@ -1332,10 +1332,232 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    gtk_scrolled_window_set_max_content_height(GTK_SCROLLED_WINDOW(scroll), 480);
    gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(scroll), box);
 
-   dialog_set_contenu(&ui->settings_dialog, scroll);
-   dialog_creer(&ui->settings_dialog);
+    dialog_set_contenu(&ui->settings_dialog, scroll);
+    dialog_creer(&ui->settings_dialog);
 
-   g_signal_connect(ui->settings_dialog.window, "destroy", G_CALLBACK(on_settings_dialog_destroy), ui);
+    g_signal_connect(ui->settings_dialog.window, "destroy", G_CALLBACK(on_settings_dialog_destroy), ui);
 
-   dialog_afficher(&ui->settings_dialog);
+    dialog_afficher(&ui->settings_dialog);
+}
+
+typedef struct
+{
+   BassinUI *ui;
+   Dialog *dialog;
+   Slider slider_count;
+   BoutonChecklist chk_predators;
+   BoutonChecklist chk_allies;
+   BoutonChecklist chk_bancs;
+} RandomLoadCtx;
+
+static void on_random_load_destroy(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   RandomLoadCtx *ctx = user_data;
+   if (ctx)
+   {
+      slider_free(&ctx->slider_count);
+
+      g_free(ctx->chk_predators.label);
+      g_free(ctx->chk_predators.tooltip);
+      free(ctx->chk_predators.id_css);
+      free(ctx->chk_predators.style.couleur_texte);
+      free(ctx->chk_predators.style.couleur_texte_hover);
+
+      g_free(ctx->chk_allies.label);
+      g_free(ctx->chk_allies.tooltip);
+      free(ctx->chk_allies.id_css);
+      free(ctx->chk_allies.style.couleur_texte);
+      free(ctx->chk_allies.style.couleur_texte_hover);
+
+      g_free(ctx->chk_bancs.label);
+      g_free(ctx->chk_bancs.tooltip);
+      free(ctx->chk_bancs.id_css);
+      free(ctx->chk_bancs.style.couleur_texte);
+      free(ctx->chk_bancs.style.couleur_texte_hover);
+
+      g_free(ctx);
+   }
+}
+
+static void on_random_load_reponse(int reponse, gpointer user_data)
+{
+   RandomLoadCtx *ctx = user_data;
+   if (!ctx)
+      return;
+
+   if (reponse == DIALOG_REPONSE_OK)
+   {
+      BassinUI *ui = ctx->ui;
+
+      // 1. Get options
+      int total_count = (int)slider_get_valeur(&ctx->slider_count);
+      gboolean include_preds = (bouton_checklist_get_etat(&ctx->chk_predators) == CHECKLIST_CHECKED);
+      gboolean include_allies = (bouton_checklist_get_etat(&ctx->chk_allies) == CHECKLIST_CHECKED);
+      gboolean group_in_bancs = (bouton_checklist_get_etat(&ctx->chk_bancs) == CHECKLIST_CHECKED);
+
+      // 2. Clear current basin (Vider)
+      while (ui->poissons)
+      {
+         GList *node = ui->poissons;
+         Poisson *p = (Poisson *)node->data;
+         if (p->widget_image)
+         {
+            gtk_widget_unparent(p->widget_image);
+         }
+         poisson_free(p);
+         ui->poissons = g_list_delete_link(ui->poissons, node);
+      }
+      ui->next_id = 1;
+      ui->num_bancs = 0;
+      ui->elapsed_time = 0.0;
+
+      // 3. Build list of allowed species configs
+      GList *allowed_species = NULL;
+      for (GList *l = ui->species_configs; l; l = l->next)
+      {
+         SpeciesConfig *cfg = l->data;
+         gboolean ok = FALSE;
+         if (strcmp(cfg->type, "prey") == 0)
+         {
+            ok = TRUE;
+         }
+         else if (strcmp(cfg->type, "predator") == 0 && include_preds)
+         {
+            ok = TRUE;
+         }
+         else if (strcmp(cfg->type, "ally") == 0 && include_allies)
+         {
+            ok = TRUE;
+         }
+
+         if (ok)
+         {
+            allowed_species = g_list_append(allowed_species, cfg);
+         }
+      }
+
+      int allowed_count = g_list_length(allowed_species);
+      if (allowed_count > 0)
+      {
+         int spawned = 0;
+         while (spawned < total_count)
+         {
+            // Pick a random species from allowed list
+            int rand_idx = rand() % allowed_count;
+            SpeciesConfig *cfg = g_list_nth_data(allowed_species, rand_idx);
+
+            if (strcmp(cfg->type, "prey") == 0 && group_in_bancs)
+            {
+               // Spawn as a school of size 3 to 5 (or remaining target count)
+               int banc_size = 3 + (rand() % 3); // 3, 4, or 5
+               if (spawned + banc_size > total_count)
+               {
+                  banc_size = total_count - spawned;
+               }
+
+               if (banc_size > 0)
+               {
+                  ui->num_bancs++;
+                  for (int j = 0; j < banc_size; j++)
+                  {
+                     add_fish_programmatic(ui, cfg->nom, TRUE, ui->num_bancs);
+                  }
+                  spawned += banc_size;
+               }
+            }
+            else
+            {
+               // Spawn individual fish (solo)
+               add_fish_programmatic(ui, cfg->nom, FALSE, -1);
+               spawned++;
+            }
+         }
+      }
+
+      if (allowed_species)
+      {
+         g_list_free(allowed_species);
+      }
+
+      // Update sidebar and status bar
+      update_sidebar_list(ui);
+      update_status_bar(ui);
+
+      // Play sound effect
+      sound_play(SOUND_SPLASH);
+   }
+
+   dialog_fermer(ctx->dialog);
+}
+
+void open_random_load_dialog(BassinUI *ui)
+{
+   RandomLoadCtx *ctx = g_new0(RandomLoadCtx, 1);
+   ctx->ui = ui;
+
+   ctx->dialog = g_new0(Dialog, 1);
+   dialog_initialiser(ctx->dialog);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   if (toplevel)
+   {
+      ctx->dialog->parent = GTK_WINDOW(toplevel);
+   }
+   dialog_set_titre(ctx->dialog, "🎲 Générer aléatoirement");
+   ctx->dialog->boutons_preset = DIALOG_BOUTONS_OK_ANNULER;
+   ctx->dialog->on_reponse = on_random_load_reponse;
+   ctx->dialog->user_data = ctx;
+
+   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+   gtk_widget_set_margin_start(box, 15);
+   gtk_widget_set_margin_end(box, 15);
+   gtk_widget_set_margin_top(box, 10);
+   gtk_widget_set_margin_bottom(box, 10);
+
+   // Slider: Nombre de poissons
+   GtkWidget *lbl_count = gtk_label_new("Nombre de poissons à générer :");
+   gtk_widget_set_halign(lbl_count, GTK_ALIGN_START);
+   gtk_box_append(GTK_BOX(box), lbl_count);
+
+   slider_initialiser(&ctx->slider_count);
+   slider_set_bornes(&ctx->slider_count, 5, 50);
+   slider_set_valeur(&ctx->slider_count, 15);
+   slider_set_digits(&ctx->slider_count, 0);
+   slider_set_afficher_valeur(&ctx->slider_count, TRUE);
+   GtkWidget *w_sld = slider_creer(&ctx->slider_count);
+   gtk_box_append(GTK_BOX(box), w_sld);
+
+   // Checklist checkboxes
+   GtkWidget *lbl_opts = gtk_label_new("Options de peuplement :");
+   gtk_widget_set_halign(lbl_opts, GTK_ALIGN_START);
+   gtk_widget_add_css_class(lbl_opts, "entity-header");
+   gtk_box_append(GTK_BOX(box), lbl_opts);
+
+   bouton_checklist_initialiser(&ctx->chk_predators);
+   g_free(ctx->chk_predators.label);
+   ctx->chk_predators.label = g_strdup("Inclure des prédateurs (Requins, etc.)");
+   ctx->chk_predators.etat = CHECKLIST_CHECKED;
+   GtkWidget *w_chk_pred = bouton_checklist_creer(&ctx->chk_predators);
+   gtk_box_append(GTK_BOX(box), w_chk_pred);
+
+   bouton_checklist_initialiser(&ctx->chk_allies);
+   g_free(ctx->chk_allies.label);
+   ctx->chk_allies.label = g_strdup("Inclure des alliés (Dauphins, etc.)");
+   ctx->chk_allies.etat = CHECKLIST_CHECKED;
+   GtkWidget *w_chk_allies = bouton_checklist_creer(&ctx->chk_allies);
+   gtk_box_append(GTK_BOX(box), w_chk_allies);
+
+   bouton_checklist_initialiser(&ctx->chk_bancs);
+   g_free(ctx->chk_bancs.label);
+   ctx->chk_bancs.label = g_strdup("Former des bancs pour les proies");
+   ctx->chk_bancs.etat = CHECKLIST_CHECKED;
+   GtkWidget *w_chk_bancs = bouton_checklist_creer(&ctx->chk_bancs);
+   gtk_box_append(GTK_BOX(box), w_chk_bancs);
+
+   dialog_set_contenu(ctx->dialog, box);
+   dialog_creer(ctx->dialog);
+   dialog_afficher(ctx->dialog);
+
+   g_signal_connect_swapped(ctx->dialog->window, "destroy", G_CALLBACK(dialog_free), ctx->dialog);
+   g_signal_connect(ctx->dialog->window, "destroy", G_CALLBACK(on_random_load_destroy), ctx);
 }

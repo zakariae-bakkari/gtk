@@ -166,6 +166,16 @@ void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
+static void on_random_clicked(GtkWidget *widget, gpointer user_data)
+{
+   (void)widget;
+   BassinUI *ui = user_data;
+   if (ui)
+   {
+      open_random_load_dialog(ui);
+   }
+}
+
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
 {
    // Standard GtkButtons for options
@@ -173,6 +183,10 @@ void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
    gtk_widget_add_css_class(btn_add, "suggested-action");
    g_signal_connect(btn_add, "clicked", G_CALLBACK(on_add_poisson_btn_clicked), ui);
    gtk_box_append(GTK_BOX(header_box), btn_add);
+
+   GtkWidget *btn_random = gtk_button_new_with_label("🎲 Aléatoire");
+   g_signal_connect(btn_random, "clicked", G_CALLBACK(on_random_clicked), ui);
+   gtk_box_append(GTK_BOX(header_box), btn_random);
 
    GtkWidget *btn_remove = gtk_button_new_with_label("🗑️ Supprimer");
    gtk_widget_add_css_class(btn_remove, "destructive-action");
