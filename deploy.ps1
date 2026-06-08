@@ -33,7 +33,7 @@ $LIBS = & pkg-config --libs gtk4
 
 # We use the existing build.ps1 to build the main.c
 # Note: We add -O3 for optimization and -mwindows to hide the console in release
-$ExtraSrcs = "src/modele/poisson.c src/ui/screen_bassin.c src/ui/bassin_simulation.c src/ui/bassin_sidebar.c src/ui/bassin_xml.c src/ui/bassin_dialogs.c src/ui/bassin_menu.c src/ui/screen_stubs.c src/sound.c"
+$ExtraSrcs = "src/modele/poisson.c src/pages/screen_bassin.c src/pages/screen_bassin_helpers.c src/pages/screen_home.c src/simulation/bassin_simulation.c src/simulation/bassin_xml.c src/actions/bassin_interactions.c src/actions/bassin_menu.c src/actions/bassin_sidebar.c src/dialogs/bassin_dialogs.c src/core/sound.c"
 $ReleaseFlags = "-O3 -s -mwindows"
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ".\build.ps1 -Target 'src/main.c' -OutFile '$ReleaseDir/$ExecutableName' -ExtraSrcs '$ExtraSrcs' -CFlags '$CFLAGS $ReleaseFlags' -Libs '$LIBS'"
