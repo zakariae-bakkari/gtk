@@ -201,9 +201,11 @@ int champ_select_get_index(ChampSelect *cfg)
 
 void champ_select_set_index(ChampSelect *cfg, int index)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   gtk_drop_down_set_selected(GTK_DROP_DOWN(cfg->widget), (guint)index);
+   cfg->selected_index = index;
+   if (cfg->widget)
+      gtk_drop_down_set_selected(GTK_DROP_DOWN(cfg->widget), (guint)index);
 }
 
 const char *champ_select_get_string(ChampSelect *cfg)
