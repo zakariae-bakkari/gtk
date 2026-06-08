@@ -187,20 +187,25 @@ double champ_nombre_get_valeur(ChampNombre *cfg)
 
 void champ_nombre_set_valeur(ChampNombre *cfg, double v)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
-   gtk_spin_button_set_value(GTK_SPIN_BUTTON(cfg->widget), v);
+   cfg->valeur = v;
+   if (cfg->widget)
+      gtk_spin_button_set_value(GTK_SPIN_BUTTON(cfg->widget), v);
 }
 
 void champ_nombre_set_bornes(ChampNombre *cfg, double min, double max)
 {
-   if (!cfg || !cfg->widget)
+   if (!cfg)
       return;
    cfg->min = min;
    cfg->max = max;
-   GtkAdjustment *adj = gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(cfg->widget));
-   gtk_adjustment_set_lower(adj, min);
-   gtk_adjustment_set_upper(adj, max);
+   if (cfg->widget)
+   {
+      GtkAdjustment *adj = gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(cfg->widget));
+      gtk_adjustment_set_lower(adj, min);
+      gtk_adjustment_set_upper(adj, max);
+   }
 }
 
 void champ_nombre_set_step(ChampNombre *cfg, double step)

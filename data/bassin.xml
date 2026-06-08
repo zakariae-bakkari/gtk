@@ -1,14 +1,18 @@
 <bassin>
-  <canvas width="1073" height="622" fish_size="127" bg="resources/images/fond/background_banc.png" elapsed_time="0.198000" num_bancs="2"/>
+  <canvas width="1641" height="982" fish_size="127" bg="C:\Users\Admin\CLionProjects\gtk\resources\images\fond\background2.png" elapsed_time="69.201000" num_bancs="3"/>
   <poissons>
-    <poisson id="9" nom="scate" x="916.123368" y="369.086062" vx="-33.722139" vy="-21.513190" id_banc="-1" est_leader="false" sante="100.000000"/>
-    <poisson id="8" nom="Eel" x="884.518894" y="239.443125" vx="-48.284521" vy="12.984799" id_banc="2" est_leader="false" sante="100.000000"/>
-    <poisson id="7" nom="Eel" x="755.473040" y="261.526483" vx="48.291208" vy="-12.959907" id_banc="2" est_leader="false" sante="100.000000"/>
-    <poisson id="6" nom="Eel" x="923.890150" y="270.854208" vx="-28.680647" vy="-40.956324" id_banc="2" est_leader="true" sante="100.000000"/>
-    <poisson id="5" nom="Sardine" x="433.674474" y="101.329262" vx="-68.277261" vy="15.434238" id_banc="1" est_leader="false" sante="100.000000"/>
-    <poisson id="4" nom="Sardine" x="553.689542" y="120.366193" vx="-61.748438" vy="32.971660" id_banc="1" est_leader="false" sante="100.000000"/>
-    <poisson id="3" nom="Sardine" x="202.883990" y="329.418961" vx="55.231265" vy="-43.005900" id_banc="1" est_leader="false" sante="100.000000"/>
-    <poisson id="2" nom="Sardine" x="319.669808" y="256.232844" vx="-36.439627" vy="87.733423" id_banc="1" est_leader="true" sante="64.360000"/>
-    <poisson id="1" nom="Requin Blanc" x="280.906448" y="128.139621" vx="-39.485515" vy="57.800468" id_banc="-1" est_leader="false" sante="100.000000"/>
+    <poisson id="13" nom="Eel" x="741.066531" y="628.820104" vx="2.833040" vy="49.919674" id_banc="3" est_leader="false" sante="100.000000"/>
+    <poisson id="12" nom="Eel" x="687.960404" y="664.221775" vx="3.463585" vy="49.879892" id_banc="3" est_leader="false" sante="100.000000"/>
+    <poisson id="11" nom="Eel" x="727.527029" y="672.157875" vx="2.966332" vy="49.911931" id_banc="3" est_leader="false" sante="100.000000"/>
+    <poisson id="10" nom="Eel" x="696.919379" y="626.834569" vx="0.146212" vy="49.999786" id_banc="3" est_leader="false" sante="100.000000"/>
+    <poisson id="9" nom="Eel" x="711.587419" y="714.357449" vx="-0.573180" vy="49.996715" id_banc="3" est_leader="true" sante="100.000000"/>
+    <poisson id="8" nom="scate" x="797.125538" y="501.627956" vx="-39.810949" vy="-3.884366" id_banc="2" est_leader="false" sante="100.000000"/>
+    <poisson id="7" nom="scate" x="816.462117" y="523.517296" vx="-39.933211" vy="-2.310551" id_banc="2" est_leader="false" sante="100.000000"/>
+    <poisson id="6" nom="scate" x="802.160755" y="480.595551" vx="-39.674873" vy="-5.089641" id_banc="2" est_leader="false" sante="100.000000"/>
+    <poisson id="5" nom="scate" x="758.979735" y="494.406692" vx="-39.772078" vy="-4.264011" id_banc="2" est_leader="true" sante="100.000000"/>
+    <poisson id="4" nom="turtle" x="1141.061012" y="361.342873" vx="22.909688" vy="-10.007307" id_banc="1" est_leader="false" sante="100.000000"/>
+    <poisson id="3" nom="turtle" x="1180.732157" y="339.298779" vx="23.028376" vy="-9.731078" id_banc="1" est_leader="false" sante="100.000000"/>
+    <poisson id="2" nom="turtle" x="1183.726448" y="346.568291" vx="23.029082" vy="-9.729407" id_banc="1" est_leader="false" sante="100.000000"/>
+    <poisson id="1" nom="turtle" x="1228.879148" y="323.212968" vx="23.172455" vy="-9.382820" id_banc="1" est_leader="true" sante="100.000000"/>
   </poissons>
 </bassin>

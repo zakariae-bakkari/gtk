@@ -9,9 +9,14 @@ pkg_check_modules(GTK4 REQUIRED IMPORTED_TARGET gtk4)
 add_executable(gtk
     src/main.c
     src/modele/poisson.c
-    src/ui/screen_bassin.c
-    src/ui/screen_stubs.c
-    src/sound.c
+    src/pages/screen_bassin.c
+    src/pages/screen_home.c
+    src/dialogs/bassin_dialogs.c
+    src/actions/bassin_menu.c
+    src/actions/bassin_sidebar.c
+    src/simulation/bassin_simulation.c
+    src/simulation/bassin_xml.c
+    src/core/sound.c
 
     widgets/sources/bouton.c
     widgets/sources/fenetre.c

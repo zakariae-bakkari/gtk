@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 
-#include "ui/screen_bassin.h"
-#include "ui/screen_stubs.h"
+#include "pages/screen_bassin.h"
+#include "pages/screen_home.h"
 #include "fenetre.h"
 
 Fenetre g_app_window;
