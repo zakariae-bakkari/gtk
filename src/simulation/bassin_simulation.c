@@ -66,7 +66,7 @@ Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish)
    for (GList *l = ui->poissons; l; l = l->next)
    {
       Poisson *p = l->data;
-      if (p != fish && p->sante > 0.0)
+      if (p != fish && p->sante > 0.0 && p->visible)
       {
          if (can_eat(ui, p, fish))
          {
@@ -170,23 +170,56 @@ gboolean update_simulation(gpointer user_data)
    ui->elapsed_time += dt;
    ui->time_since_last_alert += dt;
 
-   // Play shark alert sound if player-controlled fish is near a predator
+   // Tick all floating damage/heal/kill labels in one pass (no per-label g_timeout_add)
+   tick_floating_labels(ui);
+
+   // Controlled fish danger detection: predator in detection zone => escape speed + alert
    if (ui->controlled_fish)
    {
-      Poisson *pred = find_nearest_predator(ui, ui->controlled_fish);
+      Poisson *p = ui->controlled_fish;
+      Poisson *pred = find_nearest_predator(ui, p);
+      gboolean in_danger = FALSE;
+
       if (pred)
       {
-         double dx = (pred->x + pred->taille / 2.0) - (ui->controlled_fish->x + ui->controlled_fish->taille / 2.0);
-         double dy = (pred->y + pred->taille / 2.0) - (ui->controlled_fish->y + ui->controlled_fish->taille / 2.0);
+         double dx = (pred->x + pred->taille / 2.0) - (p->x + p->taille / 2.0);
+         double dy = (pred->y + pred->taille / 2.0) - (p->y + p->taille / 2.0);
          double dist = sqrt(dx * dx + dy * dy);
-         if (dist < ui->controlled_fish->perimetre_detection)
+         if (dist < p->perimetre_detection)
          {
+            in_danger = TRUE;
+
+            // Switch to escape state so keyboard speed is boosted automatically
+            if (p->etat != ETAT_FUITE)
+            {
+               p->etat = ETAT_FUITE;
+               // Re-scale current velocity to vitesse_fuite immediately
+               double cur_speed = sqrt(p->vx * p->vx + p->vy * p->vy);
+               if (cur_speed > 0)
+               {
+                  p->vx = (p->vx / cur_speed) * p->vitesse_fuite;
+                  p->vy = (p->vy / cur_speed) * p->vitesse_fuite;
+               }
+               // Visual: flash the fish widget red
+               if (p->widget_image)
+                  gtk_widget_add_css_class(p->widget_image, "fish-danger");
+            }
+
+            // Sound alert (immediate on first detection, then respect cooldown)
             if (ui->time_since_last_alert >= 4.0)
             {
                sound_play(SOUND_SHARK_ALERT);
                ui->time_since_last_alert = 0.0;
             }
          }
+      }
+
+      if (!in_danger && p->etat == ETAT_FUITE)
+      {
+         // Safe again: restore normal state
+         p->etat = ETAT_NORMAL;
+         if (p->widget_image)
+            gtk_widget_remove_css_class(p->widget_image, "fish-danger");
       }
    }
 
@@ -294,6 +327,7 @@ gboolean update_simulation(gpointer user_data)
 
       double force_x = 0;
       double force_y = 0;
+      gboolean is_chasing = FALSE; // TRUE when this predator is actively hunting prey
 
       if (p->etat == ETAT_HORS_CADRE)
       {
@@ -361,8 +395,10 @@ gboolean update_simulation(gpointer user_data)
                double dx = (target->x + target->taille / 2.0) - (p->x + p->taille / 2.0);
                double dy = (target->y + target->taille / 2.0) - (p->y + p->taille / 2.0);
                double dist = sqrt(dx * dx + dy * dy);
-               if (dist > 0)
+               // Only chase at full speed when the prey is within detection range
+               if (dist > 0 && dist < p->perimetre_detection)
                {
+                  is_chasing = TRUE;
                   force_x = (dx / dist) * p->vitesse_fuite;
                   force_y = (dy / dist) * p->vitesse_fuite;
 
@@ -375,6 +411,12 @@ gboolean update_simulation(gpointer user_data)
                      target->dernier_attaquant = p;
                      target->degats_accumules += damage_rate * dt;
                   }
+               }
+               else if (dist > 0)
+               {
+                  // Prey exists but is outside detection zone: walk toward it at normal speed
+                  force_x = (dx / dist) * p->vitesse_normale;
+                  force_y = (dy / dist) * p->vitesse_normale;
                }
             }
             else
@@ -491,12 +533,24 @@ gboolean update_simulation(gpointer user_data)
       }
 
        // Smooth velocity transitions
-       p->vx = p->vx * 0.85 + force_x * 0.15;
-       p->vy = p->vy * 0.85 + force_y * 0.15;
+       // - Fleeing prey:     fast blend (0.1/0.9) for near-instant escape turn
+       // - Chasing predator: fast blend (0.1/0.9) for near-instant attack acceleration
+       // - Normal swim:      gentle blend (0.85/0.15) for natural-looking motion
+       if (p->etat == ETAT_FUITE || is_chasing)
+       {
+          p->vx = p->vx * 0.1 + force_x * 0.9;
+          p->vy = p->vy * 0.1 + force_y * 0.9;
+       }
+       else
+       {
+          p->vx = p->vx * 0.85 + force_x * 0.15;
+          p->vy = p->vy * 0.85 + force_y * 0.15;
+       }
 
    // Restrict speed to target bounds
        double cur_speed = sqrt(p->vx * p->vx + p->vy * p->vy);
-       double tar_speed = (p->etat == ETAT_FUITE) ? p->vitesse_fuite : p->vitesse_normale;
+       // Fleeing prey and chasing predators both use vitesse_fuite as their speed cap
+       double tar_speed = (p->etat == ETAT_FUITE || is_chasing) ? p->vitesse_fuite : p->vitesse_normale;
        if (cur_speed > 0)
        {
           p->vx = (p->vx / cur_speed) * tar_speed;
@@ -707,6 +761,9 @@ gboolean update_simulation(gpointer user_data)
              }
           }
 
+          // Cache last displayed frame to avoid redundant gtk_picture_set_filename calls
+          int cached_frame = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p->widget_image), "last_frame"));
+
           GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
           GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
           GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
@@ -733,9 +790,25 @@ gboolean update_simulation(gpointer user_data)
 
           if (img_widget && GTK_IS_PICTURE(img_widget))
           {
+             // Only resize when scale actually changed (avoids relayout every tick)
              int display_size = (int)(p->taille * scale);
-             gtk_widget_set_size_request(img_widget, display_size, display_size);
-             gtk_picture_set_filename(GTK_PICTURE(img_widget), p->chemin_frames[p->frame_courante] ? p->chemin_frames[p->frame_courante] : p->chemin_frames[0]);
+             int last_size = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(img_widget), "last_size"));
+             if (display_size != last_size)
+             {
+                gtk_widget_set_size_request(img_widget, display_size, display_size);
+                g_object_set_data(G_OBJECT(img_widget), "last_size", GINT_TO_POINTER(display_size));
+             }
+
+             // Only reload image when frame actually changed
+             if (p->frame_courante != cached_frame)
+             {
+                const char *frame_path = p->chemin_frames[p->frame_courante]
+                                         ? p->chemin_frames[p->frame_courante]
+                                         : p->chemin_frames[0];
+                gtk_picture_set_filename(GTK_PICTURE(img_widget), frame_path);
+                g_object_set_data(G_OBJECT(p->widget_image), "last_frame", GINT_TO_POINTER(p->frame_courante));
+             }
+
              gboolean flipped = (p->vx < 0.0);
              if (strcmp(p->nom, "Puffer") == 0)
              {
@@ -751,7 +824,9 @@ gboolean update_simulation(gpointer user_data)
              {
                 angle_deg = atan2(p->vy, p->vx) * 180.0 / M_PI;
              }
-             int rounded_angle = (int)round(angle_deg);
+             // Snap to 5-degree steps: drastically reduces CSS reloads from constant
+             // floating-point angle wobble without visible quality loss at fish scale.
+             int rounded_angle = (int)(round(angle_deg / 5.0) * 5);
 
              int last_angle = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(img_widget), "last_angle"));
              gboolean last_flipped = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(img_widget), "last_flipped"));
@@ -796,7 +871,9 @@ gboolean update_simulation(gpointer user_data)
           eat_fish(ui, p);
        }
        g_list_free(dead_poissons);
-       update_sidebar_list(ui);
+       // Do NOT call update_sidebar_list here: it rebuilds the entire sidebar widget
+       // tree which is very expensive. The sidebar refreshes when the user interacts
+       // with it (tab clicks, add/remove actions). Status bar is sufficient per-tick.
     }
 
     if (ui->debug_mode && ui->debug_overlay)

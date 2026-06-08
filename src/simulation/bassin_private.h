@@ -147,6 +147,9 @@ typedef struct
    // Playable fish fields
    Poisson *controlled_fish;
    double time_since_last_alert;
+
+   // Floating damage/heal/kill labels (ticked by update_simulation, no per-label timer)
+   GList *floating_labels; /* list of FloatingDamage* */
 } BassinUI;
 
 void spawn_floating_kill(BassinUI *ui, double x, double y);
@@ -193,6 +196,7 @@ void on_merge_reponse(int reponse, gpointer user_data);
 
 // Module: Simulation
 gboolean update_simulation(gpointer user_data);
+void tick_floating_labels(BassinUI *ui);
 void eat_fish(BassinUI *ui, Poisson *prey);
 void on_debug_draw(GtkDrawingArea *drawing_area, cairo_t *cr, int width, int height, gpointer user_data);
 

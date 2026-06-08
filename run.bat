@@ -193,11 +193,15 @@ if "!IS_XML!"=="1" (
     set "EXE_NAME=src\xml_runner.exe"
     set "RUN_COMMAND="!EXE_NAME!" "!TARGET_WIN!""
     taskkill /f /im "xml_runner.exe" >nul 2>&1
+    :: Wait for Windows to fully release the file lock before compiling
+    timeout /t 1 /nobreak >nul 2>&1
 ) else (
     set "SRC_TO_COMPILE=!TARGET_WIN!"
     set "EXE_NAME=!TARGET_DIR!!TARGET_NAME!.exe"
     set "RUN_COMMAND="!EXE_NAME!""
     taskkill /f /im "!TARGET_NAME!.exe" >nul 2>&1
+    :: Wait for Windows to fully release the file lock before compiling
+    timeout /t 1 /nobreak >nul 2>&1
 )
 
 :: Compile the C file

@@ -41,28 +41,32 @@ typedef struct {
    BassinUI *ui;
 } FloatingDamage;
 
-static gboolean animate_floating_damage_tick(gpointer user_data)
+// Called once per simulation tick from update_simulation() — no per-label timer needed.
+void tick_floating_labels(BassinUI *ui)
 {
-   FloatingDamage *fd = (FloatingDamage *)user_data;
-   if (!fd->ui->simulation_running)
+   GList *to_remove = NULL;
+   for (GList *l = ui->floating_labels; l; l = l->next)
    {
-      return TRUE;
+      FloatingDamage *fd = l->data;
+      fd->ticks_remaining--;
+      if (fd->ticks_remaining <= 0)
+      {
+         gtk_widget_unparent(fd->label);
+         to_remove = g_list_prepend(to_remove, fd);
+         continue;
+      }
+      fd->y += fd->vy;
+      double opacity = (double)fd->ticks_remaining / 20.0;
+      gtk_widget_set_opacity(fd->label, opacity);
+      gtk_fixed_move(GTK_FIXED(fd->ui->canvas), fd->label, (int)fd->x, (int)fd->y);
    }
-
-   fd->ticks_remaining--;
-   if (fd->ticks_remaining <= 0)
+   for (GList *r = to_remove; r; r = r->next)
    {
-      gtk_widget_unparent(fd->label);
+      FloatingDamage *fd = r->data;
+      ui->floating_labels = g_list_remove(ui->floating_labels, fd);
       g_free(fd);
-      return FALSE;
    }
-
-   fd->y += fd->vy;
-   double opacity = (double)fd->ticks_remaining / 20.0;
-   gtk_widget_set_opacity(fd->label, opacity);
-
-   gtk_fixed_move(GTK_FIXED(fd->ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-   return TRUE;
+   g_list_free(to_remove);
 }
 
 void spawn_floating_damage(BassinUI *ui, double x, double y, double damage)
@@ -80,8 +84,7 @@ void spawn_floating_damage(BassinUI *ui, double x, double y, double damage)
 
    gtk_widget_add_css_class(fd->label, "floating-damage");
    gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-
-   g_timeout_add(33, animate_floating_damage_tick, fd);
+   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
 }
 
 void spawn_floating_kill(BassinUI *ui, double x, double y)
@@ -96,8 +99,7 @@ void spawn_floating_kill(BassinUI *ui, double x, double y)
 
    gtk_widget_add_css_class(fd->label, "floating-kill");
    gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-
-   g_timeout_add(33, animate_floating_damage_tick, fd);
+   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
 }
 
 void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
@@ -113,10 +115,9 @@ void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
    fd->ticks_remaining = 20;
    fd->ui = ui;
 
-   gtk_widget_add_css_class(fd->label, "floating-kill"); // Use green color for healing
+   gtk_widget_add_css_class(fd->label, "floating-kill"); // green color
    gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-
-   g_timeout_add(33, animate_floating_damage_tick, fd);
+   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
 }
 
 void spawn_food(BassinUI *ui, double x, double y)

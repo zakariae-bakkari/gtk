@@ -1,5 +1,5 @@
 <species_list>
-    <species name="Requin Blanc" type="predator" level="5" speed_norm="100.0" speed_escape="110.0" speed_slow="35.0" size="241" detection="135" health="100.0">
+    <species name="Requin Blanc" type="predator" level="5" speed_norm="39.0" speed_escape="400.0" speed_slow="35.0" size="140" detection="500" health="100.0">
         <frame>resources/images/fishes/requin_blanc/frame1.png</frame>
         <frame>resources/images/fishes/requin_blanc/frame2.png</frame>
         <frame>resources/images/fishes/requin_blanc/frame3.png</frame>
@@ -12,7 +12,6 @@
         <eats>Garfish</eats>
         <eats>tuna</eats>
         <eats>Dolphin</eats>
-        <eats>test-2</eats>
     </species>
     <species name="Puffer" type="predator" level="3" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="65" detection="100" health="100.0">
         <frame>resources/images/fishes/puffer/frame1.png</frame>
@@ -21,10 +20,10 @@
         <eats>Sardine</eats>
         <eats>seahorse</eats>
     </species>
-    <species name="Sardine" type="prey" level="1" speed_norm="70.0" speed_escape="95.0" speed_slow="20.0" size="35" detection="100" health="100.0">
+    <species name="Sardine" type="prey" level="1" speed_norm="70.0" speed_escape="444.0" speed_slow="20.0" size="35" detection="500" health="101.0">
         <frame>resources/images/fishes/sardine/frame1.png</frame>
         <frame>resources/images/fishes/sardine/frame2.png</frame>
-        <frame>resources/images/fishes/sardine/frame1.png</frame>
+        <frame>resources/images/fishes/sardine/frame3.png</frame>
     </species>
     <species name="Eel" type="prey" level="2" speed_norm="50.0" speed_escape="80.0" speed_slow="20.0" size="55" detection="100" health="100.0">
         <frame>resources/images/fishes/eel/frame1.png</frame>
@@ -34,7 +33,7 @@
         <eats>seahorse</eats>
         <eats>Hareng</eats>
     </species>
-    <species name="scate" type="prey" level="2" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="60" detection="100" health="100.0">
+    <species name="scate" type="prey" level="2" speed_norm="44.0" speed_escape="322.0" speed_slow="20.0" size="60" detection="500" health="100.0">
         <frame>resources/images/fishes/scate/frame1.png</frame>
         <frame>resources/images/fishes/scate/frame2.png</frame>
         <frame>resources/images/fishes/scate/frame3.png</frame>
@@ -63,7 +62,7 @@
         <frame>resources/images/fishes/Garfish/frame3.png</frame>
         <eats>Sardine</eats>
     </species>
-    <species name="tuna" type="predator" level="4" speed_norm="85.0" speed_escape="120.0" speed_slow="35.0" size="85" detection="120" health="100.0">
+    <species name="tuna" type="predator" level="4" speed_norm="85.0" speed_escape="222.0" speed_slow="35.0" size="85" detection="116" health="100.0">
         <frame>resources/images/fishes/tuna/frame1.png</frame>
         <frame>resources/images/fishes/tuna/frame2.png</frame>
         <frame>resources/images/fishes/tuna/frame3.png</frame>
@@ -97,15 +96,5 @@
         <eats>seahorse</eats>
         <eats>scate</eats>
         <eats>Eel</eats>
-    </species>
-    <species name="test" type="prey" level="1" speed_norm="60.0" speed_escape="100.0" speed_slow="30.0" size="100" detection="500" health="100.0">
-        <frame>resources/images/fishes/test/frame1.jpg</frame>
-        <frame>resources/images/fishes/test/frame2.jpg</frame>
-        <frame>resources/images/fishes/test/frame3.jpg</frame>
-    </species>
-    <species name="test-2" type="prey" level="1" speed_norm="5.0" speed_escape="5.0" speed_slow="5.0" size="130" detection="10" health="10.0">
-        <frame>resources/images/fishes/test-2/frame1.jpg</frame>
-        <frame>resources/images/fishes/test-2/frame2.jpg</frame>
-        <frame>resources/images/fishes/test-2/frame3.jpg</frame>
     </species>
 </species_list>
