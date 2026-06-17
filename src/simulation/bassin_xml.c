@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "bassin_private.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,21 +11,19 @@ int attr_int(const XmlNode *n, const char *name, int def)
    return v ? atoi(v) : def;
 }
 
-static gboolean attr_bool(const XmlNode *n, const char *name, gboolean def)
+static bool attr_bool(const XmlNode *n, const char *name, bool def)
 {
    const char *v = xml_attr_get(n, name);
    if (!v)
       return def;
-   return (strcmp(v, "true") == 0 || strcmp(v, "1") == 0 || strcmp(v, "oui") == 0)
-              ? TRUE
-              : FALSE;
+   return (strcmp(v, "true") == 0 || strcmp(v, "1") == 0 || strcmp(v, "oui") == 0);
 }
 
 void load_species_configs(BassinUI *ui)
 {
    if (ui->species_configs)
    {
-      for (GList *l = ui->species_configs; l; l = l->next)
+      for (GList *l = (GList *)ui->species_configs; l; l = l->next)
       {
          SpeciesConfig *cfg = l->data;
          free(cfg->nom);
@@ -41,7 +40,7 @@ void load_species_configs(BassinUI *ui)
          }
          free(cfg);
       }
-      g_list_free(ui->species_configs);
+      g_list_free((GList *)ui->species_configs);
       ui->species_configs = NULL;
    }
 
@@ -105,7 +104,7 @@ void load_species_configs(BassinUI *ui)
          for(int i = 0; i < cfg->nb_diet; i++) {
              g_print("  Eats: %s\n", cfg->diet[i]);
          }
-         ui->species_configs = g_list_append(ui->species_configs, cfg);
+         ui->species_configs = g_list_append((GList *)ui->species_configs, cfg);
       }
    }
    xml_node_free(root);
@@ -113,7 +112,7 @@ void load_species_configs(BassinUI *ui)
 
 SpeciesConfig *find_species_config(BassinUI *ui, const char *species_name)
 {
-   for (GList *l = ui->species_configs; l; l = l->next)
+   for (GList *l = (GList *)ui->species_configs; l; l = l->next)
    {
       SpeciesConfig *cfg = l->data;
       if (strcmp(cfg->nom, species_name) == 0)
@@ -144,7 +143,7 @@ void bassin_save_to_xml(BassinUI *ui, const char *filename)
            ui->config_canvas_width, ui->config_canvas_height, ui->config_fish_size, ui->config_bg_path, ui->elapsed_time, ui->num_bancs);
    fprintf(f, "  <poissons>\n");
 
-   GList *all_poissons = bassin_get_all_poissons(ui);
+   GList *all_poissons = (GList *)bassin_get_all_poissons(ui);
    for (GList *l = all_poissons; l; l = l->next)
    {
       Poisson *p = l->data;
@@ -176,19 +175,19 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
    // 1. Clear current poissons & bancs
    while (ui->poissons)
    {
-      GList *node = ui->poissons;
+      GList *node = (GList *)ui->poissons;
       Poisson *p = (Poisson *)node->data;
       if (p->widget_image)
       {
-         gtk_widget_unparent(p->widget_image);
+         gtk_widget_unparent(GTK_WIDGET(p->widget_image));
       }
       poisson_free(p);
-      ui->poissons = g_list_delete_link(ui->poissons, node);
+      ui->poissons = g_list_delete_link((GList *)ui->poissons, node);
    }
 
    while (ui->bancs)
    {
-      GList *node = ui->bancs;
+      GList *node = (GList *)ui->bancs;
       Banc *b = node->data;
       while (b->poissons)
       {
@@ -196,14 +195,14 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
          Poisson *p = p_node->data;
          if (p->widget_image)
          {
-            gtk_widget_unparent(p->widget_image);
+            gtk_widget_unparent(GTK_WIDGET(p->widget_image));
          }
          poisson_free(p);
          b->poissons = g_list_delete_link(b->poissons, p_node);
       }
       free(b->nom_espece);
       free(b);
-      ui->bancs = g_list_delete_link(ui->bancs, node);
+      ui->bancs = g_list_delete_link((GList *)ui->bancs, node);
    }
 
    ui->next_id = 1;
@@ -227,15 +226,15 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
             ui->config_bg_path = strdup(bg);
          }
 
-         gtk_widget_set_size_request(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
+         widget_set_size(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
          if (ui->debug_overlay)
          {
-            gtk_widget_set_size_request(ui->debug_overlay, ui->config_canvas_width, ui->config_canvas_height);
+            widget_set_size(ui->debug_overlay, ui->config_canvas_width, ui->config_canvas_height);
          }
          if (ui->bg_widget)
          {
             apply_background(ui);
-            gtk_widget_set_size_request(ui->bg_widget, ui->config_canvas_width, ui->config_canvas_height);
+            widget_set_size(ui->bg_widget, ui->config_canvas_width, ui->config_canvas_height);
          }
       }
       else if (strcmp(child->tag, "poissons") == 0)
@@ -251,7 +250,7 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
                double vx = xml_attr_get(p_node, "vx") ? atof(xml_attr_get(p_node, "vx")) : 0.0;
                double vy = xml_attr_get(p_node, "vy") ? atof(xml_attr_get(p_node, "vy")) : 0.0;
                int id_banc = attr_int(p_node, "id_banc", -1);
-               gboolean est_leader = attr_bool(p_node, "est_leader", FALSE);
+               bool est_leader = attr_bool(p_node, "est_leader", false);
                double sante = xml_attr_get(p_node, "sante") ? atof(xml_attr_get(p_node, "sante")) : 100.0;
 
                Poisson *p = poisson_new(nom);
@@ -298,13 +297,13 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
    update_status_bar(ui);
 }
 
-void on_save_clicked(GtkWidget *widget, gpointer user_data)
+void on_save_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
    bassin_save_to_xml(ui, "data/bassin.xml");
 
-   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(GTK_WIDGET(ui->root), GTK_TYPE_WINDOW);
    dialog_afficher_info(toplevel ? GTK_WINDOW(toplevel) : NULL,
                         "Succès",
                         "L'état du bassin a été sauvegardé avec succès dans data/bassin.xml.",
@@ -312,13 +311,13 @@ void on_save_clicked(GtkWidget *widget, gpointer user_data)
                         NULL);
 }
 
-void on_load_clicked(GtkWidget *widget, gpointer user_data)
+void on_load_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
    bassin_load_from_xml(ui, "data/bassin.xml");
 
-   GtkWidget *toplevel = gtk_widget_get_ancestor(ui->root, GTK_TYPE_WINDOW);
+   GtkWidget *toplevel = gtk_widget_get_ancestor(GTK_WIDGET(ui->root), GTK_TYPE_WINDOW);
    dialog_afficher_info(toplevel ? GTK_WINDOW(toplevel) : NULL,
                         "Succès",
                         "L'état du bassin a été rechargé depuis data/bassin.xml.",
@@ -340,7 +339,7 @@ void save_species_configs_to_xml(BassinUI *ui)
    }
 
    fprintf(f, "<species_list>\n");
-   for (GList *l = ui->species_configs; l; l = l->next)
+   for (GList *l = (GList *)ui->species_configs; l; l = l->next)
    {
       SpeciesConfig *cfg = l->data;
       fprintf(f, "    <species name=\"%s\" type=\"%s\" level=\"%d\" speed_norm=\"%.1f\" speed_escape=\"%.1f\" speed_slow=\"%.1f\" size=\"%d\" detection=\"%d\" health=\"%.1f\">\n",
@@ -391,50 +390,50 @@ void load_settings_from_xml(BassinUI *ui)
    const char *sh_play = xml_attr_get(root, "shortcut_play");
    if (sh_play)
    {
-      g_free(ui->shortcut_play);
-      ui->shortcut_play = g_strdup(sh_play);
+      free(ui->shortcut_play);
+      ui->shortcut_play = strdup(sh_play);
    }
    const char *sh_zen = xml_attr_get(root, "shortcut_zen");
    if (sh_zen)
    {
-      g_free(ui->shortcut_zen);
-      ui->shortcut_zen = g_strdup(sh_zen);
+      free(ui->shortcut_zen);
+      ui->shortcut_zen = strdup(sh_zen);
    }
    const char *sh_debug = xml_attr_get(root, "shortcut_debug");
    if (sh_debug)
    {
-      g_free(ui->shortcut_debug);
-      ui->shortcut_debug = g_strdup(sh_debug);
+      free(ui->shortcut_debug);
+      ui->shortcut_debug = strdup(sh_debug);
    }
    const char *sh_settings = xml_attr_get(root, "shortcut_settings");
    if (sh_settings)
    {
-      g_free(ui->shortcut_settings);
-      ui->shortcut_settings = g_strdup(sh_settings);
+      free(ui->shortcut_settings);
+      ui->shortcut_settings = strdup(sh_settings);
    }
    const char *sh_add = xml_attr_get(root, "shortcut_add");
    if (sh_add)
    {
-      g_free(ui->shortcut_add);
-      ui->shortcut_add = g_strdup(sh_add);
+      free(ui->shortcut_add);
+      ui->shortcut_add = strdup(sh_add);
    }
    const char *sh_sidebar = xml_attr_get(root, "shortcut_sidebar");
    if (sh_sidebar)
    {
-      g_free(ui->shortcut_sidebar);
-      ui->shortcut_sidebar = g_strdup(sh_sidebar);
+      free(ui->shortcut_sidebar);
+      ui->shortcut_sidebar = strdup(sh_sidebar);
    }
    const char *sh_restart = xml_attr_get(root, "shortcut_restart");
    if (sh_restart)
    {
-      g_free(ui->shortcut_restart);
-      ui->shortcut_restart = g_strdup(sh_restart);
+      free(ui->shortcut_restart);
+      ui->shortcut_restart = strdup(sh_restart);
    }
    const char *sh_food = xml_attr_get(root, "shortcut_food");
    if (sh_food)
    {
-      g_free(ui->shortcut_food);
-      ui->shortcut_food = g_strdup(sh_food);
+      free(ui->shortcut_food);
+      ui->shortcut_food = strdup(sh_food);
    }
 
    xml_node_free(root);

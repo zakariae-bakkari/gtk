@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../simulation/bassin_private.h"
 #include <stdlib.h>
 #include <string.h>
@@ -11,30 +12,30 @@ int get_fish_level(BassinUI *ui, Poisson *p)
    return cfg ? cfg->level : 1;
 }
 
-gboolean is_predator(BassinUI *ui, Poisson *p)
+bool is_predator(BassinUI *ui, Poisson *p)
 {
-   if (!p) return FALSE;
+   if (!p) return false;
    SpeciesConfig *cfg = find_species_config(ui, p->nom);
    return cfg && (strcmp(cfg->type, "predator") == 0);
 }
 
-gboolean is_ally(BassinUI *ui, Poisson *p)
+bool is_ally(BassinUI *ui, Poisson *p)
 {
-   if (!p) return FALSE;
+   if (!p) return false;
    SpeciesConfig *cfg = find_species_config(ui, p->nom);
    return cfg && (strcmp(cfg->type, "ally") == 0);
 }
 
-gboolean is_prey(BassinUI *ui, Poisson *p)
+bool is_prey(BassinUI *ui, Poisson *p)
 {
-   if (!p) return FALSE;
+   if (!p) return false;
    SpeciesConfig *cfg = find_species_config(ui, p->nom);
    return cfg && (strcmp(cfg->type, "prey") == 0);
 }
 
 // Floating Damage numbers tick animation
 typedef struct {
-   GtkWidget *label;
+   Widget label;
    double x, y;
    double vy;
    int ticks_remaining;
@@ -45,26 +46,26 @@ typedef struct {
 void tick_floating_labels(BassinUI *ui)
 {
    GList *to_remove = NULL;
-   for (GList *l = ui->floating_labels; l; l = l->next)
+   for (GList *l = (GList *)ui->floating_labels; l; l = l->next)
    {
       FloatingDamage *fd = l->data;
       fd->ticks_remaining--;
       if (fd->ticks_remaining <= 0)
       {
-         gtk_widget_unparent(fd->label);
+         gtk_widget_unparent(GTK_WIDGET(fd->label));
          to_remove = g_list_prepend(to_remove, fd);
          continue;
       }
       fd->y += fd->vy;
       double opacity = (double)fd->ticks_remaining / 20.0;
-      gtk_widget_set_opacity(fd->label, opacity);
-      gtk_fixed_move(GTK_FIXED(fd->ui->canvas), fd->label, (int)fd->x, (int)fd->y);
+      gtk_widget_set_opacity(GTK_WIDGET(fd->label), opacity);
+      gtk_fixed_move(GTK_FIXED(fd->ui->canvas), GTK_WIDGET(fd->label), (int)fd->x, (int)fd->y);
    }
    for (GList *r = to_remove; r; r = r->next)
    {
       FloatingDamage *fd = r->data;
-      ui->floating_labels = g_list_remove(ui->floating_labels, fd);
-      g_free(fd);
+      ui->floating_labels = g_list_remove((GList *)ui->floating_labels, fd);
+      free(fd);
    }
    g_list_free(to_remove);
 }
@@ -74,7 +75,7 @@ void spawn_floating_damage(BassinUI *ui, double x, double y, double damage)
    char buf[32];
    sprintf(buf, "-%.0f", damage);
 
-   FloatingDamage *fd = g_new0(FloatingDamage, 1);
+   FloatingDamage *fd = calloc(1, sizeof(FloatingDamage));
    fd->label = gtk_label_new(buf);
    fd->x = x;
    fd->y = y;
@@ -82,14 +83,14 @@ void spawn_floating_damage(BassinUI *ui, double x, double y, double damage)
    fd->ticks_remaining = 20;
    fd->ui = ui;
 
-   gtk_widget_add_css_class(fd->label, "floating-damage");
-   gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
+   gtk_widget_add_css_class(GTK_WIDGET(fd->label), "floating-damage");
+   gtk_fixed_put(GTK_FIXED(ui->canvas), GTK_WIDGET(fd->label), (int)fd->x, (int)fd->y);
+   ui->floating_labels = g_list_prepend((GList *)ui->floating_labels, fd);
 }
 
 void spawn_floating_kill(BassinUI *ui, double x, double y)
 {
-   FloatingDamage *fd = g_new0(FloatingDamage, 1);
+   FloatingDamage *fd = calloc(1, sizeof(FloatingDamage));
    fd->label = gtk_label_new("+1 Kill");
    fd->x = x;
    fd->y = y;
@@ -97,9 +98,9 @@ void spawn_floating_kill(BassinUI *ui, double x, double y)
    fd->ticks_remaining = 20;
    fd->ui = ui;
 
-   gtk_widget_add_css_class(fd->label, "floating-kill");
-   gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
+   gtk_widget_add_css_class(GTK_WIDGET(fd->label), "floating-kill");
+   gtk_fixed_put(GTK_FIXED(ui->canvas), GTK_WIDGET(fd->label), (int)fd->x, (int)fd->y);
+   ui->floating_labels = g_list_prepend((GList *)ui->floating_labels, fd);
 }
 
 void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
@@ -107,7 +108,7 @@ void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
    char buf[32];
    sprintf(buf, "+%.0f", amount);
 
-   FloatingDamage *fd = g_new0(FloatingDamage, 1);
+   FloatingDamage *fd = calloc(1, sizeof(FloatingDamage));
    fd->label = gtk_label_new(buf);
    fd->x = x;
    fd->y = y;
@@ -115,14 +116,14 @@ void spawn_floating_heal(BassinUI *ui, double x, double y, double amount)
    fd->ticks_remaining = 20;
    fd->ui = ui;
 
-   gtk_widget_add_css_class(fd->label, "floating-kill"); // green color
-   gtk_fixed_put(GTK_FIXED(ui->canvas), fd->label, (int)fd->x, (int)fd->y);
-   ui->floating_labels = g_list_prepend(ui->floating_labels, fd);
+   gtk_widget_add_css_class(GTK_WIDGET(fd->label), "floating-kill"); // green color
+   gtk_fixed_put(GTK_FIXED(ui->canvas), GTK_WIDGET(fd->label), (int)fd->x, (int)fd->y);
+   ui->floating_labels = g_list_prepend((GList *)ui->floating_labels, fd);
 }
 
 void spawn_food(BassinUI *ui, double x, double y)
 {
-   Food *f = g_new0(Food, 1);
+   Food *f = calloc(1, sizeof(Food));
    f->id = ++ui->next_food_id;
    f->x = x;
    f->y = y;
@@ -138,30 +139,30 @@ void spawn_food(BassinUI *ui, double x, double y)
    sprintf(path, "resources/images/fishFood/food%d.png", f->image_index);
    f->widget = gtk_picture_new_for_filename(path);
    gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(f->widget), TRUE);
-   gtk_widget_set_size_request(f->widget, 24, 24);
+   gtk_widget_set_size_request(GTK_WIDGET(f->widget), 24, 24);
 
-   ui->foods = g_list_append(ui->foods, f);
-   gtk_fixed_put(GTK_FIXED(ui->canvas), f->widget, (int)f->x, (int)f->y);
+   ui->foods = g_list_append((GList *)ui->foods, f);
+   gtk_fixed_put(GTK_FIXED(ui->canvas), GTK_WIDGET(f->widget), (int)f->x, (int)f->y);
    
    sound_play(SOUND_BUBBLES);
 }
 
-void on_image_widget_destroy(GtkWidget *widget, gpointer user_data)
+void on_image_widget_destroy(Widget widget, void *user_data)
 {
    (void)widget;
    Image *img = (Image *)user_data;
    if (img)
    {
       image_free(img);
-      g_free(img);
+      free(img);
    }
 }
 
-GtkWidget *get_fish_picture_widget(Poisson *p)
+Widget get_fish_picture_widget(Poisson *p)
 {
    if (!p || !p->widget_image)
       return NULL;
-   GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
+   GtkWidget *lead_widget = gtk_widget_get_first_child(GTK_WIDGET(p->widget_image));
    GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
    GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
    return img_widget;
@@ -172,8 +173,8 @@ void update_fish_widget_tags(BassinUI *ui, Poisson *p)
    if (!p || !p->widget_image)
       return;
 
-   GtkWidget *img_widget = get_fish_picture_widget(p);
-   GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(img_widget) : NULL;
+   Widget img_widget = get_fish_picture_widget(p);
+   GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(GTK_WIDGET(img_widget)) : NULL;
 
    if (lbl_tag && GTK_IS_LABEL(lbl_tag))
    {
@@ -182,12 +183,12 @@ void update_fish_widget_tags(BassinUI *ui, Poisson *p)
       {
          sprintf(tag_buf, "🕹️ [JOUEUR] %s", p->nom);
          if (img_widget)
-            gtk_widget_add_css_class(img_widget, "fish-controlled");
+            gtk_widget_add_css_class(GTK_WIDGET(img_widget), "fish-controlled");
       }
       else
       {
          if (img_widget)
-            gtk_widget_remove_css_class(img_widget, "fish-controlled");
+            gtk_widget_remove_css_class(GTK_WIDGET(img_widget), "fish-controlled");
          if (is_predator(ui, p))
          {
             sprintf(tag_buf, "%s Alpha", p->nom);
@@ -289,12 +290,12 @@ void create_poisson_widget(BassinUI *ui, Poisson *p)
 
 void apply_fish_visibility_configs(BassinUI *ui)
 {
-   for (GList *l = ui->poissons; l; l = l->next)
+   for (GList *l = (GList *)ui->poissons; l; l = l->next)
    {
       Poisson *p = l->data;
       if (p->widget_image)
       {
-         GtkWidget *lead_widget = gtk_widget_get_first_child(p->widget_image);
+         GtkWidget *lead_widget = gtk_widget_get_first_child(GTK_WIDGET(p->widget_image));
          GtkWidget *health_bar = lead_widget ? gtk_widget_get_next_sibling(lead_widget) : NULL;
          GtkWidget *img_widget = health_bar ? gtk_widget_get_next_sibling(health_bar) : NULL;
          GtkWidget *lbl_tag = img_widget ? gtk_widget_get_next_sibling(img_widget) : NULL;
@@ -315,49 +316,49 @@ void apply_zen_mode(BassinUI *ui)
 {
    if (ui->zen_mode)
    {
-      ui->sidebar_was_visible = gtk_widget_get_visible(ui->sidebar);
+      ui->sidebar_was_visible = gtk_widget_get_visible(GTK_WIDGET(ui->sidebar));
 
       if (ui->header_widget)
-         gtk_widget_set_visible(ui->header_widget, FALSE);
+         widget_set_visible(ui->header_widget, false);
       if (ui->sep_top_widget)
-         gtk_widget_set_visible(ui->sep_top_widget, FALSE);
+         widget_set_visible(ui->sep_top_widget, false);
       if (ui->sidebar)
-         gtk_widget_set_visible(ui->sidebar, FALSE);
+         widget_set_visible(ui->sidebar, false);
       if (ui->sep_bottom_widget)
-         gtk_widget_set_visible(ui->sep_bottom_widget, FALSE);
+         widget_set_visible(ui->sep_bottom_widget, false);
       if (ui->status_bar_widget)
-         gtk_widget_set_visible(ui->status_bar_widget, FALSE);
+         widget_set_visible(ui->status_bar_widget, false);
    }
    else
    {
       if (ui->header_widget)
-         gtk_widget_set_visible(ui->header_widget, TRUE);
+         widget_set_visible(ui->header_widget, true);
       if (ui->sep_top_widget)
-         gtk_widget_set_visible(ui->sep_top_widget, TRUE);
+         widget_set_visible(ui->sep_top_widget, true);
       if (ui->sidebar)
-         gtk_widget_set_visible(ui->sidebar, ui->sidebar_was_visible);
+         widget_set_visible(ui->sidebar, ui->sidebar_was_visible);
 
-      gboolean show_status = !ui->config_hide_status_bar;
+      bool show_status = !ui->config_hide_status_bar;
       if (ui->sep_bottom_widget)
-         gtk_widget_set_visible(ui->sep_bottom_widget, show_status);
+         widget_set_visible(ui->sep_bottom_widget, show_status);
       if (ui->status_bar_widget)
-         gtk_widget_set_visible(ui->status_bar_widget, show_status);
+         widget_set_visible(ui->status_bar_widget, show_status);
    }
 }
 
-static gboolean is_video_file(const char *filename)
+static bool is_video_file(const char *filename)
 {
-    if (!filename) return FALSE;
+    if (!filename) return false;
     const char *ext = strrchr(filename, '.');
-    if (!ext) return FALSE;
+    if (!ext) return false;
     if (g_ascii_strcasecmp(ext, ".mp4") == 0 ||
         g_ascii_strcasecmp(ext, ".webm") == 0 ||
         g_ascii_strcasecmp(ext, ".mkv") == 0 ||
         g_ascii_strcasecmp(ext, ".avi") == 0)
     {
-        return TRUE;
+        return true;
     }
-    return FALSE;
+    return false;
 }
 
 void apply_background(BassinUI *ui)
@@ -366,23 +367,23 @@ void apply_background(BassinUI *ui)
 
     if (ui->bg_stream)
     {
-        gtk_media_stream_pause(ui->bg_stream);
-        g_object_unref(ui->bg_stream);
+        widget_media_stream_pause(ui->bg_stream);
+        widget_media_stream_free(ui->bg_stream);
         ui->bg_stream = NULL;
     }
 
     if (is_video_file(ui->config_bg_path))
     {
-        ui->bg_stream = gtk_media_file_new_for_filename(ui->config_bg_path);
+        ui->bg_stream = widget_media_stream_new_from_file(ui->config_bg_path);
         if (ui->bg_stream)
         {
-            gtk_media_stream_set_loop(ui->bg_stream, TRUE);
-            gtk_picture_set_paintable(GTK_PICTURE(ui->bg_widget), GDK_PAINTABLE(ui->bg_stream));
-            gtk_media_stream_play(ui->bg_stream);
+            widget_media_stream_set_loop(ui->bg_stream, true);
+            widget_picture_set_paintable(ui->bg_widget, ui->bg_stream);
+            widget_media_stream_play(ui->bg_stream);
         }
     }
     else
     {
-        gtk_picture_set_filename(GTK_PICTURE(ui->bg_widget), ui->config_bg_path);
+        widget_picture_set_filename(ui->bg_widget, ui->config_bg_path);
     }
 }

@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/champ_nombre.h"
 #include <stdlib.h>
 #include <string.h>
@@ -42,33 +43,33 @@ static void champ_nombre_apply_css(ChampNombre *cfg)
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
-       gtk_widget_get_style_context(cfg->widget),
+       gtk_widget_get_style_context(GTK_WIDGET(cfg->widget)),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_USER);
    g_object_unref(provider);
 }
 
-static gboolean champ_nombre_validate(ChampNombre *cfg)
+static bool champ_nombre_validate(ChampNombre *cfg)
 {
    if (!cfg || !cfg->widget)
-      return FALSE;
+      return false;
 
    double val = gtk_spin_button_get_value(GTK_SPIN_BUTTON(cfg->widget));
 
    // Check if value is within bounds (this should already be enforced by GtkSpinButton)
    if (val < cfg->min || val > cfg->max)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
+      gtk_widget_add_css_class(GTK_WIDGET(cfg->widget), "error");
       if (cfg->on_invalid)
          cfg->on_invalid(cfg->widget, "value out of range", cfg->user_data);
-      return FALSE;
+      return false;
    }
 
    // For numeric fields, we could add more validation rules here if needed
    // For now, GtkSpinButton already handles most validation
 
-   gtk_widget_remove_css_class(cfg->widget, "error");
-   return TRUE;
+   gtk_widget_remove_css_class(GTK_WIDGET(cfg->widget), "error");
+   return true;
 }
 
 static void on_spin_value_changed(GtkSpinButton *spin, gpointer user_data)
@@ -129,7 +130,7 @@ void champ_nombre_initialiser(ChampNombre *cfg)
    cfg->style.rayon_arrondi = 4;
 }
 
-GtkWidget *champ_nombre_creer(ChampNombre *cfg)
+Widget champ_nombre_creer(ChampNombre *cfg)
 {
    if (!cfg)
       return NULL;
@@ -137,13 +138,13 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
    GtkAdjustment *adj = gtk_adjustment_new(cfg->valeur, cfg->min, cfg->max, cfg->step, cfg->step * 10, 0);
    cfg->widget = gtk_spin_button_new(adj, cfg->step, cfg->digits);
 
-   gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), cfg->wrap);
-   gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_nombre");
+   gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), cfg->wrap ? TRUE : FALSE);
+   gtk_widget_set_name(GTK_WIDGET(cfg->widget), cfg->id_css ? cfg->id_css : "champ_nombre");
 
    // Set size if specified
    if (cfg->size.width > 0 || cfg->size.height > 0)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   cfg->size.width > 0 ? cfg->size.width : -1,
                                   cfg->size.height > 0 ? cfg->size.height : -1);
    }
@@ -152,19 +153,19 @@ GtkWidget *champ_nombre_creer(ChampNombre *cfg)
    if (cfg->size.width > 0)
    {
       // Fixed width - don't expand
-      gtk_widget_set_hexpand(cfg->widget, FALSE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
    }
    else
    {
       // width = 0 means full width - expand to fill container
-      gtk_widget_set_hexpand(cfg->widget, TRUE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
    }
 
    // Spin buttons typically don't need vertical expansion
-   gtk_widget_set_vexpand(cfg->widget, FALSE);
-   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
+   gtk_widget_set_vexpand(GTK_WIDGET(cfg->widget), FALSE);
+   gtk_widget_set_valign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
 
    g_signal_connect(cfg->widget, "value-changed", G_CALLBACK(on_spin_value_changed), cfg);
    g_signal_connect(cfg->widget, "activate", G_CALLBACK(on_spin_activate), cfg);
@@ -216,7 +217,7 @@ void champ_nombre_set_step(ChampNombre *cfg, double step)
    gtk_spin_button_set_increments(GTK_SPIN_BUTTON(cfg->widget), step, step * 10);
 }
 
-void champ_nombre_set_digits(ChampNombre *cfg, guint digits)
+void champ_nombre_set_digits(ChampNombre *cfg, unsigned int digits)
 {
    if (!cfg || !cfg->widget)
       return;
@@ -224,15 +225,15 @@ void champ_nombre_set_digits(ChampNombre *cfg, guint digits)
    gtk_spin_button_set_digits(GTK_SPIN_BUTTON(cfg->widget), digits);
 }
 
-void champ_nombre_set_wrap(ChampNombre *cfg, gboolean wrap)
+void champ_nombre_set_wrap(ChampNombre *cfg, bool wrap)
 {
    if (!cfg || !cfg->widget)
       return;
    cfg->wrap = wrap;
-   gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), wrap);
+   gtk_spin_button_set_wrap(GTK_SPIN_BUTTON(cfg->widget), wrap ? TRUE : FALSE);
 }
 
-void champ_nombre_set_callbacks(ChampNombre *cfg, WidgetOnChange on_change, WidgetOnActivate on_activate, WidgetOnInvalid on_invalid, gpointer user_data)
+void champ_nombre_set_callbacks(ChampNombre *cfg, WidgetOnChange on_change, WidgetOnActivate on_activate, WidgetOnInvalid on_invalid, void *user_data)
 {
    if (!cfg)
       return;
@@ -264,20 +265,20 @@ void champ_nombre_set_size(ChampNombre *cfg, int width, int height)
    cfg->size.height = height;
    if (cfg->widget)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   width > 0 ? width : -1,
                                   height > 0 ? height : -1);
 
       // Update expansion behavior
       if (width > 0)
       {
-         gtk_widget_set_hexpand(cfg->widget, FALSE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
       }
       else
       {
-         gtk_widget_set_hexpand(cfg->widget, TRUE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
       }
    }
 }

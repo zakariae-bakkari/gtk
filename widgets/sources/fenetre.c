@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/fenetre.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -208,13 +209,13 @@ void fenetre_initialiser(Fenetre *config)
 // ════════════════════════════════════════════════════════════
 // CRÉER
 // ════════════════════════════════════════════════════════════
-GtkWidget *fenetre_creer(Fenetre *config, GtkApplication *app)
+Widget fenetre_creer(Fenetre *config, void *app)
 {
     if (!config) return NULL;
 
     // ✅ WIN_TYPE_TOPLEVEL = fenêtre normale
     // ✅ WIN_TYPE_POPUP    = sans décoration
-    config->wind = gtk_application_window_new(app);
+    config->wind = gtk_application_window_new(GTK_APPLICATION(app));
 
     if (config->type == WIN_TYPE_POPUP) {
         gtk_window_set_decorated(GTK_WINDOW(config->wind), FALSE);
@@ -332,29 +333,29 @@ void fenetre_set_scroll_content_size(Fenetre *config, int min_width, int min_hei
     config->content_min_height = min_height;
 }
 
-void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay) {
+void fenetre_set_scroll_overlay(Fenetre *config, bool overlay) {
     if (!config) return;
     config->scroll_overlay = overlay;
 }
 
-GtkWidget *fenetre_get_content_container(Fenetre *config) {
+Widget fenetre_get_content_container(Fenetre *config) {
     if (!config) return NULL;
     if (config->scroll_mode != SCROLL_NONE && config->scroll_widget)
         return config->scroll_widget;
     return config->wind;
 }
 
-void fenetre_ajouter(Fenetre *config, GtkWidget *enfant) {
+void fenetre_ajouter(Fenetre *config, Widget enfant) {
     if (!config || !config->wind || !enfant) return;
     if (config->scroll_mode != SCROLL_NONE && config->scroll_widget) {
-        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(config->scroll_widget), enfant);
+        gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(config->scroll_widget), GTK_WIDGET(enfant));
     } else {
-        gtk_window_set_child(GTK_WINDOW(config->wind), enfant);
+        gtk_window_set_child(GTK_WINDOW(config->wind), GTK_WIDGET(enfant));
     }
 }
 
 /* Background management & action helpers */
-void fenetre_set_background_image(GtkWidget *window, const char *image_path) {
+void fenetre_set_background_image(Widget window, const char *image_path) {
     if (!window || !image_path) return;
     GtkCssProvider *provider = gtk_css_provider_new();
     char css[2048];
@@ -393,14 +394,14 @@ void fenetre_set_background_image(GtkWidget *window, const char *image_path) {
     
     gtk_css_provider_load_from_string(provider, css);
     gtk_style_context_add_provider(
-        gtk_widget_get_style_context(window),
+        gtk_widget_get_style_context(GTK_WIDGET(window)),
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_USER
     );
     g_object_unref(provider);
 }
 
-void fenetre_reset_background(GtkWidget *window) {
+void fenetre_reset_background(Widget window) {
     if (!window) return;
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_string(provider,
@@ -409,20 +410,20 @@ void fenetre_reset_background(GtkWidget *window) {
         "}\n"
     );
     gtk_style_context_add_provider(
-        gtk_widget_get_style_context(window),
+        gtk_widget_get_style_context(GTK_WIDGET(window)),
         GTK_STYLE_PROVIDER(provider),
         GTK_STYLE_PROVIDER_PRIORITY_USER
     );
     g_object_unref(provider);
 }
 
-void action_quitter(GtkWidget *widget, gpointer data) {
+void action_quitter(Widget widget, void *data) {
     (void)widget;
     GtkWidget *win = NULL;
     if (data && GTK_IS_WIDGET(data)) {
         win = GTK_WIDGET(data);
     } else if (widget) {
-        win = gtk_widget_get_ancestor(widget, GTK_TYPE_WINDOW);
+        win = gtk_widget_get_ancestor(GTK_WIDGET(widget), GTK_TYPE_WINDOW);
     }
     
     if (win && GTK_IS_WINDOW(win)) {

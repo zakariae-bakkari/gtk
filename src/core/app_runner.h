@@ -1,13 +1,11 @@
 #ifndef APP_RUNNER_H
 #define APP_RUNNER_H
 
-#include <gtk/gtk.h>
-
 /**
  * gtk_app_run - Lance une application GTK de manière standardisée.
  *
  * @param app_id   : Identifiant unique de l'application (ex: "fr.monapp.app")
- * @param activate : Callback appelé au signal "activate" de GtkApplication
+ * @param activate : Callback appelé au signal "activate" de GtkApplication (void *app, void *user_data)
  * @param user_data: Données passées au callback (peut être NULL)
  * @param argc     : Nombre d'arguments (depuis main)
  * @param argv     : Tableau d'arguments (depuis main)
@@ -21,8 +19,8 @@
  *   }
  */
 int runner(const char *app_id,
-                GCallback   activate,
-                gpointer    user_data,
+                void        *activate,
+                void        *user_data,
                 int         argc,
                 char      **argv);
 

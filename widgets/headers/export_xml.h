@@ -1,7 +1,6 @@
 #ifndef EXPORT_XML_H
 #define EXPORT_XML_H
 
-#include <gtk/gtk.h>
 #include "fenetre.h"
 #include "conteneur.h"
 #include "bouton.h"
@@ -68,6 +67,6 @@ void export_ajouter_video    (ExportContext *ctx, Video           *w);
 
 void generer_fichier_interface(ExportContext *ctx, const char *chemin);
 
-void xml_export_window(GtkWidget *window, const char *chemin_export);
+void xml_export_window(Widget window, const char *chemin_export);
 
 #endif // EXPORT_XML_H

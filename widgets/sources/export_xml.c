@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/export_xml.h"
 #include <stdio.h>
 #include <string.h>
@@ -1064,13 +1065,13 @@ static void traverser_et_enregistrer(GtkWidget *widget, ExportContext *ctx)
     }
 }
 
-void xml_export_window(GtkWidget *window, const char *chemin_export)
+void xml_export_window(Widget window, const char *chemin_export)
 {
     ExportContext ctx;
     export_context_init(&ctx);
 
     // Parcourir récursivement pour enregistrer les widgets dans le contexte
-    traverser_et_enregistrer(window, &ctx);
+    traverser_et_enregistrer(GTK_WIDGET(window), &ctx);
 
     // Si on a trouvé la fenêtre principale mais qu'elle n'est pas encore enregistrée sous Fenetre
     if (!ctx.fenetre) {

@@ -1,16 +1,15 @@
 #ifndef VIDEO_H
 #define VIDEO_H
 
-#include <gtk/gtk.h>
 #include "common.h"
 
 typedef struct
 {
-   GtkWidget *container;
-   GtkWidget *widget;
-   GtkWidget *controls;
-   GtkWidget *label_legende;
-   GtkWidget *label_erreur;
+   Widget container;
+   Widget widget;
+   Widget controls;
+   Widget label_legende;
+   Widget label_erreur;
 
    char *id_css;
    char *file_path;
@@ -23,17 +22,17 @@ typedef struct
    int legende_taille_px;
    int rayon_arrondi;
 
-   gboolean autoplay;
-   gboolean loop;
-   gboolean controles;
-   gboolean sensitive;
+   bool autoplay;
+   bool loop;
+   bool controles;
+   bool sensitive;
 
    WidgetAlignment halign;
    WidgetStyle style;
 } Video;
 
 void video_initialiser(Video *cfg);
-GtkWidget *video_creer(Video *cfg);
+Widget video_creer(Video *cfg);
 void video_free(Video *cfg);
 
 void video_set_from_file(Video *cfg, const char *file_path);

@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "app_runner.h"
 
 /**
@@ -9,14 +10,14 @@
  * Utilisable dans n'importe quel fichier main du projet en incluant app_runner.h.
  */
 int runner(const char *app_id,
-                GCallback   activate,
-                gpointer    user_data,
+                void        *activate,
+                void        *user_data,
                 int         argc,
                 char      **argv)
 {
     GtkApplication *app = gtk_application_new(app_id, G_APPLICATION_DEFAULT_FLAGS);
 
-    g_signal_connect(app, "activate", activate, user_data);
+    g_signal_connect(app, "activate", G_CALLBACK(activate), user_data);
 
     int status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

@@ -1,7 +1,7 @@
 #ifndef XML_PARSER_H
 #define XML_PARSER_H
 
-#include <gtk/gtk.h>
+#include "common.h"
 
 // ============================================================
 //  Types de nœuds supportés
@@ -80,11 +80,11 @@ const char *xml_attr_get(const XmlNode *node, const char *name);
  * @param app       : GtkApplication
  * @return          : le GtkWidget de la fenêtre créée, ou NULL
  */
-GtkWidget *xml_build_ui(XmlNode *root, GtkApplication *app);
+Widget xml_build_ui(XmlNode *root, void *app);
 
 /**
  * Raccourci : parse + build en une seule étape.
  */
-GtkWidget *xml_load_file(const char *path, GtkApplication *app);
+Widget xml_load_file(const char *path, void *app);
 
 #endif /* XML_PARSER_H */

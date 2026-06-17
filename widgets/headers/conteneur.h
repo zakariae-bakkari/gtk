@@ -1,8 +1,7 @@
 #ifndef CONTENEUR_H
 #define CONTENEUR_H
 
-#include <gtk/gtk.h>
-#include "common.h" // Include common.h to access WidgetScrollMode
+#include "common.h" // Include common.h to access WidgetScrollMode and Widget
 
 /**
  * Orientation du conteneur
@@ -62,13 +61,13 @@ typedef struct
  */
 typedef struct
 {
-    GtkWidget *widget;        // Le widget GTK (GtkBox)
-    GtkWidget *scroll_widget; // GtkScrolledWindow (si défilable)
+    Widget widget;        // Le widget GTK (GtkBox)
+    Widget scroll_widget; // GtkScrolledWindow (si défilable)
 
     // --- Disposition ---
     ConteneurOrientation orientation;
     int espacement;    // Espace entre les éléments enfants
-    gboolean homogene; // Si true, tous les enfants ont la même taille
+    bool homogene; // Si true, tous les enfants ont la même taille
 
     // --- Dimensions & Positionnement ---
     ConteneurDimensions taille;  // Largeur et Hauteur forcées
@@ -76,8 +75,12 @@ typedef struct
     ConteneurAlignement align_y; // Alignement Vertical
 
     // --- Expansion des enfants ---
-    gboolean enfants_hexpand; // Si true, les enfants s'étendent horizontalement
-    gboolean enfants_vexpand; // Si true, les enfants s'étendent verticalement
+    bool enfants_hexpand; // Si true, les enfants s'étendent horizontalement
+    bool enfants_vexpand; // Si true, les enfants s'étendent verticalement
+
+    // --- Expansion du conteneur ---
+    bool hexpand;         // Si true, le conteneur s'étend horizontalement
+    bool vexpand;         // Si true, le conteneur s'étend verticalement
 
     // --- Espacements ---
     ConteneurMarges marges;   // Espace autour de la boite
@@ -85,6 +88,7 @@ typedef struct
 
     // --- Style ---
     char *id_css;       // ID CSS personnalisé
+    char *classe_css;   // Classe(s) CSS personnalisée(s)
     char *couleur_fond; // Couleur de fond (ex: "#FFFFFF")
 
     // --- Bordure (Détail ajouté) ---
@@ -96,7 +100,7 @@ typedef struct
     WidgetScrollMode scroll_mode; // Mode de défilement (utilise l'enum partagé)
     int scroll_min_width;         // Largeur minimale pour la zone défilable (0 = auto)
     int scroll_min_height;        // Hauteur minimale pour la zone défilable (0 = auto)
-    gboolean scroll_overlay;      // Utiliser des barres de défilement superposées (true = moderne, false = classique)
+    bool scroll_overlay;      // Utiliser des barres de défilement superposées (true = moderne, false = classique)
 
 } Conteneur;
 
@@ -105,12 +109,12 @@ typedef struct
  * ------------------------------------------------------------------------- */
 
 void conteneur_initialiser(Conteneur *config);
-GtkWidget *conteneur_creer(Conteneur *config);
-void conteneur_ajouter(Conteneur *config, GtkWidget *enfant);
+Widget conteneur_creer(Conteneur *config);
+void conteneur_ajouter(Conteneur *config, Widget enfant);
 
 // Scrolling configuration helpers
 void conteneur_set_scrollable(Conteneur *config, WidgetScrollMode mode);
 void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height);
-void conteneur_set_scroll_overlay(Conteneur *config, gboolean overlay);
+void conteneur_set_scroll_overlay(Conteneur *config, bool overlay);
 
 #endif // CONTENEUR_H

@@ -1,7 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include <gtk/gtk.h>
 #include "common.h"
 
 /**
@@ -27,10 +26,10 @@ typedef enum
 
 typedef struct
 {
-   GtkWidget *container; // GtkBox vertical — à passer à conteneur_ajouter()
-   GtkWidget *widget;    // GtkPicture — l'image elle-même
+   Widget container; // GtkBox vertical — à passer à conteneur_ajouter()
+   Widget widget;    // GtkPicture — l'image elle-même
 
-   GtkWidget *label_legende; // GtkLabel de légende (optionnel)
+   Widget label_legende; // GtkLabel de légende (optionnel)
 
    char *id_css; // ID CSS appliqué au widget image
 
@@ -38,7 +37,7 @@ typedef struct
    ImageSourceType source_type;
    char *file_path;   // Chemin fichier (IMAGE_SOURCE_FILE)
    char *icon_name;   // Nom icône (IMAGE_SOURCE_ICON_NAME)
-   GdkPixbuf *pixbuf; // Pixbuf (IMAGE_SOURCE_PIXBUF)
+   void *pixbuf; // Pixbuf (IMAGE_SOURCE_PIXBUF)
 
    // Légende
    char *legende; // Texte de légende sous l'image (NULL = aucune)
@@ -49,8 +48,8 @@ typedef struct
 
    // Comportement
    ImageFitMode fit_mode; // Mode de redimensionnement
-   gboolean can_shrink;   // Autorise la réduction sous la taille naturelle
-   gboolean sensitive;    // Actif/inactif
+   bool can_shrink;   // Autorise la réduction sous la taille naturelle
+   bool sensitive;    // Actif/inactif
 
    // Alignement
    WidgetAlignment halign; // Alignement horizontal du container
@@ -67,17 +66,17 @@ typedef struct
 
 /* Cycle de vie */
 void image_initialiser(Image *cfg);
-GtkWidget *image_creer(Image *cfg); // Retourne cfg->container
+Widget image_creer(Image *cfg); // Retourne cfg->container
 void image_free(Image *cfg);
 
 /* Setters */
 void image_set_from_file(Image *cfg, const char *file_path);
 void image_set_from_icon_name(Image *cfg, const char *icon_name);
-void image_set_from_pixbuf(Image *cfg, GdkPixbuf *pixbuf);
+void image_set_from_pixbuf(Image *cfg, void *pixbuf);
 void image_set_size(Image *cfg, int width, int height);
 void image_set_fit_mode(Image *cfg, ImageFitMode fit_mode);
 void image_set_legende(Image *cfg, const char *legende);
-void image_set_sensitive(Image *cfg, gboolean sensitive);
+void image_set_sensitive(Image *cfg, bool sensitive);
 void image_set_halign(Image *cfg, WidgetAlignment halign);
 
 #endif // IMAGE_H

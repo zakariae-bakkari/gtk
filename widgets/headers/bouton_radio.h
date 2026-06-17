@@ -5,7 +5,7 @@
 #ifndef GTK_BUTTON_RADIO_H
 #define GTK_BUTTON_RADIO_H
 
-#include <gtk/gtk.h>
+#include "common.h"
 
 /**
  * Énumération pour la position du label par rapport au bouton radio
@@ -25,13 +25,13 @@ typedef struct
    char *couleur_texte_hover; // Couleur au survol
    char *couleur_point;       // Couleur du point du radio
    int taille_texte_px;       // Taille de la police (0 = défaut)
-   gboolean gras;             // Texte en gras
+   bool gras;             // Texte en gras
 } BoutonRadioStyle;
 
 /**
  * Définition du pointeur de fonction pour l'événement "toggled"
  */
-typedef void (*BoutonRadioAction)(GtkCheckButton *widget, gpointer data);
+typedef void (*BoutonRadioAction)(Widget widget, void *data);
 
 /**
  * Structure Principale BOUTON_RADIO
@@ -41,7 +41,7 @@ typedef void (*BoutonRadioAction)(GtkCheckButton *widget, gpointer data);
  */
 typedef struct
 {
-   GtkWidget *widget; // Le widget GtkCheckButton (en tant que radio)
+   Widget widget; // Le widget GtkCheckButton (en tant que radio)
    char *id_css;      // ID unique pour le CSS
 
    // --- Contenu ---
@@ -49,19 +49,19 @@ typedef struct
    BoutonRadioLabelPos pos_label; // Position du label
 
    // --- État ---
-   gboolean est_actif; // Si true, ce bouton est sélectionné à la création
-   gboolean sensible;  // Sensible aux clics (Sensitive)
+   bool est_actif; // Si true, ce bouton est sélectionné à la création
+   bool sensible;  // Sensible aux clics (Sensitive)
 
    // --- Apparence ---
    BoutonRadioStyle style;
    char *tooltip; // Texte d'infobulle
 
    // --- Groupe Radio ---
-   GtkCheckButton *group_leader; // Pointeur au premier CheckButton du groupe
+   Widget group_leader; // Pointeur au premier CheckButton du groupe
 
    // --- Événements ---
    BoutonRadioAction on_toggled; // Fonction à appeler au changement de sélection
-   gpointer user_data;           // Données à passer à la fonction
+   void *user_data;           // Données à passer à la fonction
 
 } BoutonRadio;
 
@@ -81,27 +81,27 @@ void bouton_radio_initialiser(BoutonRadio *config);
  * @param config : Pointeur sur la structure de configuration
  * @return : Le widget GtkCheckButton créé
  */
-GtkWidget *bouton_radio_creer(BoutonRadio *config);
+Widget bouton_radio_creer(BoutonRadio *config);
 
 /**
  * Lie un bouton radio à un groupe
  * @param config : Pointeur sur la structure BoutonRadio à ajouter au groupe
  * @param group_leader : Pointeur au premier CheckButton du groupe (leader)
  */
-void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader);
+void bouton_radio_set_groupe(BoutonRadio *config, Widget group_leader);
 
 /**
  * Définit le bouton radio comme sélectionné
  * @param config : Pointeur sur la structure BoutonRadio
  * @param actif : true pour sélectionner, false pour désélectionner
  */
-void bouton_radio_set_actif(BoutonRadio *config, gboolean actif);
+void bouton_radio_set_actif(BoutonRadio *config, bool actif);
 
 /**
  * Récupère l'état du bouton radio
  * @param config : Pointeur sur la structure BoutonRadio
  * @return : true si sélectionné, false sinon
  */
-gboolean bouton_radio_est_actif(BoutonRadio *config);
+bool bouton_radio_est_actif(BoutonRadio *config);
 
 #endif // GTK_BUTTON_RADIO_H

@@ -19,6 +19,7 @@
  *   GtkWidget *w = xml_load_file("ui.xml", app);
  */
 
+#include <gtk/gtk.h>
 #include "../headers/xml_parser.h"
 
 /* ---- headers de tes widgets ---- */
@@ -2507,25 +2508,25 @@ static GtkWidget *build_widget(const XmlNode *node, Conteneur *parent_ct,
  *  API PUBLIQUE
  * ================================================================ */
 
-GtkWidget *xml_build_ui(XmlNode *root, GtkApplication *app)
+Widget xml_build_ui(XmlNode *root, void *app)
 {
     if (!root)
         return NULL;
 
     /* La racine est directement <fenetre> */
     if (root->type == NODE_FENETRE)
-        return build_fenetre(root, app);
+        return build_fenetre(root, GTK_APPLICATION(app));
 
     /* Sinon cherche le premier <fenetre> parmi les enfants */
     for (XmlNode *child = root->children; child; child = child->next)
         if (child->type == NODE_FENETRE)
-            return build_fenetre(child, app);
+            return build_fenetre(child, GTK_APPLICATION(app));
 
     fprintf(stderr, "[xml_parser] Aucune balise <fenetre> trouvée dans le XML.\n");
     return NULL;
 }
 
-GtkWidget *xml_load_file(const char *path, GtkApplication *app)
+Widget xml_load_file(const char *path, void *app)
 {
     xml_set_base_dir(path);
     XmlNode *root = xml_parser_parse_file(path);
@@ -2535,7 +2536,7 @@ GtkWidget *xml_load_file(const char *path, GtkApplication *app)
         g_xml_base_dir = NULL;
         return NULL;
     }
-    GtkWidget *w = xml_build_ui(root, app);
+    Widget w = xml_build_ui(root, app);
     xml_node_free(root);
     g_free(g_xml_base_dir);
     g_xml_base_dir = NULL;

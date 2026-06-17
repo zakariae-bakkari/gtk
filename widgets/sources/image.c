@@ -1,4 +1,5 @@
 #include "../headers/image.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -140,7 +141,7 @@ void image_initialiser(Image *cfg)
    widget_style_init(&cfg->style);
 }
 
-GtkWidget *image_creer(Image *cfg)
+Widget image_creer(Image *cfg)
 {
    if (!cfg)
       return NULL;
@@ -262,7 +263,7 @@ void image_set_from_icon_name(Image *cfg, const char *icon_name)
       image_load_source(cfg);
 }
 
-void image_set_from_pixbuf(Image *cfg, GdkPixbuf *pixbuf)
+void image_set_from_pixbuf(Image *cfg, void *pixbuf)
 {
    if (!cfg)
       return;
@@ -330,13 +331,13 @@ void image_set_legende(Image *cfg, const char *legende)
    }
 }
 
-void image_set_sensitive(Image *cfg, gboolean sensitive)
+void image_set_sensitive(Image *cfg, bool sensitive)
 {
    if (!cfg)
       return;
    cfg->sensitive = sensitive;
    if (cfg->widget)
-      gtk_widget_set_sensitive(cfg->widget, sensitive);
+      gtk_widget_set_sensitive(cfg->widget, sensitive ? TRUE : FALSE);
 }
 
 void image_set_halign(Image *cfg, WidgetAlignment halign)

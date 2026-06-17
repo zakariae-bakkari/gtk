@@ -38,7 +38,7 @@ static GtkWidget *creer_bouton_custom(const char *texte, const char *id_css, Bou
    return w;
 }
 
-void on_toggle_sidebar_clicked(GtkWidget *widget, gpointer user_data)
+void on_toggle_sidebar_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -80,7 +80,7 @@ static void on_sidebar_item_clicked(GtkGestureClick *gesture, int n_press, doubl
    }
 }
 
-void on_tab_entites_clicked(GtkButton *btn, gpointer user_data)
+void on_tab_entites_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    BassinUI *ui = user_data;
@@ -93,7 +93,7 @@ void on_tab_entites_clicked(GtkButton *btn, gpointer user_data)
    update_sidebar_list(ui);
 }
 
-void on_tab_bancs_clicked(GtkButton *btn, gpointer user_data)
+void on_tab_bancs_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    BassinUI *ui = user_data;
@@ -386,7 +386,7 @@ void update_status_bar(BassinUI *ui)
    gtk_label_set_text(GTK_LABEL(ui->lbl_elapsed_time), time_buf);
 }
 
-void on_dissolve_banc_clicked(GtkButton *btn, gpointer user_data)
+void on_dissolve_banc_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    (void)user_data;
@@ -425,7 +425,7 @@ void on_dissolve_banc_clicked(GtkButton *btn, gpointer user_data)
    update_status_bar(ui);
 }
 
-void on_split_banc_clicked(GtkButton *btn, gpointer user_data)
+void on_split_banc_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    (void)user_data;
@@ -554,7 +554,7 @@ void on_merge_reponse(int reponse, gpointer user_data)
    free(ctx);
 }
 
-void on_merge_bancs_clicked(GtkButton *btn, gpointer user_data)
+void on_merge_bancs_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    BassinUI *ui = user_data;

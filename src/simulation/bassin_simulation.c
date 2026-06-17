@@ -495,11 +495,11 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
    g_list_free(all_poissons);
 }
 
-gboolean update_simulation(gpointer user_data)
+bool update_simulation(void *user_data)
 {
    BassinUI *ui = user_data;
    if (!ui->simulation_running)
-      return TRUE;
+      return true;
 
    double dt = 0.033 * ui->simulation_speed;
    ui->elapsed_time += dt;
@@ -1331,11 +1331,12 @@ gboolean update_simulation(gpointer user_data)
    }
 
    update_status_bar(ui);
-   return TRUE;
+   return true;
 }
 
-void on_debug_draw(GtkDrawingArea *drawing_area, cairo_t *cr, int width, int height, gpointer user_data)
+void on_debug_draw(Widget drawing_area, void *cr_void, int width, int height, void *user_data)
 {
+   cairo_t *cr = (cairo_t *)cr_void;
    (void)drawing_area;
    (void)width;
    (void)height;

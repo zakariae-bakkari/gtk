@@ -1,5 +1,6 @@
 #include "../headers/bouton_checklist.h"
 #include "../headers/common.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -67,7 +68,7 @@ void bouton_checklist_initialiser(BoutonChecklist *config)
    config->user_data = NULL;
 }
 
-GtkWidget *bouton_checklist_creer(BoutonChecklist *config)
+Widget bouton_checklist_creer(BoutonChecklist *config)
 {
    if (!config)
       return NULL;

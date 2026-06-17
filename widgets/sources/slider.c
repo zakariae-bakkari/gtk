@@ -1,4 +1,5 @@
 #include "../headers/slider.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -188,7 +189,7 @@ void slider_initialiser(Slider *cfg)
  *   ├── GtkScale       (cfg->widget)
  *   └── GtkLabel       (cfg->label_valeur, caché si afficher_label = FALSE)
  */
-GtkWidget *slider_creer(Slider *cfg)
+Widget slider_creer(Slider *cfg)
 {
    if (!cfg)
       return NULL;
@@ -314,7 +315,7 @@ void slider_set_step(Slider *cfg, double step)
    }
 }
 
-void slider_set_digits(Slider *cfg, guint digits)
+void slider_set_digits(Slider *cfg, unsigned int digits)
 {
    if (!cfg)
       return;
@@ -338,36 +339,36 @@ void slider_set_orientation(Slider *cfg, SliderOrientation orientation)
    }
 }
 
-void slider_set_inverser(Slider *cfg, gboolean inverser)
+void slider_set_inverser(Slider *cfg, bool inverser)
 {
    if (!cfg)
       return;
    cfg->inverser = inverser;
    if (cfg->widget)
    {
-      gtk_range_set_inverted(GTK_RANGE(cfg->widget), inverser);
+      gtk_range_set_inverted(GTK_RANGE(cfg->widget), inverser ? TRUE : FALSE);
    }
 }
 
-void slider_set_sensitive(Slider *cfg, gboolean sensitive)
+void slider_set_sensitive(Slider *cfg, bool sensitive)
 {
    if (!cfg)
       return;
    cfg->sensitive = sensitive;
    if (cfg->widget)
    {
-      gtk_widget_set_sensitive(cfg->widget, sensitive);
+      gtk_widget_set_sensitive(cfg->widget, sensitive ? TRUE : FALSE);
    }
 }
 
-void slider_set_afficher_valeur(Slider *cfg, gboolean afficher)
+void slider_set_afficher_valeur(Slider *cfg, bool afficher)
 {
    if (!cfg)
       return;
    cfg->afficher_valeur = afficher;
    if (cfg->widget)
    {
-      gtk_scale_set_draw_value(GTK_SCALE(cfg->widget), afficher);
+      gtk_scale_set_draw_value(GTK_SCALE(cfg->widget), afficher ? TRUE : FALSE);
    }
 }
 

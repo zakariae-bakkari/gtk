@@ -111,7 +111,7 @@ void on_fish_drag_end(GtkGestureDrag *gesture, double offset_x, double offset_y,
       g_object_set_data(G_OBJECT(w), "dragging", NULL);
 }
 
-void on_throw_food_clicked(GtkWidget *widget, gpointer user_data)
+void on_throw_food_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;

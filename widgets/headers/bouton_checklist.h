@@ -5,7 +5,7 @@
 #ifndef GTK_BOUTON_CHECKLIST_H
 #define GTK_BOUTON_CHECKLIST_H
 
-#include <gtk/gtk.h>
+#include "common.h"
 
 /**
  * Énumération pour l'état de la case à cocher
@@ -34,20 +34,20 @@ typedef struct
    char *couleur_texte;       // Couleur du label
    char *couleur_texte_hover; // Couleur au survol
    int taille_texte_px;       // Taille de la police (0 = défaut)
-   gboolean gras;             // Texte en gras
+   bool gras;             // Texte en gras
 } BoutonChecklistStyle;
 
 /**
  * Définition du pointeur de fonction pour l'événement "toggled"
  */
-typedef void (*BoutonChecklistAction)(GtkCheckButton *widget, gpointer data);
+typedef void (*BoutonChecklistAction)(Widget widget, void *data);
 
 /**
  * Structure Principale BOUTON_CHECKLIST
  */
 typedef struct
 {
-   GtkWidget *widget; // Le widget GtkCheckButton
+   Widget widget; // Le widget GtkCheckButton
    char *id_css;      // ID unique pour le CSS
 
    // --- Contenu ---
@@ -62,12 +62,12 @@ typedef struct
    char *tooltip; // Texte d'infobulle
 
    // --- Comportement ---
-   gboolean est_actif;    // Sensible aux clics (Sensitive)
-   gboolean inconsistent; // Si true, affiche l'état indéterminé
+   bool est_actif;    // Sensible aux clics (Sensitive)
+   bool inconsistent; // Si true, affiche l'état indéterminé
 
    // --- Événements ---
    BoutonChecklistAction on_toggled; // Fonction à appeler au changement d'état
-   gpointer user_data;               // Données à passer à la fonction
+   void *user_data;               // Données à passer à la fonction
 
 } BoutonChecklist;
 
@@ -86,7 +86,7 @@ void bouton_checklist_initialiser(BoutonChecklist *config);
  * @param config : Pointeur sur la structure de configuration
  * @return : Le widget GtkCheckButton créé
  */
-GtkWidget *bouton_checklist_creer(BoutonChecklist *config);
+Widget bouton_checklist_creer(BoutonChecklist *config);
 
 /**
  * Change l'état de la case à cocher de manière programmatique

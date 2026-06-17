@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/champ_zone_texte.h"
 #include <stdlib.h>
 #include <string.h>
@@ -48,43 +49,43 @@ static void champ_zt_apply_css(ChampZoneTexte *cfg)
 
    gtk_css_provider_load_from_string(provider, css);
    gtk_style_context_add_provider(
-       gtk_widget_get_style_context(cfg->widget),
+       gtk_widget_get_style_context(GTK_WIDGET(cfg->widget)),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_USER);
    g_object_unref(provider);
 }
 
-static gboolean champ_zt_validate_now(ChampZoneTexte *cfg)
+static bool champ_zt_validate_now(ChampZoneTexte *cfg)
 {
    if (!cfg || !cfg->widget)
-      return TRUE;
+      return true;
    GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(cfg->widget));
    GtkTextIter start, end;
    gtk_text_buffer_get_start_iter(buf, &start);
    gtk_text_buffer_get_end_iter(buf, &end);
    char *txt = gtk_text_buffer_get_text(buf, &start, &end, FALSE);
 
-   gboolean ok = TRUE;
+   bool ok = true;
    if (cfg->required)
    {
       if (!txt || *txt == '\0')
-         ok = FALSE;
+         ok = false;
    }
    if (cfg->max_length > 0 && txt)
    {
       if ((int)strlen(txt) > cfg->max_length)
-         ok = FALSE;
+         ok = false;
    }
 
    if (!ok)
    {
-      gtk_widget_add_css_class(cfg->widget, "error");
+      gtk_widget_add_css_class(GTK_WIDGET(cfg->widget), "error");
       if (cfg->on_invalid)
          cfg->on_invalid(cfg->widget, "invalid value", cfg->user_data);
    }
    else
    {
-      gtk_widget_remove_css_class(cfg->widget, "error");
+      gtk_widget_remove_css_class(GTK_WIDGET(cfg->widget), "error");
    }
 
    if (txt)
@@ -128,18 +129,18 @@ void champ_zone_texte_initialiser(ChampZoneTexte *cfg)
    cfg->style.rayon_arrondi = 4;
 }
 
-GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
+Widget champ_zone_texte_creer(ChampZoneTexte *cfg)
 {
    if (!cfg)
       return NULL;
 
    cfg->widget = gtk_text_view_new();
-   gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_zone_texte");
+   gtk_widget_set_name(GTK_WIDGET(cfg->widget), cfg->id_css ? cfg->id_css : "champ_zone_texte");
 
    // Set size if specified
    if (cfg->size.width > 0 || cfg->size.height > 0)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   cfg->size.width > 0 ? cfg->size.width : -1,
                                   cfg->size.height > 0 ? cfg->size.height : -1);
    }
@@ -148,26 +149,26 @@ GtkWidget *champ_zone_texte_creer(ChampZoneTexte *cfg)
    if (cfg->size.width > 0)
    {
       // Fixed width - don't expand
-      gtk_widget_set_hexpand(cfg->widget, FALSE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
    }
    else
    {
       // width = 0 means full width - expand to fill container
-      gtk_widget_set_hexpand(cfg->widget, TRUE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
    }
 
    // Always allow vertical expansion for text areas
-   gtk_widget_set_vexpand(cfg->widget, FALSE);
-   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
+   gtk_widget_set_vexpand(GTK_WIDGET(cfg->widget), FALSE);
+   gtk_widget_set_valign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
 
    GtkTextBuffer *buf = gtk_text_view_get_buffer(GTK_TEXT_VIEW(cfg->widget));
    if (cfg->texte)
       gtk_text_buffer_set_text(buf, cfg->texte, -1);
 
    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(cfg->widget), cfg->wrap_word ? GTK_WRAP_WORD : GTK_WRAP_CHAR);
-   gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
+   gtk_widget_set_sensitive(GTK_WIDGET(cfg->widget), cfg->sensitive ? TRUE : FALSE);
 
    g_signal_connect(buf, "changed", G_CALLBACK(on_textbuffer_changed), cfg);
 
@@ -221,7 +222,7 @@ void champ_zone_texte_set_max_length(ChampZoneTexte *cfg, int max_len)
       champ_zt_validate_now(cfg);
 }
 
-void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, gboolean wrap_word)
+void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, bool wrap_word)
 {
    if (!cfg)
       return;
@@ -235,7 +236,7 @@ void champ_zone_texte_set_wrap_word(ChampZoneTexte *cfg, gboolean wrap_word)
    }
 }
 
-void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, gboolean sensitive)
+void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, bool sensitive)
 {
    if (!cfg)
       return;
@@ -244,11 +245,11 @@ void champ_zone_texte_set_sensitive(ChampZoneTexte *cfg, gboolean sensitive)
 
    if (cfg->widget)
    {
-      gtk_widget_set_sensitive(cfg->widget, sensitive);
+      gtk_widget_set_sensitive(GTK_WIDGET(cfg->widget), sensitive ? TRUE : FALSE);
    }
 }
 
-void champ_zone_texte_set_required(ChampZoneTexte *cfg, gboolean required)
+void champ_zone_texte_set_required(ChampZoneTexte *cfg, bool required)
 {
    if (!cfg)
       return;
@@ -267,7 +268,7 @@ void champ_zone_texte_set_size(ChampZoneTexte *cfg, int width, int height)
    cfg->size.height = height;
    if (cfg->widget)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   width > 0 ? width : -1,
                                   height > 0 ? height : -1);
    }

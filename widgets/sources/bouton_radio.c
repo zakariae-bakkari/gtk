@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/bouton_radio.h"
 #include "../headers/common.h"
 #include <stdlib.h>
@@ -34,7 +35,7 @@ static void _bouton_radio_appliquer_css(BoutonRadio *config)
 
    // BUG FIX: the provider was built but never actually applied — add it to the style context
    gtk_style_context_add_provider(
-       gtk_widget_get_style_context(config->widget),
+       gtk_widget_get_style_context(GTK_WIDGET(config->widget)),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -70,7 +71,7 @@ void bouton_radio_initialiser(BoutonRadio *config)
    config->user_data = NULL;
 }
 
-GtkWidget *bouton_radio_creer(BoutonRadio *config)
+Widget bouton_radio_creer(BoutonRadio *config)
 {
    if (!config)
       return NULL;
@@ -80,12 +81,12 @@ GtkWidget *bouton_radio_creer(BoutonRadio *config)
    config->widget = gtk_check_button_new_with_label(config->label);
 
    // Définir le nom CSS AVANT d'appliquer les styles
-   gtk_widget_set_name(config->widget, config->id_css);
+   gtk_widget_set_name(GTK_WIDGET(config->widget), config->id_css);
 
    // Si un group_leader existe, ajouter ce checkbox au groupe
    if (config->group_leader)
    {
-      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), config->group_leader);
+      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), GTK_CHECK_BUTTON(config->group_leader));
    }
 
    // Définir l'état initial
@@ -98,12 +99,12 @@ GtkWidget *bouton_radio_creer(BoutonRadio *config)
    _bouton_radio_appliquer_css(config);
 
    // Définir la sensibilité
-   gtk_widget_set_sensitive(config->widget, config->sensible);
+   gtk_widget_set_sensitive(GTK_WIDGET(config->widget), config->sensible);
 
    // Ajouter le tooltip s'il existe
    if (config->tooltip)
    {
-      gtk_widget_set_tooltip_text(config->widget, config->tooltip);
+      gtk_widget_set_tooltip_text(GTK_WIDGET(config->widget), config->tooltip);
    }
 
    // Connecter le signal "toggled" s'il existe un callback
@@ -118,7 +119,7 @@ GtkWidget *bouton_radio_creer(BoutonRadio *config)
    return config->widget;
 }
 
-void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader)
+void bouton_radio_set_groupe(BoutonRadio *config, Widget group_leader)
 {
    if (!config || !group_leader)
       return;
@@ -127,23 +128,23 @@ void bouton_radio_set_groupe(BoutonRadio *config, GtkCheckButton *group_leader)
    if (config->widget)
    {
       // Ajouter ce bouton au groupe du leader
-      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), group_leader);
+      gtk_check_button_set_group(GTK_CHECK_BUTTON(config->widget), GTK_CHECK_BUTTON(group_leader));
    }
 }
 
-void bouton_radio_set_actif(BoutonRadio *config, gboolean actif)
+void bouton_radio_set_actif(BoutonRadio *config, bool actif)
 {
    if (!config || !config->widget)
       return;
 
-   gtk_check_button_set_active(GTK_CHECK_BUTTON(config->widget), actif);
+   gtk_check_button_set_active(GTK_CHECK_BUTTON(config->widget), actif ? TRUE : FALSE);
    config->est_actif = actif;
 }
 
-gboolean bouton_radio_est_actif(BoutonRadio *config)
+bool bouton_radio_est_actif(BoutonRadio *config)
 {
    if (!config || !config->widget)
-      return FALSE;
+      return false;
 
-   return gtk_check_button_get_active(GTK_CHECK_BUTTON(config->widget));
+   return gtk_check_button_get_active(GTK_CHECK_BUTTON(config->widget)) ? true : false;
 }

@@ -1,7 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-#include <gtk/gtk.h>
 #include "common.h"
 
 #define MENU_MAX_ITEMS 64  // Nombre max d'items par niveau
@@ -35,7 +34,7 @@ typedef enum
  * @param id   : identifiant de l'item (cfg->id)
  * @param data : user_data passé à la structure Menu
  */
-typedef void (*MenuOnClick)(const char *id, gpointer data);
+typedef void (*MenuOnClick)(const char *id, void *data);
 
 // ====================== STRUCTURES ======================
 
@@ -63,10 +62,10 @@ struct MenuItem
    int nb_sous_items;                     // Nombre d'items dans sous_items
 
    /* Widgets GTK créés (remplis par menu_creer) */
-   GtkWidget *widget;   // GtkButton ou GtkSeparator
-   GtkWidget *popover;  // GtkPopover (si sous-menu)
-   GtkWidget *sous_box; // GtkBox interne du popover
-};
+   Widget widget;   // GtkButton ou GtkSeparator
+   Widget popover;  // GtkPopover (si sous-menu)
+   Widget sous_box; // GtkBox interne du popover
+ };
 
 /**
  * Style du menu et de ses items
@@ -87,7 +86,7 @@ typedef struct
    char *bg_item_actif; // Fond item actif/sélectionné
    int rayon_item;      // Arrondi des items
    int taille_texte_px; // Taille de police (0 = défaut)
-   gboolean gras;       // Texte en gras
+   bool gras;       // Texte en gras
 
    /* Séparateur */
    char *couleur_separateur; // Couleur du séparateur
@@ -98,21 +97,10 @@ typedef struct
 
 /**
  * Structure principale MENU
- *
- * Structure interne :
- *   GtkBox (cfg->widget, orientation principale)
- *   ├── GtkButton  item 1  (cfg->items[0]->widget)
- *   ├── GtkSeparator item 2
- *   ├── GtkButton  item 3
- *   │     └── GtkPopover (cfg->items[2]->popover)
- *   │           └── GtkBox (cfg->items[2]->sous_box)
- *   │                 ├── GtkButton sous-item 1
- *   │                 └── GtkButton sous-item 2
- *   └── ...
  */
 struct Menu
 {
-   GtkWidget *widget; // GtkBox principal (à ajouter au parent)
+   Widget widget; // GtkBox principal (à ajouter au parent)
    char *id_css;      // ID CSS unique
 
    MenuOrientation orientation; // Orientation de la barre principale
@@ -132,7 +120,7 @@ struct Menu
 
    /* Événements */
    MenuOnClick on_click; // Callback unique pour tous les items
-   gpointer user_data;
+   void *user_data;
 };
 
 // ====================== PROTOTYPES ======================
@@ -146,7 +134,7 @@ void menu_item_free(MenuItem *item);
 
 /* --- Menu principal --- */
 void menu_initialiser(Menu *cfg);
-GtkWidget *menu_creer(Menu *cfg);
+Widget menu_creer(Menu *cfg);
 void menu_ajouter_item(Menu *cfg, MenuItem *item);
 
 /* --- Setters --- */
@@ -154,7 +142,7 @@ void menu_set_orientation(Menu *cfg, MenuOrientation orientation);
 void menu_set_size(Menu *cfg, int width, int height);
 void menu_set_espacement(Menu *cfg, int espacement);
 void menu_set_item_actif(Menu *cfg, const char *id);
-void menu_set_item_sensitive(Menu *cfg, const char *id, gboolean sensitive);
+void menu_set_item_sensitive(Menu *cfg, const char *id, bool sensitive);
 
 /* --- Libération mémoire --- */
 void menu_free(Menu *cfg);

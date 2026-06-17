@@ -1,7 +1,7 @@
 #ifndef POISSON_H
 #define POISSON_H
 
-#include <gtk/gtk.h>
+#include "../../widgets/headers/common.h"
 #include <stdbool.h>
 
 typedef enum
@@ -40,7 +40,7 @@ typedef struct _Poisson
    double temps_depuis_frame;
 
    /* widget GTK (optionnel pour la structure de base) */
-   GtkWidget *widget_image;
+   Widget widget_image;
    bool visible;
 
    /* health and damage */
@@ -67,7 +67,7 @@ Poisson *poisson_new(const char *nom);
 void poisson_free(Poisson *p);
 
 void poisson_set_position(Poisson *p, double x, double y);
-void poisson_set_widget(Poisson *p, GtkWidget *widget);
+void poisson_set_widget(Poisson *p, Widget widget);
 void poisson_set_default_frames(Poisson *p, const char *frame0, const char *frame1, const char *frame2);
 void poisson_set_niveaux_mangeable(Poisson *p, const int *niveaux, int nb_niveaux);
 

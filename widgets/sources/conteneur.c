@@ -1,4 +1,5 @@
 #include "../headers/conteneur.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -93,6 +94,10 @@ void conteneur_initialiser(Conteneur *config)
     config->enfants_hexpand = false;
     config->enfants_vexpand = false;
 
+    // Expansion du conteneur
+    config->hexpand = false;
+    config->vexpand = false;
+
     // Marges (Extérieures) à 0
     config->marges.haut = 0;
     config->marges.bas = 0;
@@ -107,6 +112,7 @@ void conteneur_initialiser(Conteneur *config)
 
     // Style
     config->id_css = NULL;
+    config->classe_css = NULL;
     config->couleur_fond = NULL;
     config->bordure_largeur = 0;
     config->bordure_couleur = malloc(strlen("black") + 1);
@@ -120,7 +126,7 @@ void conteneur_initialiser(Conteneur *config)
     config->scroll_overlay = true;
 }
 
-GtkWidget *conteneur_creer(Conteneur *config)
+Widget conteneur_creer(Conteneur *config)
 {
     if (!config)
         return NULL;
@@ -218,6 +224,24 @@ GtkWidget *conteneur_creer(Conteneur *config)
             gtk_widget_set_name(config->widget, config->id_css);
         }
     }
+
+    // Expansion du conteneur (sur le top_widget returned)
+    gtk_widget_set_hexpand(top_widget, config->hexpand);
+    gtk_widget_set_vexpand(top_widget, config->vexpand);
+
+    // Classes CSS personnalisées
+    if (config->classe_css)
+    {
+        char *classes = strdup(config->classe_css);
+        char *token = strtok(classes, " ");
+        while (token)
+        {
+            gtk_widget_add_css_class(top_widget, token);
+            token = strtok(NULL, " ");
+        }
+        free(classes);
+    }
+
     // Style CSS (appliqué au conteneur principal, pas à la scrolled window)
     _conteneur_appliquer_css(config->widget, config);
 
@@ -231,7 +255,7 @@ GtkWidget *conteneur_creer(Conteneur *config)
     return top_widget;
 }
 
-void conteneur_ajouter(Conteneur *config, GtkWidget *enfant)
+void conteneur_ajouter(Conteneur *config, Widget enfant)
 {
     if (!config || !config->widget || !enfant)
         return;
@@ -255,7 +279,7 @@ void conteneur_set_scroll_size(Conteneur *config, int min_width, int min_height)
     config->scroll_min_height = min_height;
 }
 
-void conteneur_set_scroll_overlay(Conteneur *config, gboolean overlay)
+void conteneur_set_scroll_overlay(Conteneur *config, bool overlay)
 {
     if (!config)
         return;

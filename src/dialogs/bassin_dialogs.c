@@ -9,7 +9,7 @@
 
 void show_shortcuts_help_dialog(BassinUI *ui);
 
-static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+static void on_custom_bouton_destroy(Widget widget, void *data)
 {
    (void)widget;
    Bouton *b = data;
@@ -54,7 +54,7 @@ static void on_btn_shortcuts_clicked(GtkWidget *widget, gpointer data)
    show_shortcuts_help_dialog((BassinUI *)data);
 }
 
-void on_insertion_mode_changed(GtkCheckButton *widget, gpointer user_data)
+void on_insertion_mode_changed(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -62,7 +62,7 @@ void on_insertion_mode_changed(GtkCheckButton *widget, gpointer user_data)
    gtk_widget_set_sensitive(ui->dialog_school_frame, is_banc);
 }
 
-void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, int target_banc_id)
+void add_fish_programmatic(BassinUI *ui, const char *species, bool in_banc, int target_banc_id)
 {
    Poisson *p = poisson_new(species);
    p->id = ui->next_id++;
@@ -968,7 +968,7 @@ static void on_popover_details_clicked(GtkButton *btn, gpointer user_data)
    }
 }
 
-void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
+void on_add_poisson_btn_clicked(Widget widget, void *user_data)
 {
    BassinUI *ui = user_data;
 
@@ -1268,7 +1268,7 @@ static void on_browse_bg_clicked(GtkButton *btn, gpointer user_data)
    gtk_native_dialog_show(GTK_NATIVE_DIALOG(native));
 }
 
-void on_settings_clicked(GtkWidget *widget, gpointer user_data)
+void on_settings_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;

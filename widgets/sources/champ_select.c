@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/champ_select.h"
 #include <stdlib.h>
 #include <string.h>
@@ -57,25 +58,25 @@ static void champ_select_apply_css(ChampSelect *cfg)
             cfg->style.bg_error ? cfg->style.bg_error : "#fdf2f2");
 
    gtk_css_provider_load_from_string(provider, css);
-   gtk_style_context_add_provider(
-       gtk_widget_get_style_context(cfg->widget),
-       GTK_STYLE_PROVIDER(provider),
-       GTK_STYLE_PROVIDER_PRIORITY_USER);
+    gtk_style_context_add_provider(
+        gtk_widget_get_style_context(GTK_WIDGET(cfg->widget)),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER);
    g_object_unref(provider);
 }
 
-static gboolean champ_select_validate(GtkDropDown *dd, ChampSelect *cfg)
+static bool champ_select_validate(GtkDropDown *dd, ChampSelect *cfg)
 {
    if (!cfg || !dd)
-      return TRUE;
+      return true;
    int sel = (int)gtk_drop_down_get_selected(dd);
    if (cfg->required && sel < 0)
    {
       if (cfg->on_invalid)
          cfg->on_invalid(GTK_WIDGET(dd), "selection required", cfg->user_data);
-      return FALSE;
+      return false;
    }
-   return TRUE;
+   return true;
 }
 
 static void on_dropdown_notify_selected(GObject *obj, GParamSpec *pspec, gpointer user_data)
@@ -91,7 +92,7 @@ static void on_dropdown_notify_selected(GObject *obj, GParamSpec *pspec, gpointe
    cfg->selected_index = (int)gtk_drop_down_get_selected(dd);
    champ_select_validate(dd, cfg);
    if (cfg->on_change)
-      cfg->on_change(dd, cfg->user_data);
+      cfg->on_change(GTK_WIDGET(dd), cfg->user_data);
 }
 
 void champ_select_initialiser(ChampSelect *cfg)
@@ -112,7 +113,7 @@ void champ_select_initialiser(ChampSelect *cfg)
    widget_style_init(&cfg->style);
 }
 
-GtkWidget *champ_select_creer(ChampSelect *cfg)
+Widget champ_select_creer(ChampSelect *cfg)
 {
    if (!cfg)
       return NULL;
@@ -123,12 +124,12 @@ GtkWidget *champ_select_creer(ChampSelect *cfg)
    }
 
    cfg->widget = gtk_drop_down_new(G_LIST_MODEL(cfg->model), NULL);
-   gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_select");
+   gtk_widget_set_name(GTK_WIDGET(cfg->widget), cfg->id_css ? cfg->id_css : "champ_select");
 
    // Set size if specified
    if (cfg->size.width > 0 || cfg->size.height > 0)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   cfg->size.width > 0 ? cfg->size.width : -1,
                                   cfg->size.height > 0 ? cfg->size.height : -1);
    }
@@ -137,19 +138,19 @@ GtkWidget *champ_select_creer(ChampSelect *cfg)
    if (cfg->size.width > 0)
    {
       // Fixed width - don't expand
-      gtk_widget_set_hexpand(cfg->widget, FALSE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
    }
    else
    {
       // width = 0 means full width - expand to fill container
-      gtk_widget_set_hexpand(cfg->widget, TRUE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
    }
 
    // Vertical expansion - dropdowns typically don't need to expand vertically
-   gtk_widget_set_vexpand(cfg->widget, FALSE);
-   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
+   gtk_widget_set_vexpand(GTK_WIDGET(cfg->widget), FALSE);
+   gtk_widget_set_valign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
 
    if (cfg->selected_index >= 0)
       gtk_drop_down_set_selected(GTK_DROP_DOWN(cfg->widget), (guint)cfg->selected_index);
@@ -215,7 +216,7 @@ const char *champ_select_get_string(ChampSelect *cfg)
    guint sel = gtk_drop_down_get_selected(GTK_DROP_DOWN(cfg->widget));
    if (sel == GTK_INVALID_LIST_POSITION)
       return NULL;
-   return gtk_string_list_get_string(cfg->model, sel);
+   return gtk_string_list_get_string(GTK_STRING_LIST(cfg->model), sel);
 }
 
 void champ_select_set_size(ChampSelect *cfg, int width, int height)
@@ -226,20 +227,20 @@ void champ_select_set_size(ChampSelect *cfg, int width, int height)
    cfg->size.height = height;
    if (cfg->widget)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   width > 0 ? width : -1,
                                   height > 0 ? height : -1);
 
       // Update expansion behavior
       if (width > 0)
       {
-         gtk_widget_set_hexpand(cfg->widget, FALSE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
       }
       else
       {
-         gtk_widget_set_hexpand(cfg->widget, TRUE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
       }
    }
 }

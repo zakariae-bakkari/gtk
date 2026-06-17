@@ -1,5 +1,6 @@
 #include "../headers/dialog.h"
 #include "../headers/bouton.h"
+#include <gtk/gtk.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -478,7 +479,7 @@ void dialog_initialiser(Dialog *cfg)
    strcpy(cfg->style.fg_bouton_secondaire, "#2c3e50");
 }
 
-GtkWidget *dialog_creer(Dialog *cfg)
+Widget dialog_creer(Dialog *cfg)
 {
    if (!cfg)
       return NULL;
@@ -492,7 +493,7 @@ GtkWidget *dialog_creer(Dialog *cfg)
    gtk_widget_set_name(cfg->window, cfg->id_css ? cfg->id_css : "dialog");
 
    if (cfg->parent)
-      gtk_window_set_transient_for(GTK_WINDOW(cfg->window), cfg->parent);
+      gtk_window_set_transient_for(GTK_WINDOW(cfg->window), GTK_WINDOW(cfg->parent));
 
    gtk_window_set_modal(GTK_WINDOW(cfg->window), cfg->modal);
    gtk_window_set_resizable(GTK_WINDOW(cfg->window), FALSE);
@@ -596,7 +597,7 @@ GtkWidget *dialog_creer(Dialog *cfg)
 
 void dialog_ajouter_bouton(Dialog *cfg, const char *texte,
                            const char *nom_icone, int reponse_id,
-                           gboolean principal)
+                           bool principal)
 {
    if (!cfg || !texte)
       return;
@@ -630,10 +631,10 @@ void dialog_ajouter_bouton(Dialog *cfg, const char *texte,
 
 // ====================== RACCOURCIS ======================
 
-static void dialog_afficher_simple(GtkWindow *parent, const char *titre,
+static void dialog_afficher_simple(Widget parent, const char *titre,
                                    const char *message, DialogType type,
                                    DialogBoutons boutons,
-                                   DialogOnReponse cb, gpointer data)
+                                   DialogOnReponse cb, void *data)
 {
    Dialog *cfg = g_new0(Dialog, 1);
    dialog_initialiser(cfg);
@@ -655,29 +656,29 @@ static void dialog_afficher_simple(GtkWindow *parent, const char *titre,
    g_signal_connect_swapped(cfg->window, "destroy", G_CALLBACK(dialog_free), cfg);
 }
 
-void dialog_afficher_info(GtkWindow *parent, const char *titre,
-                          const char *message, DialogOnReponse cb, gpointer data)
+void dialog_afficher_info(Widget parent, const char *titre,
+                          const char *message, DialogOnReponse cb, void *data)
 {
    dialog_afficher_simple(parent, titre, message, DIALOG_INFO,
                           DIALOG_BOUTONS_OK, cb, data);
 }
 
-void dialog_afficher_erreur(GtkWindow *parent, const char *titre,
-                            const char *message, DialogOnReponse cb, gpointer data)
+void dialog_afficher_erreur(Widget parent, const char *titre,
+                            const char *message, DialogOnReponse cb, void *data)
 {
    dialog_afficher_simple(parent, titre, message, DIALOG_ERREUR,
                           DIALOG_BOUTONS_OK, cb, data);
 }
 
-void dialog_afficher_avertissement(GtkWindow *parent, const char *titre,
-                                   const char *message, DialogOnReponse cb, gpointer data)
+void dialog_afficher_avertissement(Widget parent, const char *titre,
+                                   const char *message, DialogOnReponse cb, void *data)
 {
    dialog_afficher_simple(parent, titre, message, DIALOG_AVERTISSEMENT,
                           DIALOG_BOUTONS_OK, cb, data);
 }
 
-void dialog_afficher_confirmation(GtkWindow *parent, const char *titre,
-                                  const char *message, DialogOnReponse cb, gpointer data)
+void dialog_afficher_confirmation(Widget parent, const char *titre,
+                                  const char *message, DialogOnReponse cb, void *data)
 {
    dialog_afficher_simple(parent, titre, message, DIALOG_INFO,
                           DIALOG_BOUTONS_OUI_NON, cb, data);
@@ -755,7 +756,7 @@ void dialog_set_message(Dialog *cfg, const char *message)
    }
 }
 
-void dialog_set_contenu(Dialog *cfg, GtkWidget *widget)
+void dialog_set_contenu(Dialog *cfg, Widget widget)
 {
    if (!cfg || !widget)
       return;

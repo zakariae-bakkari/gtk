@@ -1,4 +1,5 @@
 #include "../headers/menu.h"
+#include <gtk/gtk.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -491,7 +492,7 @@ void menu_initialiser(Menu *cfg)
  *   │                 └── ...
  *   └── ...
  */
-GtkWidget *menu_creer(Menu *cfg)
+Widget menu_creer(Menu *cfg)
 {
    if (!cfg)
       return NULL;
@@ -615,7 +616,7 @@ void menu_set_item_actif(Menu *cfg, const char *id)
    }
 }
 
-void menu_set_item_sensitive(Menu *cfg, const char *id, gboolean sensitive)
+void menu_set_item_sensitive(Menu *cfg, const char *id, bool sensitive)
 {
    if (!cfg || !id)
       return;
@@ -624,7 +625,7 @@ void menu_set_item_sensitive(Menu *cfg, const char *id, gboolean sensitive)
       MenuItem *item = cfg->items[i];
       if (item->id && strcmp(item->id, id) == 0 && item->widget)
       {
-         gtk_widget_set_sensitive(item->widget, sensitive);
+         gtk_widget_set_sensitive(item->widget, sensitive ? TRUE : FALSE);
          return;
       }
    }

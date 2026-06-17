@@ -1,8 +1,10 @@
 #include "../headers/bouton.h"
 #include "../headers/common.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 
 static void _bouton_appliquer_css(Bouton *config)
 {
@@ -158,6 +160,8 @@ void bouton_initialiser(Bouton *config)
 
     config->curseur = CURSEUR_MAIN;
     config->est_actif = true;
+    config->hexpand = false;
+    config->vexpand = false;
 }
 
 void bouton_appliquer_preset(Bouton *config, BoutonPresetStyle preset)
@@ -224,7 +228,7 @@ void bouton_appliquer_preset(Bouton *config, BoutonPresetStyle preset)
 }
 
 
-GtkWidget *bouton_creer(Bouton *config)
+Widget bouton_creer(Bouton *config)
 {
     if (!config)
         return NULL;
@@ -260,6 +264,11 @@ GtkWidget *bouton_creer(Bouton *config)
 
     /* --- Appliquer le mode de dimensionnement via la fonction dédiée --- */
     bouton_set_taille(config, config->taille.mode, config->taille.largeur, config->taille.hauteur);
+
+    if (config->hexpand)
+        gtk_widget_set_hexpand(config->widget, TRUE);
+    if (config->vexpand)
+        gtk_widget_set_vexpand(config->widget, TRUE);
 
     if (config->tooltip)
         gtk_widget_set_tooltip_text(config->widget, config->tooltip);

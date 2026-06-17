@@ -1,9 +1,10 @@
+#include <gtk/gtk.h>
 #include "../simulation/bassin_private.h"
 #include "../../widgets/headers/bouton.h"
 #include <string.h>
 #include <stdlib.h>
 
-static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+static void on_custom_bouton_destroy(Widget widget, void *data)
 {
    (void)widget;
    Bouton *b = data;
@@ -21,23 +22,23 @@ static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
    }
 }
 
-static GtkWidget *creer_bouton_custom(const char *texte, const char *id_css, BoutonPresetStyle preset, BoutonAction on_clic, gpointer user_data)
+static Widget creer_bouton_custom(const char *texte, const char *id_css, BoutonPresetStyle preset, BoutonAction on_clic, void *user_data)
 {
-   Bouton *b = g_new0(Bouton, 1);
+   Bouton *b = calloc(1, sizeof(Bouton));
    bouton_initialiser(b);
-   g_free(b->texte);
+   free(b->texte);
    b->texte = strdup(texte);
-   g_free(b->id_css);
+   free(b->id_css);
    b->id_css = strdup(id_css);
    bouton_appliquer_preset(b, preset);
    b->on_clic = on_clic;
    b->user_data = user_data;
-   GtkWidget *w = bouton_creer(b);
-   g_signal_connect(w, "destroy", G_CALLBACK(on_custom_bouton_destroy), b);
+   Widget w = bouton_creer(b);
+   widget_connect_destroy_signal(w, on_custom_bouton_destroy, b);
    return w;
 }
 
-static void bassin_menu_set_button_label(GtkWidget *btn, const char *label)
+static void bassin_menu_set_button_label(Widget btn, const char *label)
 {
    GtkWidget *child = gtk_button_get_child(GTK_BUTTON(btn));
    if (child && GTK_IS_BOX(child))
@@ -55,7 +56,7 @@ static void bassin_menu_set_button_label(GtkWidget *btn, const char *label)
    }
 }
 
-void on_remove_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
+void on_remove_poisson_btn_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -73,10 +74,10 @@ void on_remove_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
       if (!c)
          c = gdk_cursor_new_from_name("crosshair", NULL);
       if (c)
-      {
-         gtk_widget_set_cursor(GTK_WIDGET(ui->canvas), c);
-         g_object_unref(c);
-      }
+         {
+            gtk_widget_set_cursor(GTK_WIDGET(ui->canvas), c);
+            g_object_unref(c);
+         }
    }
    else
    {
@@ -88,7 +89,7 @@ void on_remove_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
-void on_play_pause_clicked(GtkWidget *widget, gpointer user_data)
+void on_play_pause_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -122,7 +123,7 @@ static void on_speed_changed(GObject *object, GParamSpec *pspec, gpointer user_d
       ui->simulation_speed = 3.0;
 }
 
-void on_restart_clicked(GtkWidget *widget, gpointer user_data)
+void on_restart_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -130,20 +131,20 @@ void on_restart_clicked(GtkWidget *widget, gpointer user_data)
    // Free all fish in ui->poissons
    while (ui->poissons)
    {
-      GList *node = ui->poissons;
+      GList *node = (GList *)ui->poissons;
       Poisson *p = (Poisson *)node->data;
       if (p->widget_image)
       {
-         gtk_widget_unparent(p->widget_image);
+         gtk_widget_unparent(GTK_WIDGET(p->widget_image));
       }
       poisson_free(p);
-      ui->poissons = g_list_delete_link(ui->poissons, node);
+      ui->poissons = g_list_delete_link((GList *)ui->poissons, node);
    }
 
    // Free all fish in ui->bancs
    while (ui->bancs)
    {
-      GList *node = ui->bancs;
+      GList *node = (GList *)ui->bancs;
       Banc *b = node->data;
       while (b->poissons)
       {
@@ -151,27 +152,27 @@ void on_restart_clicked(GtkWidget *widget, gpointer user_data)
          Poisson *p = p_node->data;
          if (p->widget_image)
          {
-            gtk_widget_unparent(p->widget_image);
+            gtk_widget_unparent(GTK_WIDGET(p->widget_image));
          }
          poisson_free(p);
          b->poissons = g_list_delete_link(b->poissons, p_node);
       }
       free(b->nom_espece);
       free(b);
-      ui->bancs = g_list_delete_link(ui->bancs, node);
+      ui->bancs = g_list_delete_link((GList *)ui->bancs, node);
    }
 
    // Free all food
    while (ui->foods)
    {
-      GList *node = ui->foods;
+      GList *node = (GList *)ui->foods;
       Food *f = (Food *)node->data;
       if (f->widget)
       {
-         gtk_widget_unparent(f->widget);
+         gtk_widget_unparent(GTK_WIDGET(f->widget));
       }
-      g_free(f);
-      ui->foods = g_list_delete_link(ui->foods, node);
+      free(f);
+      ui->foods = g_list_delete_link((GList *)ui->foods, node);
    }
 
    ui->next_id = 1;
@@ -183,26 +184,26 @@ void on_restart_clicked(GtkWidget *widget, gpointer user_data)
    update_status_bar(ui);
 }
 
-void on_vider_clicked(GtkWidget *widget, gpointer user_data)
+void on_vider_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
 
    while (ui->poissons)
    {
-      GList *node = ui->poissons;
+      GList *node = (GList *)ui->poissons;
       Poisson *p = (Poisson *)node->data;
       if (p->widget_image)
       {
-         gtk_widget_unparent(p->widget_image);
+         gtk_widget_unparent(GTK_WIDGET(p->widget_image));
       }
       poisson_free(p);
-      ui->poissons = g_list_delete_link(ui->poissons, node);
+      ui->poissons = g_list_delete_link((GList *)ui->poissons, node);
    }
 
    while (ui->bancs)
    {
-      GList *node = ui->bancs;
+      GList *node = (GList *)ui->bancs;
       Banc *b = node->data;
       while (b->poissons)
       {
@@ -210,26 +211,26 @@ void on_vider_clicked(GtkWidget *widget, gpointer user_data)
          Poisson *p = p_node->data;
          if (p->widget_image)
          {
-            gtk_widget_unparent(p->widget_image);
+            gtk_widget_unparent(GTK_WIDGET(p->widget_image));
          }
          poisson_free(p);
          b->poissons = g_list_delete_link(b->poissons, p_node);
       }
       free(b->nom_espece);
       free(b);
-      ui->bancs = g_list_delete_link(ui->bancs, node);
+      ui->bancs = g_list_delete_link((GList *)ui->bancs, node);
    }
 
    while (ui->foods)
    {
-      GList *node = ui->foods;
+      GList *node = (GList *)ui->foods;
       Food *f = (Food *)node->data;
       if (f->widget)
       {
-         gtk_widget_unparent(f->widget);
+         gtk_widget_unparent(GTK_WIDGET(f->widget));
       }
-      g_free(f);
-      ui->foods = g_list_delete_link(ui->foods, node);
+      free(f);
+      ui->foods = g_list_delete_link((GList *)ui->foods, node);
    }
 
    ui->next_id = 1;
@@ -241,7 +242,7 @@ void on_vider_clicked(GtkWidget *widget, gpointer user_data)
    update_status_bar(ui);
 }
 
-void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data)
+void on_toggle_zen_mode_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -252,7 +253,7 @@ void on_toggle_zen_mode_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
-static void on_random_clicked(GtkWidget *widget, gpointer user_data)
+static void on_random_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -262,7 +263,7 @@ static void on_random_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
-void on_stop_control_clicked(GtkWidget *widget, gpointer user_data)
+void on_stop_control_clicked(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
@@ -274,63 +275,63 @@ void on_stop_control_clicked(GtkWidget *widget, gpointer user_data)
    }
 }
 
-void bassin_menu_init(BassinUI *ui, GtkWidget *header_box)
+void bassin_menu_init(BassinUI *ui, Widget header_box)
 {
    // Use custom Bouton widgets
-   GtkWidget *btn_add = creer_bouton_custom("+ Ajouter", "btn_add", BOUTON_STYLE_SUGGESTED, on_add_poisson_btn_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_add);
+   Widget btn_add = creer_bouton_custom("+ Ajouter", "btn_add", BOUTON_STYLE_SUGGESTED, on_add_poisson_btn_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_add));
 
-   GtkWidget *btn_stop = creer_bouton_custom("🎮 Stop Contrôle", "btn_stop", BOUTON_STYLE_NEUTRAL, on_stop_control_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_stop);
+   Widget btn_stop = creer_bouton_custom("🎮 Stop Contrôle", "btn_stop", BOUTON_STYLE_NEUTRAL, on_stop_control_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_stop));
 
-   GtkWidget *btn_random = creer_bouton_custom("🎲 Aléatoire", "btn_random", BOUTON_STYLE_NEUTRAL, on_random_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_random);
+   Widget btn_random = creer_bouton_custom("🎲 Aléatoire", "btn_random", BOUTON_STYLE_NEUTRAL, on_random_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_random));
 
-   GtkWidget *btn_remove = creer_bouton_custom("🗑️ Supprimer", "btn_remove", BOUTON_STYLE_DESTRUCTIVE, on_remove_poisson_btn_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_remove);
+   Widget btn_remove = creer_bouton_custom("🗑️ Supprimer", "btn_remove", BOUTON_STYLE_DESTRUCTIVE, on_remove_poisson_btn_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_remove));
    ui->btn_remove = btn_remove;
 
-   GtkWidget *btn_vider = creer_bouton_custom("🗑️ Vider", "btn_vider", BOUTON_STYLE_DESTRUCTIVE, on_vider_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_vider);
+   Widget btn_vider = creer_bouton_custom("🗑️ Vider", "btn_vider", BOUTON_STYLE_DESTRUCTIVE, on_vider_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_vider));
 
-   GtkWidget *btn_save = creer_bouton_custom("💾 Sauvegarder", "btn_save", BOUTON_STYLE_NEUTRAL, on_save_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_save);
+   Widget btn_save = creer_bouton_custom("💾 Sauvegarder", "btn_save", BOUTON_STYLE_NEUTRAL, on_save_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_save));
 
-   GtkWidget *btn_load = creer_bouton_custom("📂 Charger", "btn_load", BOUTON_STYLE_NEUTRAL, on_load_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_load);
+   Widget btn_load = creer_bouton_custom("📂 Charger", "btn_load", BOUTON_STYLE_NEUTRAL, on_load_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_load));
 
-   GtkWidget *btn_food = creer_bouton_custom("🍱 Nourrir", "btn_food", BOUTON_STYLE_SUGGESTED, on_throw_food_clicked, ui);
-   gtk_box_append(GTK_BOX(header_box), btn_food);
+   Widget btn_food = creer_bouton_custom("🍱 Nourrir", "btn_food", BOUTON_STYLE_SUGGESTED, on_throw_food_clicked, ui);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(btn_food));
 
    // Right-aligned simulation controls
-   GtkWidget *sim_controls = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-   gtk_widget_set_halign(sim_controls, GTK_ALIGN_END);
-   gtk_widget_set_hexpand(sim_controls, TRUE);
+   Widget sim_controls = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+   gtk_widget_set_halign(GTK_WIDGET(sim_controls), GTK_ALIGN_END);
+   widget_set_hexpand(sim_controls, true);
 
-   GtkWidget *lbl_sim = gtk_label_new("Simulation");
-   gtk_box_append(GTK_BOX(sim_controls), lbl_sim);
+   Widget lbl_sim = gtk_label_new("Simulation");
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(lbl_sim));
 
-   GtkWidget *btn_play = creer_bouton_custom(ui->simulation_running ? "⏸ Pause" : "▶ Play", "btn_play", BOUTON_STYLE_NEUTRAL, on_play_pause_clicked, ui);
+   Widget btn_play = creer_bouton_custom(ui->simulation_running ? "⏸ Pause" : "▶ Play", "btn_play", BOUTON_STYLE_NEUTRAL, on_play_pause_clicked, ui);
    ui->btn_play = btn_play;
-   gtk_box_append(GTK_BOX(sim_controls), btn_play);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(btn_play));
 
    // Speed Dropdown
    const char *speed_options[] = {"x1", "x1.5", "x2", "x3", NULL};
-   GtkWidget *dropdown_speed = gtk_drop_down_new_from_strings((const char *const *)speed_options);
+   Widget dropdown_speed = gtk_drop_down_new_from_strings((const char *const *)speed_options);
    g_signal_connect(dropdown_speed, "notify::selected", G_CALLBACK(on_speed_changed), ui);
-   gtk_box_append(GTK_BOX(sim_controls), dropdown_speed);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(dropdown_speed));
 
-   GtkWidget *btn_reset = creer_bouton_custom("🔄 Reset", "btn_reset", BOUTON_STYLE_NEUTRAL, on_restart_clicked, ui);
-   gtk_box_append(GTK_BOX(sim_controls), btn_reset);
+   Widget btn_reset = creer_bouton_custom("🔄 Reset", "btn_reset", BOUTON_STYLE_NEUTRAL, on_restart_clicked, ui);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(btn_reset));
 
-   GtkWidget *btn_settings = creer_bouton_custom("⚙️ Settings", "btn_settings", BOUTON_STYLE_NEUTRAL, on_settings_clicked, ui);
-   gtk_box_append(GTK_BOX(sim_controls), btn_settings);
+   Widget btn_settings = creer_bouton_custom("⚙️ Settings", "btn_settings", BOUTON_STYLE_NEUTRAL, on_settings_clicked, ui);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(btn_settings));
 
-   GtkWidget *btn_toggle_sidebar = creer_bouton_custom("📋 Sidebar", "btn_toggle_sidebar", BOUTON_STYLE_NEUTRAL, on_toggle_sidebar_clicked, ui);
-   gtk_box_append(GTK_BOX(sim_controls), btn_toggle_sidebar);
+   Widget btn_toggle_sidebar = creer_bouton_custom("📋 Sidebar", "btn_toggle_sidebar", BOUTON_STYLE_NEUTRAL, on_toggle_sidebar_clicked, ui);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(btn_toggle_sidebar));
 
-   GtkWidget *btn_zen = creer_bouton_custom("🧘 Mode Zen", "btn_zen", BOUTON_STYLE_NEUTRAL, on_toggle_zen_mode_clicked, ui);
-   gtk_box_append(GTK_BOX(sim_controls), btn_zen);
+   Widget btn_zen = creer_bouton_custom("🧘 Mode Zen", "btn_zen", BOUTON_STYLE_NEUTRAL, on_toggle_zen_mode_clicked, ui);
+   gtk_box_append(GTK_BOX(sim_controls), GTK_WIDGET(btn_zen));
 
-   gtk_box_append(GTK_BOX(header_box), sim_controls);
+   gtk_box_append(GTK_BOX(header_box), GTK_WIDGET(sim_controls));
 }

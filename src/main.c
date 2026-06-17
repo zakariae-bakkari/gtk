@@ -7,7 +7,7 @@
 
 Fenetre g_app_window;
 
-static void show_screen(GtkWidget *child)
+static void show_screen(Widget child)
 {
     if (!g_app_window.wind)
     {
@@ -27,21 +27,6 @@ void nav_to_bassin(void)
     show_screen(screen_bassin_create());
 }
 
-void nav_to_createur(void)
-{
-    show_screen(screen_createur_create());
-}
-
-void nav_to_predateur(void)
-{
-    show_screen(screen_predateur_create());
-}
-
-void nav_to_survie(void)
-{
-    show_screen(screen_survie_create());
-}
-
 static void activate(GtkApplication *app, gpointer user_data)
 {
     (void)user_data;
@@ -50,9 +35,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     if (g_app_window.title)
         free(g_app_window.title);
-    g_app_window.title = g_strdup("DEEP SHARK ATTACK");
+    g_app_window.title = strdup("DEEP SHARK ATTACK");
 
-    g_app_window.demarrer_maximisee = TRUE;
+    g_app_window.demarrer_maximisee = true;
 
     g_app_window.icon_path = "resources/icons/app.png";
     g_app_window.ico_path = "resources/icons/app.ico";

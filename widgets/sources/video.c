@@ -1,4 +1,5 @@
 #include "../headers/video.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -186,7 +187,7 @@ void video_initialiser(Video *cfg)
    widget_style_init(&cfg->style);
 }
 
-GtkWidget *video_creer(Video *cfg)
+Widget video_creer(Video *cfg)
 {
    char lbl_id[256];
 

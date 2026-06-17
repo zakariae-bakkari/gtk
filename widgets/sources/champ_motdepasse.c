@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "../headers/champ_motdepasse.h"
 #include <stdlib.h>
 #include <string.h>
@@ -10,12 +11,12 @@
  */
 static void champ_motdepasse_show_error(ChampMotDePasse *cfg, const char *message)
 {
-   gtk_widget_add_css_class(cfg->widget, "error");
+   gtk_widget_add_css_class(GTK_WIDGET(cfg->widget), "error");
 
    if (cfg->show_error_label)
    {
       gtk_label_set_text(GTK_LABEL(cfg->label_erreur), message);
-      gtk_widget_set_visible(cfg->label_erreur, TRUE);
+      gtk_widget_set_visible(GTK_WIDGET(cfg->label_erreur), TRUE);
    }
 
    if (cfg->on_invalid)
@@ -27,12 +28,12 @@ static void champ_motdepasse_show_error(ChampMotDePasse *cfg, const char *messag
  */
 static void champ_motdepasse_clear_error(ChampMotDePasse *cfg)
 {
-   gtk_widget_remove_css_class(cfg->widget, "error");
+   gtk_widget_remove_css_class(GTK_WIDGET(cfg->widget), "error");
 
    if (cfg->show_error_label)
    {
       gtk_label_set_text(GTK_LABEL(cfg->label_erreur), "");
-      gtk_widget_set_visible(cfg->label_erreur, FALSE);
+      gtk_widget_set_visible(GTK_WIDGET(cfg->label_erreur), FALSE);
    }
 }
 
@@ -90,7 +91,7 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
 
    /* Appliquer sur l'entry */
    gtk_style_context_add_provider(
-       gtk_widget_get_style_context(cfg->widget),
+       gtk_widget_get_style_context(GTK_WIDGET(cfg->widget)),
        GTK_STYLE_PROVIDER(provider),
        GTK_STYLE_PROVIDER_PRIORITY_USER);
 
@@ -98,7 +99,7 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
    if (cfg->label_erreur)
    {
       gtk_style_context_add_provider(
-          gtk_widget_get_style_context(cfg->label_erreur),
+          gtk_widget_get_style_context(GTK_WIDGET(cfg->label_erreur)),
           GTK_STYLE_PROVIDER(provider),
           GTK_STYLE_PROVIDER_PRIORITY_USER);
    }
@@ -106,12 +107,12 @@ static void champ_pw_apply_css(ChampMotDePasse *cfg)
    g_object_unref(provider);
 }
 
-static gboolean champ_pw_validate(ChampMotDePasse *cfg)
+static bool champ_pw_validate(ChampMotDePasse *cfg)
 {
    char empty_txt[1] = "";
 
    if (!cfg || !cfg->widget)
-      return TRUE;
+      return true;
 
    const char *txt = gtk_editable_get_text(GTK_EDITABLE(cfg->widget));
    if (!txt)
@@ -121,77 +122,77 @@ static gboolean champ_pw_validate(ChampMotDePasse *cfg)
    if (cfg->required && strlen(txt) == 0)
    {
       champ_motdepasse_show_error(cfg, "Password required");
-      return FALSE;
+      return false;
    }
 
    // Check minimum length
    if (cfg->policy.min_len > 0 && (int)strlen(txt) < cfg->policy.min_len)
    {
       champ_motdepasse_show_error(cfg, "Password too short");
-      return FALSE;
+      return false;
    }
 
    // Check digit requirement
    if (cfg->policy.require_digit)
    {
-      gboolean ok = FALSE;
+      bool ok = false;
       for (int i = 0; txt[i]; i++)
       {
          if (txt[i] >= '0' && txt[i] <= '9')
          {
-            ok = TRUE;
+            ok = true;
             break;
          }
       }
       if (!ok)
       {
          champ_motdepasse_show_error(cfg, "Password must contain a digit");
-         return FALSE;
+         return false;
       }
    }
 
    // Check uppercase requirement
    if (cfg->policy.require_upper)
    {
-      gboolean ok = FALSE;
+      bool ok = false;
       for (int i = 0; txt[i]; i++)
       {
          if (txt[i] >= 'A' && txt[i] <= 'Z')
          {
-            ok = TRUE;
+            ok = true;
             break;
          }
       }
       if (!ok)
       {
          champ_motdepasse_show_error(cfg, "Password must contain uppercase letter");
-         return FALSE;
+         return false;
       }
    }
 
    // Check symbol requirement
    if (cfg->policy.require_symbol)
    {
-      gboolean ok = FALSE;
+      bool ok = false;
       for (int i = 0; txt[i]; i++)
       {
          char c = txt[i];
          if (!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9'))
          {
-            ok = TRUE;
+            ok = true;
             break;
          }
       }
       if (!ok)
       {
          champ_motdepasse_show_error(cfg, "Password must contain a symbol");
-         return FALSE;
+         return false;
       }
    }
 
    // All checks passed
    champ_motdepasse_clear_error(cfg);
-   return TRUE;
+   return true;
 }
 
 static void on_pw_changed(GtkEditable *editable, gpointer user_data)
@@ -270,30 +271,30 @@ void champ_motdepasse_initialiser(ChampMotDePasse *cfg)
    cfg->style.rayon_arrondi = 4;
 }
 
-GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
+Widget champ_motdepasse_creer(ChampMotDePasse *cfg)
 {
    if (!cfg)
       return NULL;
 
    /* --- Container vertical --- */
    cfg->container = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-   gtk_widget_set_hexpand(cfg->container, cfg->size.width == 0 ? TRUE : FALSE);
-   gtk_widget_set_halign(cfg->container, cfg->size.width == 0 ? GTK_ALIGN_FILL : GTK_ALIGN_START);
+   gtk_widget_set_hexpand(GTK_WIDGET(cfg->container), cfg->size.width == 0 ? TRUE : FALSE);
+   gtk_widget_set_halign(GTK_WIDGET(cfg->container), cfg->size.width == 0 ? GTK_ALIGN_FILL : GTK_ALIGN_START);
 
    /* --- GtkPasswordEntry --- */
    cfg->widget = gtk_password_entry_new();
-   gtk_widget_set_name(cfg->widget, cfg->id_css ? cfg->id_css : "champ_pwd");
+   gtk_widget_set_name(GTK_WIDGET(cfg->widget), cfg->id_css ? cfg->id_css : "champ_pwd");
 
    if (cfg->placeholder)
       g_object_set(cfg->widget, "placeholder-text", cfg->placeholder, NULL);
 
-   gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), cfg->reveal_toggle);
-   gtk_widget_set_sensitive(cfg->widget, cfg->sensitive);
+   gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), cfg->reveal_toggle ? TRUE : FALSE);
+   gtk_widget_set_sensitive(GTK_WIDGET(cfg->widget), cfg->sensitive ? TRUE : FALSE);
 
    // Set size if specified
    if (cfg->size.width > 0 || cfg->size.height > 0)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   cfg->size.width > 0 ? cfg->size.width : -1,
                                   cfg->size.height > 0 ? cfg->size.height : -1);
    }
@@ -301,17 +302,17 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    // Control widget expansion behavior
    if (cfg->size.width > 0)
    {
-      gtk_widget_set_hexpand(cfg->widget, FALSE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
    }
    else
    {
-      gtk_widget_set_hexpand(cfg->widget, TRUE);
-      gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+      gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+      gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
    }
 
-   gtk_widget_set_vexpand(cfg->widget, FALSE);
-   gtk_widget_set_valign(cfg->widget, GTK_ALIGN_START);
+   gtk_widget_set_vexpand(GTK_WIDGET(cfg->widget), FALSE);
+   gtk_widget_set_valign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
 
    /* --- Label d'erreur --- */
    cfg->label_erreur = gtk_label_new("");
@@ -319,16 +320,16 @@ GtkWidget *champ_motdepasse_creer(ChampMotDePasse *cfg)
    /* ID CSS = "<id_css>_erreur" pour le ciblage CSS */
    char lbl_id[256];
    snprintf(lbl_id, sizeof(lbl_id), "%s_erreur", cfg->id_css ? cfg->id_css : "champ_pwd");
-   gtk_widget_set_name(cfg->label_erreur, lbl_id);
+   gtk_widget_set_name(GTK_WIDGET(cfg->label_erreur), lbl_id);
 
    gtk_label_set_xalign(GTK_LABEL(cfg->label_erreur), 0.0f); // Aligné à gauche
    gtk_label_set_wrap(GTK_LABEL(cfg->label_erreur), TRUE);
-   gtk_widget_set_hexpand(cfg->label_erreur, TRUE);
-   gtk_widget_set_visible(cfg->label_erreur, FALSE); // Caché par défaut
+   gtk_widget_set_hexpand(GTK_WIDGET(cfg->label_erreur), TRUE);
+   gtk_widget_set_visible(GTK_WIDGET(cfg->label_erreur), FALSE); // Caché par défaut
 
    /* --- Assemblage --- */
-   gtk_box_append(GTK_BOX(cfg->container), cfg->widget);
-   gtk_box_append(GTK_BOX(cfg->container), cfg->label_erreur);
+   gtk_box_append(GTK_BOX(cfg->container), GTK_WIDGET(cfg->widget));
+   gtk_box_append(GTK_BOX(cfg->container), GTK_WIDGET(cfg->label_erreur));
 
    /* --- Signaux --- */
    g_signal_connect(cfg->widget, "changed", G_CALLBACK(on_pw_changed), cfg);
@@ -385,7 +386,7 @@ void champ_motdepasse_set_max_length(ChampMotDePasse *cfg, int max_len)
    cfg->max_length = max_len;
 }
 
-void champ_motdepasse_set_required(ChampMotDePasse *cfg, gboolean required)
+void champ_motdepasse_set_required(ChampMotDePasse *cfg, bool required)
 {
    if (!cfg)
       return;
@@ -394,12 +395,12 @@ void champ_motdepasse_set_required(ChampMotDePasse *cfg, gboolean required)
       champ_pw_validate(cfg);
 }
 
-void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, gboolean reveal)
+void champ_motdepasse_set_reveal_toggle(ChampMotDePasse *cfg, bool reveal)
 {
    if (!cfg || !cfg->widget)
       return;
    cfg->reveal_toggle = reveal;
-   gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), reveal);
+   gtk_password_entry_set_show_peek_icon(GTK_PASSWORD_ENTRY(cfg->widget), reveal ? TRUE : FALSE);
 }
 
 void champ_motdepasse_set_policy(ChampMotDePasse *cfg, ChampPasswordPolicy policy)
@@ -419,20 +420,20 @@ void champ_motdepasse_set_size(ChampMotDePasse *cfg, int width, int height)
    cfg->size.height = height;
    if (cfg->widget)
    {
-      gtk_widget_set_size_request(cfg->widget,
+      gtk_widget_set_size_request(GTK_WIDGET(cfg->widget),
                                   width > 0 ? width : -1,
                                   height > 0 ? height : -1);
 
       // Update expansion behavior
       if (width > 0)
       {
-         gtk_widget_set_hexpand(cfg->widget, FALSE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_START);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), FALSE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_START);
       }
       else
       {
-         gtk_widget_set_hexpand(cfg->widget, TRUE);
-         gtk_widget_set_halign(cfg->widget, GTK_ALIGN_FILL);
+         gtk_widget_set_hexpand(GTK_WIDGET(cfg->widget), TRUE);
+         gtk_widget_set_halign(GTK_WIDGET(cfg->widget), GTK_ALIGN_FILL);
       }
    }
 }

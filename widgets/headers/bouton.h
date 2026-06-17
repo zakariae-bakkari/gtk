@@ -1,7 +1,7 @@
 #ifndef BOUTON_H
 #define BOUTON_H
 
-#include <gtk/gtk.h>
+#include "common.h"
 
 // --- MACROS DE COULEURS PAR DÉFAUT ---
 #define COULEUR_DEFAUT_FOND "#e0e0e0"
@@ -85,22 +85,22 @@ typedef struct
     char *couleur_bordure;
 
     // Police
-    gboolean gras;
-    gboolean italique;
+    bool gras;
+    bool italique;
     int taille_texte_px; // 0 = défaut
 } BoutonStyle;
 
 /**
  * Définition du pointeur de fonction pour l'événement "clic"
  */
-typedef void (*BoutonAction)(GtkWidget *widget, gpointer data);
+typedef void (*BoutonAction)(Widget widget, void *data);
 
 /**
  * Structure Principale BOUTON
  */
 typedef struct
 {
-    GtkWidget *widget; // Le widget GtkButton
+    Widget widget; // Le widget GtkButton
     char *id_css;      // ID unique pour le CSS (obligatoire pour le hover)
 
     // --- Contenu ---
@@ -115,12 +115,14 @@ typedef struct
     BoutonCurseur curseur;
 
     // --- Comportement ---
-    gboolean est_actif; // Sensible aux clics (Sensitive)
+    bool est_actif; // Sensible aux clics (Sensitive)
     char *tooltip;      // Texte d'infobulle au survol
+    bool hexpand;
+    bool vexpand;
 
     // --- Événements ---
     BoutonAction on_clic; // Fonction à appeler au clic
-    gpointer user_data;   // Données à passer à la fonction
+    void *user_data;   // Données à passer à la fonction
 
 } Bouton;
 
@@ -140,7 +142,7 @@ typedef enum
 
 void bouton_initialiser(Bouton *config);
 void bouton_appliquer_preset(Bouton *config, BoutonPresetStyle preset);
-GtkWidget *bouton_creer(Bouton *config);
+Widget bouton_creer(Bouton *config);
 
 // Fonction helper pour changer le texte dynamiquement après création
 void bouton_set_texte(Bouton *config, const char *nouveau_texte);

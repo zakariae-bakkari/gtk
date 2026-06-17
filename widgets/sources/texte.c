@@ -1,4 +1,5 @@
 #include "../headers/texte.h"
+#include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -235,6 +236,9 @@ void texte_initialiser(Texte *config)
    // Style par défaut
    widget_style_init(&config->style);
    config->id_css = NULL;
+   config->classe_css = NULL;
+   config->hexpand = false;
+   config->vexpand = false;
 
    // Bordure par défaut
    config->bordure_largeur = 0;
@@ -242,7 +246,7 @@ void texte_initialiser(Texte *config)
    config->bordure_rayon = 0;
 }
 
-GtkWidget *texte_creer(Texte *config)
+Widget texte_creer(Texte *config)
 {
    if (!config)
       return NULL;
@@ -333,8 +337,24 @@ GtkWidget *texte_creer(Texte *config)
       gtk_widget_set_name(config->widget, config->id_css);
    }
 
+   // Classes CSS personnalisées
+   if (config->classe_css)
+   {
+      char *classes = strdup(config->classe_css);
+      char *token = strtok(classes, " ");
+      while (token)
+      {
+         gtk_widget_add_css_class(config->widget, token);
+         token = strtok(NULL, " ");
+      }
+      free(classes);
+   }
+
    // Appliquer le style CSS
    _texte_appliquer_css(config->widget, config);
+
+   gtk_widget_set_hexpand(config->widget, config->hexpand);
+   gtk_widget_set_vexpand(config->widget, config->vexpand);
 
    g_object_set_data(G_OBJECT(config->widget), "custom_struct", config);
    g_object_set_data(G_OBJECT(config->widget), "custom_type", "Texte");
@@ -435,7 +455,7 @@ void texte_set_alignement(Texte *config, TexteAlignement alignement)
    }
 }
 
-void texte_set_police(Texte *config, const char *famille, int taille, gboolean gras, gboolean italique)
+void texte_set_police(Texte *config, const char *famille, int taille, bool gras, bool italique)
 {
    if (!config)
       return;
@@ -493,7 +513,7 @@ void texte_set_couleurs(Texte *config, const char *couleur_texte, const char *co
    }
 }
 
-void texte_set_wrap(Texte *config, gboolean wrap, int width)
+void texte_set_wrap(Texte *config, bool wrap, int width)
 {
    if (!config)
       return;
@@ -503,7 +523,7 @@ void texte_set_wrap(Texte *config, gboolean wrap, int width)
 
    if (config->widget)
    {
-      gtk_label_set_wrap(GTK_LABEL(config->widget), wrap);
+      gtk_label_set_wrap(GTK_LABEL(config->widget), wrap ? TRUE : FALSE);
       if (wrap && width > 0)
       {
          gtk_label_set_width_chars(GTK_LABEL(config->widget), width);
@@ -511,7 +531,7 @@ void texte_set_wrap(Texte *config, gboolean wrap, int width)
    }
 }
 
-void texte_set_selectable(Texte *config, gboolean selectable)
+void texte_set_selectable(Texte *config, bool selectable)
 {
    if (!config)
       return;
@@ -520,6 +540,6 @@ void texte_set_selectable(Texte *config, gboolean selectable)
 
    if (config->widget)
    {
-      gtk_label_set_selectable(GTK_LABEL(config->widget), selectable);
+      gtk_label_set_selectable(GTK_LABEL(config->widget), selectable ? TRUE : FALSE);
    }
 }

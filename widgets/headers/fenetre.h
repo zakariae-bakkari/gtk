@@ -1,7 +1,6 @@
 #ifndef FENETRE_H
 #define FENETRE_H
 
-#include <gtk/gtk.h>
 #include "conteneur.h"
 #include "common.h"
 
@@ -29,8 +28,8 @@ typedef struct {
 } FenetreTaille;
 
 typedef struct {
-    GtkWidget *wind;
-    GtkWidget *scroll_widget;
+    Widget wind;
+    Widget scroll_widget;
 
     char *title;
     FenetreTitreAlign titre_align;
@@ -38,15 +37,15 @@ typedef struct {
     char *ico_path;      // ← chemin ICO pour la taskbar Windows ✅ NOUVEAU
 
     FenetreType type;
-    gboolean resizable;
-    gboolean demarrer_maximisee;
+    bool resizable;
+    bool demarrer_maximisee;
 
-    gboolean bouton_fermer;
-    gboolean bouton_agrandir;
-    gboolean bouton_reduire;
+    bool bouton_fermer;
+    bool bouton_agrandir;
+    bool bouton_reduire;
 
     WidgetScrollMode scroll_mode;
-    gboolean scroll_overlay;
+    bool scroll_overlay;
     int content_min_width;
     int content_min_height;
 
@@ -58,18 +57,18 @@ typedef struct {
 } Fenetre;
 
 void fenetre_initialiser(Fenetre *config);
-GtkWidget *fenetre_creer(Fenetre *config, GtkApplication *app);
+Widget fenetre_creer(Fenetre *config, void *app);
 void fenetre_appliquer_position(Fenetre *config);
 void fenetre_appliquer_icone_taskbar(Fenetre *config);  // ✅ NOUVEAU
 void fenetre_set_scrollable(Fenetre *config, WidgetScrollMode mode);
 void fenetre_set_scroll_content_size(Fenetre *config, int min_width, int min_height);
-void fenetre_set_scroll_overlay(Fenetre *config, gboolean overlay);
-GtkWidget *fenetre_get_content_container(Fenetre *config);
-void fenetre_ajouter(Fenetre *config, GtkWidget *enfant);
+void fenetre_set_scroll_overlay(Fenetre *config, bool overlay);
+Widget fenetre_get_content_container(Fenetre *config);
+void fenetre_ajouter(Fenetre *config, Widget enfant);
 
 /* Background & Common Action Helpers */
-void fenetre_set_background_image(GtkWidget *window, const char *image_path);
-void fenetre_reset_background(GtkWidget *window);
-void action_quitter(GtkWidget *widget, gpointer data);
+void fenetre_set_background_image(Widget window, const char *image_path);
+void fenetre_reset_background(Widget window);
+void action_quitter(Widget widget, void *data);
 
 #endif

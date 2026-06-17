@@ -3,8 +3,10 @@
 #include "../../widgets/headers/video.h"
 #include "../../widgets/headers/fenetre.h"
 #include "../../widgets/headers/bouton.h"
+#include "../../widgets/headers/conteneur.h"
+#include "../../widgets/headers/texte.h"
 
-static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+static void on_custom_bouton_destroy(Widget widget, void *data)
 {
    (void)widget;
    Bouton *b = data;
@@ -22,117 +24,102 @@ static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
    }
 }
 
-static GtkWidget *placeholder_with_label(const char *text)
-{
-   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
-   GtkWidget *label = gtk_label_new(text);
-   gtk_box_append(GTK_BOX(box), label);
-   return box;
-}
-
-static void on_start_clicked(GtkWidget *btn, gpointer user_data)
+static void on_start_clicked(Widget btn, void *user_data)
 {
    (void)btn;
    (void)user_data;
    nav_to_bassin();
 }
 
-static void on_video_widget_destroy(GtkWidget *widget, gpointer user_data)
+static void on_video_widget_destroy(Widget widget, void *user_data)
 {
    (void)widget;
    Video *vid = (Video *)user_data;
    if (vid)
    {
       video_free(vid);
-      g_free(vid);
+      free(vid);
    }
 }
 
-GtkWidget *screen_accueil_create(void)
+Widget screen_accueil_create(void)
 {
-   GtkWidget *overlay = gtk_overlay_new();
-   gtk_widget_set_hexpand(overlay, TRUE);
-   gtk_widget_set_vexpand(overlay, TRUE);
+   Widget overlay = widget_creer_overlay();
+   widget_set_hexpand(overlay, true);
+   widget_set_vexpand(overlay, true);
 
    // Background Video (using GtkMediaFile + GtkPicture for NO controls)
-   GtkMediaStream *stream = gtk_media_file_new_for_filename("resources/images/fond/background.mp4");
-   gtk_media_stream_set_loop(stream, TRUE);
+   void* stream = widget_media_stream_new_from_file("resources/images/fond/background.mp4");
+   widget_media_stream_set_loop(stream, true);
    
-   GtkWidget *w_vid = gtk_picture_new_for_paintable(GDK_PAINTABLE(stream));
-   gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(w_vid), FALSE);
-   gtk_widget_set_hexpand(w_vid, TRUE);
-   gtk_widget_set_vexpand(w_vid, TRUE);
-   gtk_widget_set_halign(w_vid, GTK_ALIGN_FILL);
-   gtk_widget_set_valign(w_vid, GTK_ALIGN_FILL);
+   Widget w_vid = widget_picture_new_for_paintable(stream);
+   widget_picture_set_keep_aspect_ratio(w_vid, false);
+   widget_set_hexpand(w_vid, true);
+   widget_set_vexpand(w_vid, true);
+   widget_set_halign_fill(w_vid);
+   widget_set_valign_fill(w_vid);
    
    // Start playback manually
-   gtk_media_stream_play(stream);
+   widget_media_stream_play(stream);
    
-   gtk_overlay_set_child(GTK_OVERLAY(overlay), w_vid);
+   widget_overlay_set_child(overlay, w_vid);
 
    // Content box
-   GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 40);
-   gtk_widget_set_halign(content, GTK_ALIGN_CENTER);
-   gtk_widget_set_valign(content, GTK_ALIGN_CENTER);
-   gtk_overlay_add_overlay(GTK_OVERLAY(overlay), content);
+   Conteneur c_content;
+   conteneur_initialiser(&c_content);
+   c_content.orientation = CONTENEUR_VERTICAL;
+   c_content.espacement = 40;
+   c_content.align_x = ALIGNEMENT_CENTRE;
+   c_content.align_y = ALIGNEMENT_CENTRE;
+   Widget content = conteneur_creer(&c_content);
+   widget_overlay_add_overlay(overlay, content);
 
    // Title Image
-   GtkWidget *title_img = gtk_picture_new_for_filename("resources/images/fond/title_home_page-removebg-preview.png");
-   gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(title_img), TRUE);
-   gtk_widget_set_size_request(title_img, 800, 400);
-   gtk_box_append(GTK_BOX(content), title_img);
+   Widget title_img = widget_creer_picture_depuis_fichier("resources/images/fond/title_home_page-removebg-preview.png");
+   widget_picture_set_keep_aspect_ratio(title_img, true);
+   widget_set_size(title_img, 800, 400);
+   conteneur_ajouter(&c_content, title_img);
 
    // Buttons Box
-   GtkWidget *btn_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 15);
-   gtk_widget_set_halign(btn_box, GTK_ALIGN_CENTER);
-   gtk_box_append(GTK_BOX(content), btn_box);
+   Conteneur c_btn_box;
+   conteneur_initialiser(&c_btn_box);
+   c_btn_box.orientation = CONTENEUR_VERTICAL;
+   c_btn_box.espacement = 15;
+   c_btn_box.align_x = ALIGNEMENT_CENTRE;
+   Widget btn_box = conteneur_creer(&c_btn_box);
+   conteneur_ajouter(&c_content, btn_box);
 
    // Start Button
-   Bouton *b_start = g_new0(Bouton, 1);
+   Bouton *b_start = calloc(1, sizeof(Bouton));
    bouton_initialiser(b_start);
-   g_free(b_start->texte);
+   free(b_start->texte);
    b_start->texte = strdup("🚀 DEMARRER LA SIMULATION");
-   g_free(b_start->id_css);
+   free(b_start->id_css);
    b_start->id_css = strdup("home_btn_start");
    bouton_appliquer_preset(b_start, BOUTON_STYLE_SUGGESTED);
    b_start->taille.mode = TAILLE_FIXE;
    b_start->taille.largeur = 300;
    b_start->taille.hauteur = 60;
    b_start->on_clic = (BoutonAction)on_start_clicked;
-   GtkWidget *btn_start = bouton_creer(b_start);
-   g_signal_connect(btn_start, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_start);
-   gtk_box_append(GTK_BOX(btn_box), btn_start);
+   Widget btn_start = bouton_creer(b_start);
+   widget_connect_destroy_signal(btn_start, on_custom_bouton_destroy, b_start);
+   conteneur_ajouter(&c_btn_box, btn_start);
 
    // Quit Button
-   Bouton *b_quit = g_new0(Bouton, 1);
+   Bouton *b_quit = calloc(1, sizeof(Bouton));
    bouton_initialiser(b_quit);
-   g_free(b_quit->texte);
+   free(b_quit->texte);
    b_quit->texte = strdup("❌ QUITTER");
-   g_free(b_quit->id_css);
+   free(b_quit->id_css);
    b_quit->id_css = strdup("home_btn_quit");
    bouton_appliquer_preset(b_quit, BOUTON_STYLE_DESTRUCTIVE);
    b_quit->taille.mode = TAILLE_FIXE;
    b_quit->taille.largeur = 300;
    b_quit->taille.hauteur = 50;
    b_quit->on_clic = (BoutonAction)action_quitter;
-   GtkWidget *btn_quit = bouton_creer(b_quit);
-   g_signal_connect(btn_quit, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_quit);
-   gtk_box_append(GTK_BOX(btn_box), btn_quit);
+   Widget btn_quit = bouton_creer(b_quit);
+   widget_connect_destroy_signal(btn_quit, on_custom_bouton_destroy, b_quit);
+   conteneur_ajouter(&c_btn_box, btn_quit);
 
    return overlay;
-}
-
-GtkWidget *screen_createur_create(void)
-{
-   return placeholder_with_label("Écran createur (placeholder)");
-}
-
-GtkWidget *screen_predateur_create(void)
-{
-   return placeholder_with_label("Écran prédateur (placeholder)");
-}
-
-GtkWidget *screen_survie_create(void)
-{
-   return placeholder_with_label("Écran survie (placeholder)");
 }

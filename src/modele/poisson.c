@@ -1,3 +1,4 @@
+#include <gtk/gtk.h>
 #include "poisson.h"
 #include <stdlib.h>
 #include <string.h>
@@ -87,7 +88,7 @@ void poisson_set_position(Poisson *p, double x, double y)
    p->y = y;
 }
 
-void poisson_set_widget(Poisson *p, GtkWidget *widget)
+void poisson_set_widget(Poisson *p, Widget widget)
 {
    if (!p)
       return;

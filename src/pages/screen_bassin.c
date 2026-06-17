@@ -1,10 +1,13 @@
 #include "screen_bassin.h"
 #include "../simulation/bassin_private.h"
 #include "../../widgets/headers/bouton.h"
+#include "../../widgets/headers/conteneur.h"
+#include "../../widgets/headers/texte.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
-static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+static void on_custom_bouton_destroy(Widget widget, void *data)
 {
    (void)widget;
    Bouton *b = data;
@@ -22,40 +25,34 @@ static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
    }
 }
 
-static void on_root_destroy(GtkWidget *widget, gpointer user_data)
+static void on_root_destroy(Widget widget, void *user_data)
 {
    (void)widget;
    BassinUI *ui = user_data;
    if (ui->timer_id > 0)
    {
-      g_source_remove(ui->timer_id);
+      widget_timer_remove(ui->timer_id);
       ui->timer_id = 0;
    }
    if (ui->bg_stream)
    {
-      gtk_media_stream_pause(ui->bg_stream);
-      g_object_unref(ui->bg_stream);
+      widget_media_stream_pause(ui->bg_stream);
+      widget_media_stream_free(ui->bg_stream);
       ui->bg_stream = NULL;
    }
 }
 
-extern void on_key_pressed(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data);
-extern void on_key_released(GtkEventControllerKey *controller, guint keyval, guint keycode, GdkModifierType state, gpointer user_data);
+extern void on_key_pressed(void *controller, unsigned int keyval, unsigned int keycode, unsigned int state, void *user_data);
+extern void on_key_released(void *controller, unsigned int keyval, unsigned int keycode, unsigned int state, void *user_data);
 
 // Create Main Aquarium UI Interface
-GtkWidget *screen_bassin_create(void)
+Widget screen_bassin_create(void)
 {
    // Load premium CSS styles
-   GtkCssProvider *css_provider = gtk_css_provider_new();
-   gtk_css_provider_load_from_path(css_provider, "resources/bassin.css");
-   gtk_style_context_add_provider_for_display(
-       gdk_display_get_default(),
-       GTK_STYLE_PROVIDER(css_provider),
-       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-   g_object_unref(css_provider);
+   widget_charger_css("resources/bassin.css");
 
    BassinUI *ui = calloc(1, sizeof(BassinUI));
-   ui->simulation_running = TRUE;
+   ui->simulation_running = true;
    ui->active_tab = 0; // Entités
    ui->elapsed_time = 0;
    ui->simulation_speed = 1.0;
@@ -68,178 +65,210 @@ GtkWidget *screen_bassin_create(void)
    ui->config_bg_path = strdup("resources/images/fond/background_banc.png");
    ui->config_canvas_width = 900;
    ui->config_canvas_height = 600;
-   ui->config_hide_health_bar = FALSE;
-   ui->config_hide_fish_name = FALSE;
-   ui->config_hide_status_bar = FALSE;
-   ui->zen_mode = FALSE;
-   ui->sidebar_was_visible = TRUE;
+   ui->config_hide_health_bar = false;
+   ui->config_hide_fish_name = false;
+   ui->config_hide_status_bar = false;
+   ui->zen_mode = false;
+   ui->sidebar_was_visible = true;
 
    // Default customizable shortcuts
-   ui->shortcut_play = g_strdup("Ctrl+P");
-   ui->shortcut_zen = g_strdup("Ctrl+H");
-   ui->shortcut_debug = g_strdup("Ctrl+D");
-   ui->shortcut_settings = g_strdup("Ctrl+S");
-   ui->shortcut_add = g_strdup("Ctrl+N");
-   ui->shortcut_sidebar = g_strdup("Ctrl+B");
-   ui->shortcut_restart = g_strdup("Ctrl+R");
-   ui->shortcut_food = g_strdup("Ctrl+I");
+   ui->shortcut_play = strdup("Ctrl+P");
+   ui->shortcut_zen = strdup("Ctrl+H");
+   ui->shortcut_debug = strdup("Ctrl+D");
+   ui->shortcut_settings = strdup("Ctrl+S");
+   ui->shortcut_add = strdup("Ctrl+N");
+   ui->shortcut_sidebar = strdup("Ctrl+B");
+   ui->shortcut_restart = strdup("Ctrl+R");
+   ui->shortcut_food = strdup("Ctrl+I");
 
    // Load saved settings from settings.xml
    load_settings_from_xml(ui);
 
    // Root layout box (vertical)
-   ui->root = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+   Conteneur c_root;
+   conteneur_initialiser(&c_root);
+   c_root.orientation = CONTENEUR_VERTICAL;
+   c_root.espacement = 0;
+   ui->root = conteneur_creer(&c_root);
 
    // ------------------ HEADER PANEL ------------------
-   ui->header_widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
-   GtkWidget *header = ui->header_widget;
-   gtk_widget_set_margin_start(header, 15);
-   gtk_widget_set_margin_end(header, 15);
-   gtk_widget_set_margin_top(header, 8);
-   gtk_widget_set_margin_bottom(header, 8);
+   Conteneur c_header;
+   conteneur_initialiser(&c_header);
+   c_header.orientation = CONTENEUR_HORIZONTAL;    
+   c_header.espacement = 12;
+   c_header.marges.gauche = 15;
+   c_header.marges.droite = 15;
+   c_header.marges.haut = 8;
+   c_header.marges.bas = 8;
+   ui->header_widget = conteneur_creer(&c_header);
+   Widget header = ui->header_widget;
 
    // Use the modular menu/action setup (Menu and Bouton custom widgets)
    bassin_menu_init(ui, header);
-   gtk_box_append(GTK_BOX(ui->root), header);
+   conteneur_ajouter(&c_root, header);
 
    // Separator
-   ui->sep_top_widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-   GtkWidget *sep_top = ui->sep_top_widget;
-   gtk_box_append(GTK_BOX(ui->root), sep_top);
+   ui->sep_top_widget = widget_creer_separateur(1); // 1 = HORIZONTAL
+   Widget sep_top = ui->sep_top_widget;
+   conteneur_ajouter(&c_root, sep_top);
 
    // ------------------ CONTENT BOX (Aquarium + Sidebar) ------------------
-   GtkWidget *content_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-   gtk_widget_set_vexpand(content_box, TRUE);
+   Conteneur c_content_box;
+   conteneur_initialiser(&c_content_box);
+   c_content_box.orientation = CONTENEUR_HORIZONTAL;
+   c_content_box.espacement = 0;
+   c_content_box.vexpand = true;
+   Widget content_box = conteneur_creer(&c_content_box);
 
    // 1. Center Canvas aquarium (GtkFixed overlayed on background GtkPicture)
-   GtkWidget *overlay = gtk_overlay_new();
-   gtk_widget_set_hexpand(overlay, TRUE);
-   gtk_widget_set_vexpand(overlay, TRUE);
+   Widget overlay = widget_creer_overlay();
+   widget_set_hexpand(overlay, TRUE);
+   widget_set_vexpand(overlay, TRUE);
 
    // Canvas Background Image (using GtkPicture with no aspect ratio constraint for dynamic stretching)
-   ui->bg_widget = gtk_picture_new();
+   ui->bg_widget = widget_creer_picture();
    apply_background(ui);
-   gtk_picture_set_keep_aspect_ratio(GTK_PICTURE(ui->bg_widget), FALSE);
-   gtk_widget_set_size_request(ui->bg_widget, ui->config_canvas_width, ui->config_canvas_height);
-   gtk_overlay_set_child(GTK_OVERLAY(overlay), ui->bg_widget);
+   widget_picture_set_keep_aspect_ratio(ui->bg_widget, false);
+   widget_set_size(ui->bg_widget, ui->config_canvas_width, ui->config_canvas_height);
+   widget_overlay_set_child(overlay, ui->bg_widget);
 
-   ui->canvas = gtk_fixed_new();
-   gtk_widget_set_overflow(ui->canvas, GTK_OVERFLOW_HIDDEN);
-   gtk_widget_set_halign(ui->canvas, GTK_ALIGN_FILL);
-   gtk_widget_set_valign(ui->canvas, GTK_ALIGN_FILL);
-   gtk_widget_set_size_request(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
-   gtk_overlay_add_overlay(GTK_OVERLAY(overlay), ui->canvas);
+   ui->canvas = widget_creer_fixed();
+   widget_fixed_set_overflow_hidden(ui->canvas);
+   widget_set_halign_fill(ui->canvas);
+   widget_set_valign_fill(ui->canvas);
+   widget_set_size(ui->canvas, ui->config_canvas_width, ui->config_canvas_height);
+   widget_overlay_add_overlay(overlay, ui->canvas);
 
-   ui->debug_overlay = gtk_drawing_area_new();
-   gtk_widget_set_can_target(ui->debug_overlay, FALSE);
-   gtk_widget_set_halign(ui->debug_overlay, GTK_ALIGN_FILL);
-   gtk_widget_set_valign(ui->debug_overlay, GTK_ALIGN_FILL);
-   gtk_widget_set_size_request(ui->debug_overlay, ui->config_canvas_width, ui->config_canvas_height);
-   gtk_drawing_area_set_draw_func(GTK_DRAWING_AREA(ui->debug_overlay), on_debug_draw, ui, NULL);
-   gtk_overlay_add_overlay(GTK_OVERLAY(overlay), ui->debug_overlay);
+   ui->debug_overlay = widget_creer_drawing_area();
+   widget_set_can_target(ui->debug_overlay, false);
+   widget_set_halign_fill(ui->debug_overlay);
+   widget_set_valign_fill(ui->debug_overlay);
+   widget_set_size(ui->debug_overlay, ui->config_canvas_width, ui->config_canvas_height);
+   widget_drawing_area_set_draw_func(ui->debug_overlay, on_debug_draw, ui);
+   widget_overlay_add_overlay(overlay, ui->debug_overlay);
 
-   GtkWidget *sw = gtk_scrolled_window_new();
-   gtk_widget_set_hexpand(sw, TRUE);
-   gtk_widget_set_vexpand(sw, TRUE);
-   gtk_scrolled_window_set_propagate_natural_width(GTK_SCROLLED_WINDOW(sw), FALSE);
-   gtk_scrolled_window_set_propagate_natural_height(GTK_SCROLLED_WINDOW(sw), FALSE);
-   gtk_scrolled_window_set_has_frame(GTK_SCROLLED_WINDOW(sw), FALSE);
-   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(sw), GTK_POLICY_NEVER, GTK_POLICY_NEVER);
-   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(sw), overlay);
+   Conteneur c_sw;
+   conteneur_initialiser(&c_sw);
+   c_sw.scroll_mode = SCROLL_BOTH;
+   c_sw.hexpand = TRUE;
+   c_sw.vexpand = TRUE;
+   c_sw.scroll_overlay = TRUE;
+   Widget sw = conteneur_creer(&c_sw);
+   conteneur_ajouter(&c_sw, overlay);
 
-   gtk_box_append(GTK_BOX(content_box), sw);
+   conteneur_ajouter(&c_content_box, sw);
 
    // 2. Right Sidebar Panel
-   GtkWidget *sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
-   ui->sidebar = sidebar;
-   gtk_widget_add_css_class(sidebar, "sidebar-container");
-   gtk_widget_set_hexpand(sidebar, FALSE);
-   gtk_widget_set_size_request(sidebar, 250, ui->config_canvas_height);
+   Conteneur c_sidebar;
+   conteneur_initialiser(&c_sidebar);
+   c_sidebar.orientation = CONTENEUR_VERTICAL;
+   c_sidebar.espacement = 10;
+   c_sidebar.classe_css = strdup("sidebar-container");
+   c_sidebar.hexpand = FALSE;
+   c_sidebar.taille.largeur = 250;
+   c_sidebar.taille.hauteur = ui->config_canvas_height;
+   ui->sidebar = conteneur_creer(&c_sidebar);
+   Widget sidebar = ui->sidebar;
 
    // Tab Headers
-   GtkWidget *box_tabs = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+   Conteneur c_box_tabs;
+   conteneur_initialiser(&c_box_tabs);
+   c_box_tabs.orientation = CONTENEUR_HORIZONTAL;
+   c_box_tabs.espacement = 4;
+   Widget box_tabs = conteneur_creer(&c_box_tabs);
 
-   Bouton *b_ent = g_new0(Bouton, 1);
+   Bouton *b_ent = calloc(1, sizeof(Bouton));
    bouton_initialiser(b_ent);
-   g_free(b_ent->texte);
+   free(b_ent->texte);
    b_ent->texte = strdup("Entités");
-   g_free(b_ent->id_css);
+   free(b_ent->id_css);
    b_ent->id_css = strdup("btn_tab_entites");
    bouton_appliquer_preset(b_ent, BOUTON_STYLE_TAB_ACTIVE);
    b_ent->on_clic = (BoutonAction)on_tab_entites_clicked;
    b_ent->user_data = ui;
+   b_ent->hexpand = true;
    ui->btn_tab_entites = bouton_creer(b_ent);
-   g_signal_connect(ui->btn_tab_entites, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_ent);
-   gtk_widget_set_hexpand(ui->btn_tab_entites, TRUE);
-   gtk_box_append(GTK_BOX(box_tabs), ui->btn_tab_entites);
+   widget_connect_destroy_signal(ui->btn_tab_entites, on_custom_bouton_destroy, b_ent);
+   conteneur_ajouter(&c_box_tabs, ui->btn_tab_entites);
 
-   Bouton *b_banc = g_new0(Bouton, 1);
+   Bouton *b_banc = calloc(1, sizeof(Bouton));
    bouton_initialiser(b_banc);
-   g_free(b_banc->texte);
+   free(b_banc->texte);
    b_banc->texte = strdup("Bancs");
-   g_free(b_banc->id_css);
+   free(b_banc->id_css);
    b_banc->id_css = strdup("btn_tab_bancs");
    bouton_appliquer_preset(b_banc, BOUTON_STYLE_TAB_INACTIVE);
    b_banc->on_clic = (BoutonAction)on_tab_bancs_clicked;
    b_banc->user_data = ui;
+   b_banc->hexpand = true;
    ui->btn_tab_bancs = bouton_creer(b_banc);
-   g_signal_connect(ui->btn_tab_bancs, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_banc);
-   gtk_widget_set_hexpand(ui->btn_tab_bancs, TRUE);
-   gtk_box_append(GTK_BOX(box_tabs), ui->btn_tab_bancs);
+   widget_connect_destroy_signal(ui->btn_tab_bancs, on_custom_bouton_destroy, b_banc);
+   conteneur_ajouter(&c_box_tabs, ui->btn_tab_bancs);
 
-   gtk_box_append(GTK_BOX(sidebar), box_tabs);
+   conteneur_ajouter(&c_sidebar, box_tabs);
 
    // Scrolled Window for Entity lists
-   ui->scrolled_sidebar_list = gtk_scrolled_window_new();
-   gtk_widget_set_vexpand(ui->scrolled_sidebar_list, TRUE);
-   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ui->scrolled_sidebar_list),
-                                  GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+   Conteneur c_sidebar_list;
+   conteneur_initialiser(&c_sidebar_list);
+   c_sidebar_list.orientation = CONTENEUR_VERTICAL;
+   c_sidebar_list.espacement = 0;
+   c_sidebar_list.scroll_mode = SCROLL_VERTICAL;
+   c_sidebar_list.vexpand = TRUE;
+   ui->scrolled_sidebar_list = conteneur_creer(&c_sidebar_list);
+   ui->box_sidebar_content = c_sidebar_list.widget;
+   conteneur_ajouter(&c_sidebar, ui->scrolled_sidebar_list);
 
-   ui->box_sidebar_content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-   gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(ui->scrolled_sidebar_list), ui->box_sidebar_content);
-   gtk_box_append(GTK_BOX(sidebar), ui->scrolled_sidebar_list);
-
-   gtk_box_append(GTK_BOX(content_box), sidebar);
-   gtk_box_append(GTK_BOX(ui->root), content_box);
+   conteneur_ajouter(&c_content_box, sidebar);
+   conteneur_ajouter(&c_root, content_box);
 
    // Separator
-   ui->sep_bottom_widget = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);
-   GtkWidget *sep_bottom = ui->sep_bottom_widget;
-   gtk_box_append(GTK_BOX(ui->root), sep_bottom);
+   ui->sep_bottom_widget = widget_creer_separateur(1); // 1 = HORIZONTAL
+   Widget sep_bottom = ui->sep_bottom_widget;
+   conteneur_ajouter(&c_root, sep_bottom);
 
    // ------------------ BOTTOM STATUS BAR ------------------
-   ui->status_bar_widget = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
-   GtkWidget *status_bar = ui->status_bar_widget;
-   gtk_widget_set_margin_start(status_bar, 15);
-   gtk_widget_set_margin_end(status_bar, 15);
-   gtk_widget_set_margin_top(status_bar, 6);
-   gtk_widget_set_margin_bottom(status_bar, 6);
+   Conteneur c_status_bar;
+   conteneur_initialiser(&c_status_bar);
+   c_status_bar.orientation = CONTENEUR_HORIZONTAL;
+   c_status_bar.espacement = 12;
+   c_status_bar.marges.gauche = 15;
+   c_status_bar.marges.droite = 15;
+   c_status_bar.marges.haut = 6;
+   c_status_bar.marges.bas = 6;
+   ui->status_bar_widget = conteneur_creer(&c_status_bar);
+   Widget status_bar = ui->status_bar_widget;
 
-   ui->lbl_status_indicator = gtk_label_new("● En cours");
-   gtk_widget_add_css_class(ui->lbl_status_indicator, "badge-banc");
-   gtk_box_append(GTK_BOX(status_bar), ui->lbl_status_indicator);
+   Texte t_indicator;
+   texte_initialiser(&t_indicator);
+   t_indicator.texte = strdup("● En cours");
+   t_indicator.classe_css = strdup("badge-banc");
+   ui->lbl_status_indicator = texte_creer(&t_indicator);
+   conteneur_ajouter(&c_status_bar, ui->lbl_status_indicator);
 
-   ui->lbl_stats_text = gtk_label_new("0 entités actives   |   0 bancs   |   0 individuel   |   0 prédateur");
-   gtk_box_append(GTK_BOX(status_bar), ui->lbl_stats_text);
+   Texte t_stats;
+   texte_initialiser(&t_stats);
+   t_stats.texte = strdup("0 entités actives   |   0 bancs   |   0 individuel   |   0 prédateur");
+   ui->lbl_stats_text = texte_creer(&t_stats);
+   conteneur_ajouter(&c_status_bar, ui->lbl_stats_text);
 
-   ui->lbl_elapsed_time = gtk_label_new("t = 00:00:00");
-   gtk_widget_set_halign(ui->lbl_elapsed_time, GTK_ALIGN_END);
-   gtk_widget_set_hexpand(ui->lbl_elapsed_time, TRUE);
-   gtk_box_append(GTK_BOX(status_bar), ui->lbl_elapsed_time);
+   Texte t_elapsed;
+   texte_initialiser(&t_elapsed);
+   t_elapsed.texte = strdup("t = 00:00:00");
+   t_elapsed.alignement = TEXTE_ALIGN_RIGHT;
+   t_elapsed.hexpand = TRUE;
+   ui->lbl_elapsed_time = texte_creer(&t_elapsed);
+   conteneur_ajouter(&c_status_bar, ui->lbl_elapsed_time);
 
-   gtk_box_append(GTK_BOX(ui->root), status_bar);
+   conteneur_ajouter(&c_root, status_bar);
 
    // Setup key controller
-   GtkEventController *key_controller = gtk_event_controller_key_new();
-   g_signal_connect(key_controller, "key-pressed", G_CALLBACK(on_key_pressed), ui);
-   g_signal_connect(key_controller, "key-released", G_CALLBACK(on_key_released), ui);
-   gtk_widget_add_controller(ui->root, key_controller);
+   widget_add_key_controller(ui->root, on_key_pressed, on_key_released, ui);
 
    // Connect destroy handler to stop timer on exit
-   g_signal_connect(ui->root, "destroy", G_CALLBACK(on_root_destroy), ui);
+   widget_connect_destroy_signal(ui->root, on_root_destroy, ui);
 
    // Start timer loop (30 FPS -> 33ms)
-   ui->timer_id = g_timeout_add(33, update_simulation, ui);
+   ui->timer_id = widget_timer_add(33, update_simulation, ui);
 
    // Start with empty aquarium (0 fish) until loaded or added
    ui->next_id = 1;
@@ -252,8 +281,8 @@ GtkWidget *screen_bassin_create(void)
    apply_fish_visibility_configs(ui);
    if (!ui->zen_mode)
    {
-      gtk_widget_set_visible(ui->status_bar_widget, !ui->config_hide_status_bar);
-      gtk_widget_set_visible(ui->sep_bottom_widget, !ui->config_hide_status_bar);
+      widget_set_visible(ui->status_bar_widget, !ui->config_hide_status_bar);
+      widget_set_visible(ui->sep_bottom_widget, !ui->config_hide_status_bar);
    }
 
    return ui->root;
