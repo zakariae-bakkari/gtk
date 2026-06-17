@@ -53,6 +53,7 @@ typedef struct _Banc
    char *nom_espece;
    GList *poissons;  /* list of Poisson* */
    Poisson *leader;  /* pointer to Poisson */
+   int parent_banc_id; /* parent bank ID if split, or -1 */
 } Banc;
 
 typedef struct

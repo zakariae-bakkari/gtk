@@ -816,9 +816,8 @@ bool update_simulation(void *user_data)
 
             if (has_evasion)
             {
-               // Blend boids with evasion
-               force_x = boids_x * 0.5 + evade_fx * 0.5;
-               force_y = boids_y * 0.5 + evade_fy * 0.5;
+               force_x = evade_fx;
+               force_y = evade_fy;
             }
             else
             {
@@ -876,13 +875,12 @@ bool update_simulation(void *user_data)
                      target->degats_accumules += damage_rate * dt;
                   }
                }
-               else if (dist > 0)
+               else
                {
-                  force_x = (dx / dist) * p->vitesse_normale;
-                  force_y = (dy / dist) * p->vitesse_normale;
+                  target = NULL;
                }
             }
-            else
+            if (!target)
             {
                if (fabs(p->vx) < 5.0 && fabs(p->vy) < 5.0)
                {

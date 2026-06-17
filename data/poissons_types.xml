@@ -20,18 +20,16 @@
         <eats>Sardine</eats>
         <eats>seahorse</eats>
     </species>
-    <species name="Sardine" type="prey" level="1" speed_norm="222.0" speed_escape="500.0" speed_slow="20.0" size="35" detection="500" health="98.0">
+    <species name="Sardine" type="prey" level="1" speed_norm="222.0" speed_escape="500.0" speed_slow="20.0" size="35" detection="190" health="98.0">
         <frame>resources/images/fishes/sardine/frame1.png</frame>
         <frame>resources/images/fishes/sardine/frame2.png</frame>
         <frame>resources/images/fishes/sardine/frame3.png</frame>
     </species>
-    <species name="Eel" type="prey" level="2" speed_norm="50.0" speed_escape="80.0" speed_slow="20.0" size="55" detection="100" health="100.0">
+    <species name="Eel" type="prey" level="2" speed_norm="50.0" speed_escape="80.0" speed_slow="20.0" size="55" detection="94" health="100.0">
         <frame>resources/images/fishes/eel/frame1.png</frame>
         <frame>resources/images/fishes/eel/frame2.png</frame>
         <frame>resources/images/fishes/eel/frame3.png</frame>
-        <eats>Sardine</eats>
         <eats>seahorse</eats>
-        <eats>Hareng</eats>
     </species>
     <species name="scate" type="prey" level="2" speed_norm="400.0" speed_escape="322.0" speed_slow="20.0" size="60" detection="100" health="100.0">
         <frame>resources/images/fishes/scate/frame1.png</frame>
@@ -96,15 +94,5 @@
         <eats>seahorse</eats>
         <eats>scate</eats>
         <eats>Eel</eats>
-    </species>
-    <species name="Poisson-perso" type="predator" level="5" speed_norm="150.0" speed_escape="300.0" speed_slow="25.0" size="64" detection="100" health="500.0">
-        <frame>resources/images/fishes/poisson-perso/frame1.png</frame>
-        <frame>resources/images/fishes/poisson-perso/frame2.png</frame>
-        <frame>resources/images/fishes/poisson-perso/frame3.png</frame>
-    </species>
-    <species name="Poisson-perso-2" type="prey" level="1" speed_norm="100.0" speed_escape="80.0" speed_slow="25.0" size="64" detection="100" health="100.0">
-        <frame>resources/images/fishes/poisson-perso-2/frame1.jpg</frame>
-        <frame>resources/images/fishes/poisson-perso-2/frame2.jpg</frame>
-        <frame>resources/images/fishes/poisson-perso-2/frame3.jpg</frame>
     </species>
 </species_list>
