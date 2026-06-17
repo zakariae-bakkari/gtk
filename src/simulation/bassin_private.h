@@ -51,9 +51,10 @@ typedef struct _Banc
 {
    int id;
    char *nom_espece;
-   GList *poissons;  /* list of Poisson* */
-   Poisson *leader;  /* pointer to Poisson */
-   int parent_banc_id; /* parent bank ID if split, or -1 */
+   GList *poissons;      /* list of Poisson* */
+   Poisson *leader;      /* pointer to Poisson */
+   int parent_banc_id;   /* parent bank ID if split, or -1 */
+   int split_cooldown;   /* ticks remaining before this banc can split again */
 } Banc;
 
 typedef struct

@@ -284,7 +284,7 @@ void eat_fish(BassinUI *ui, Poisson *prey)
    {
       bassin_remove_poisson_from_banc(ui, prey);
    }
-   else
+    else
    {
       ui->poissons = g_list_remove(ui->poissons, prey);
    }
@@ -293,6 +293,7 @@ void eat_fish(BassinUI *ui, Poisson *prey)
    update_sidebar_list(ui);
    update_status_bar(ui);
 }
+
 
 void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
 {
@@ -304,42 +305,76 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
    for (GList *lb = bancs_copy; lb; lb = lb->next)
    {
       Banc *b = lb->data;
+
+      // Tick down the split cooldown
+      if (b->split_cooldown > 0)
+      {
+         b->split_cooldown--;
+         continue; // Cannot split yet — already split recently
+      }
+
       int count = g_list_length(b->poissons);
-      if (count < 4) // Only split if school has >= 4 fish
+      if (count < 2) // Need at least 2 fish to split into two groups
          continue;
 
-      gboolean predator_near = FALSE;
+      // Find the nearest predator threatening ANY member of this shoal
+      Poisson *threat_predator = NULL;
+      double threat_dist = 999999.0;
+      double threat_cx = 0.0, threat_cy = 0.0; // center of the school
+      int active_count = 0;
+
       for (GList *lp = b->poissons; lp; lp = lp->next)
       {
          Poisson *p = lp->data;
+         if (p->etat == ETAT_HORS_CADRE) continue;
+         threat_cx += p->x + p->taille / 2.0;
+         threat_cy += p->y + p->taille / 2.0;
+         active_count++;
+      }
+      if (active_count > 0)
+      {
+         threat_cx /= active_count;
+         threat_cy /= active_count;
+      }
+
+      for (GList *lp = b->poissons; lp; lp = lp->next)
+      {
+         Poisson *p = lp->data;
+         if (p->etat == ETAT_HORS_CADRE) continue;
          for (GList *lo = all_poissons; lo; lo = lo->next)
          {
             Poisson *other = lo->data;
-            if (is_predator(ui, other) && other->sante > 0.0 && other->etat != ETAT_HORS_CADRE && p->etat != ETAT_HORS_CADRE)
+            if (is_predator(ui, other) && other->sante > 0.0 && other->etat != ETAT_HORS_CADRE
+                && can_eat(ui, other, p))
             {
-               double dx = other->x - p->x;
-               double dy = other->y - p->y;
+               double dx = other->x + other->taille / 2.0 - (p->x + p->taille / 2.0);
+               double dy = other->y + other->taille / 2.0 - (p->y + p->taille / 2.0);
                double dist = sqrt(dx * dx + dy * dy);
-               if (dist < p->perimetre_detection)
+               if (dist < p->perimetre_detection && dist < threat_dist)
                {
-                  predator_near = TRUE;
-                  break;
+                  threat_dist = dist;
+                  threat_predator = other;
                }
             }
          }
-         if (predator_near)
-            break;
       }
 
-      if (predator_near)
+      if (threat_predator)
       {
          // Split school in two
          ui->num_bancs++;
          int new_banc_id = ui->num_bancs;
+         int original_id = b->id; // remember which banc this was
 
          Banc *new_b = calloc(1, sizeof(Banc));
          new_b->id = new_banc_id;
          new_b->nom_espece = strdup(b->nom_espece);
+         new_b->parent_banc_id = original_id; // this sub-group's parent is the original
+         new_b->split_cooldown = 120;          // ~4 seconds cooldown
+
+         // Also set cooldown on the parent half so it doesn't immediately split again
+         b->parent_banc_id = original_id;
+         b->split_cooldown = 120;
 
          int half = count / 2;
          int idx = 0;
@@ -348,32 +383,20 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
          b->poissons = NULL;
          b->leader = NULL;
 
-         // Calculate average velocity of the school to get its general direction of motion
-         double avg_vx = 0.0;
-         double avg_vy = 0.0;
-         int b_count = 0;
-         for (GList *l = old_poissons; l; l = l->next)
+         // Direction: flee AWAY from the predator, then split ±45°
+         double pred_cx = threat_predator->x + threat_predator->taille / 2.0;
+         double pred_cy = threat_predator->y + threat_predator->taille / 2.0;
+         double away_dx = threat_cx - pred_cx;
+         double away_dy = threat_cy - pred_cy;
+         double away_dist = sqrt(away_dx * away_dx + away_dy * away_dy);
+         double theta; // base flee angle (directly away from predator)
+         if (away_dist > 1.0)
          {
-            Poisson *p = l->data;
-            avg_vx += p->vx;
-            avg_vy += p->vy;
-            b_count++;
-         }
-         if (b_count > 0)
-         {
-            avg_vx /= b_count;
-            avg_vy /= b_count;
+            theta = atan2(away_dy / away_dist, away_dx / away_dist);
          }
          else
          {
-            avg_vx = 50.0;
-            avg_vy = 0.0;
-         }
-
-         double speed = sqrt(avg_vx * avg_vx + avg_vy * avg_vy);
-         double theta = atan2(avg_vy, avg_vx);
-         if (speed < 1.0)
-         {
+            // Predator is right on top — flee to the right by default
             theta = 0.0;
          }
 
@@ -383,13 +406,13 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
             double p_speed = p->vitesse_fuite > 0.0 ? p->vitesse_fuite : 80.0;
             if (idx < half)
             {
+               // Sub-group A → new banc, flee left-diagonal (-45°)
                p->id_banc = new_banc_id;
                p->est_leader = (idx == 0);
                new_b->poissons = g_list_append(new_b->poissons, p);
                if (p->est_leader)
                   new_b->leader = p;
 
-               // Flee direction: angle shifted by -45 degrees (-M_PI / 4.0) to go left-diagonal
                double angle = theta - M_PI / 4.0;
                p->vx = cos(angle) * p_speed;
                p->vy = sin(angle) * p_speed;
@@ -397,12 +420,12 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
             }
             else
             {
+               // Sub-group B → stays in original banc, flee right-diagonal (+45°)
                p->est_leader = (idx == half);
                b->poissons = g_list_append(b->poissons, p);
                if (p->est_leader)
                   b->leader = p;
 
-               // Flee direction: angle shifted by +45 degrees (+M_PI / 4.0) to go right-diagonal
                double angle = theta + M_PI / 4.0;
                p->vx = cos(angle) * p_speed;
                p->vy = sin(angle) * p_speed;
@@ -421,47 +444,91 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
          g_list_free(old_poissons);
          ui->bancs = g_list_append(ui->bancs, new_b);
 
-         if (b->leader)
-         {
-            spawn_floating_damage(ui, b->leader->x, b->leader->y, 0.0);
-         }
          update_sidebar_list(ui);
       }
    }
 
-   // 2. Automatic merge if schools of same species are close and no predator is nearby
-   for (GList *la = ui->bancs; la; la = la->next)
+   // 2. Automatic merge: sibling sub-groups (same parent_banc_id) merge once safe;
+   //    also merge any same-species schools that are very close and have no predator nearby.
+   GList *la = ui->bancs;
+   while (la)
    {
       Banc *ba = la->data;
-      for (GList *lb = la->next; lb; lb = lb->next)
+      GList *lb = la->next;
+      gboolean merged = FALSE;
+
+      while (lb)
       {
          Banc *bb = lb->data;
-         if (strcmp(ba->nom_espece, bb->nom_espece) == 0 && ba->leader && bb->leader && ba->leader->etat != ETAT_HORS_CADRE && bb->leader->etat != ETAT_HORS_CADRE)
+         GList *lb_next = lb->next; // save before potential free
+
+         if (strcmp(ba->nom_espece, bb->nom_espece) == 0
+             && ba->leader && bb->leader
+             && ba->leader->etat != ETAT_HORS_CADRE
+             && bb->leader->etat != ETAT_HORS_CADRE)
          {
+            // Siblings: same parent_banc_id, OR one is the other's parent
+            gboolean are_siblings = (ba->parent_banc_id > 0 && ba->parent_banc_id == bb->parent_banc_id)
+                                 || (ba->parent_banc_id == bb->id)
+                                 || (bb->parent_banc_id == ba->id);
+
             double dx = ba->leader->x - bb->leader->x;
             double dy = ba->leader->y - bb->leader->y;
             double dist = sqrt(dx * dx + dy * dy);
-            if (dist < 150.0)
+
+            // Sibling groups merge at a longer distance (300px); non-siblings at 150px
+            double merge_dist = are_siblings ? 300.0 : 150.0;
+
+            if (dist < merge_dist)
             {
+               // Check that no predator is within detection range of any member of either group
                gboolean predator_near = FALSE;
-               for (GList *lo = all_poissons; lo; lo = lo->next)
+
+               for (GList *lp = ba->poissons; lp && !predator_near; lp = lp->next)
                {
-                  Poisson *other = lo->data;
-                  if (is_predator(ui, other) && other->sante > 0.0 && other->etat != ETAT_HORS_CADRE)
+                  Poisson *member = lp->data;
+                  if (member->etat == ETAT_HORS_CADRE) continue;
+                  for (GList *lo = all_poissons; lo; lo = lo->next)
                   {
-                     double d_a = sqrt((other->x - ba->leader->x)*(other->x - ba->leader->x) + (other->y - ba->leader->y)*(other->y - ba->leader->y));
-                     double d_b = sqrt((other->x - bb->leader->x)*(other->x - bb->leader->x) + (other->y - bb->leader->y)*(other->y - bb->leader->y));
-                     if (d_a < ba->leader->perimetre_detection || d_b < bb->leader->perimetre_detection)
+                     Poisson *other = lo->data;
+                     if (is_predator(ui, other) && other->sante > 0.0 && other->etat != ETAT_HORS_CADRE
+                         && can_eat(ui, other, member))
                      {
-                        predator_near = TRUE;
-                        break;
+                        double d = sqrt((other->x - member->x) * (other->x - member->x)
+                                      + (other->y - member->y) * (other->y - member->y));
+                        if (d < member->perimetre_detection)
+                        {
+                           predator_near = TRUE;
+                           break;
+                        }
+                     }
+                  }
+               }
+
+               for (GList *lp = bb->poissons; lp && !predator_near; lp = lp->next)
+               {
+                  Poisson *member = lp->data;
+                  if (member->etat == ETAT_HORS_CADRE) continue;
+                  for (GList *lo = all_poissons; lo; lo = lo->next)
+                  {
+                     Poisson *other = lo->data;
+                     if (is_predator(ui, other) && other->sante > 0.0 && other->etat != ETAT_HORS_CADRE
+                         && can_eat(ui, other, member))
+                     {
+                        double d = sqrt((other->x - member->x) * (other->x - member->x)
+                                      + (other->y - member->y) * (other->y - member->y));
+                        if (d < member->perimetre_detection)
+                        {
+                           predator_near = TRUE;
+                           break;
+                        }
                      }
                   }
                }
 
                if (!predator_near)
                {
-                  // Merge bb into ba
+                  // Merge bb into ba; the merged group loses the split parent tracking
                   GList *lp = bb->poissons;
                   while (lp)
                   {
@@ -478,17 +545,26 @@ void bassin_tick_bancs_behavior(BassinUI *ui, double dt)
                      ba->poissons = g_list_append(ba->poissons, p);
                      lp = lp->next;
                   }
+                  // Reset parent tracking since the group is whole again
+                  ba->parent_banc_id = -1;
+                  ba->split_cooldown = 0;
+
                   g_list_free(bb->poissons);
                   free(bb->nom_espece);
                   ui->bancs = g_list_remove(ui->bancs, bb);
                   free(bb);
 
                   update_sidebar_list(ui);
+                  merged = TRUE;
                   break;
                }
             }
          }
+
+         lb = lb_next;
       }
+
+      la = merged ? ui->bancs : la->next; // restart outer if merged (list changed)
    }
 
    g_list_free(bancs_copy);
@@ -673,38 +749,12 @@ bool update_simulation(void *user_data)
             p->etat = ETAT_FUITE;
             if (dist > 0)
             {
-               if (p->id_banc >= 0)
-               {
-                  double ux = dx / dist;
-                  double uy = dy / dist;
-                  double ex = -ux;
-                  double ey = -uy;
-
-                  // Rotate by +135 degrees and -135 degrees
-                  double cos135 = -0.70710678;
-                  double sin135 = 0.70710678;
-
-                  double rx1 = ex * cos135 - ey * sin135;
-                  double ry1 = ex * sin135 + ey * cos135;
-
-                  double rx2 = ex * cos135 - ey * (-sin135);
-                  double ry2 = ex * (-sin135) + ey * cos135;
-
-                  // Choose the one that aligns better with current velocity
-                  double dot1 = rx1 * p->vx + ry1 * p->vy;
-                  double dot2 = rx2 * p->vx + ry2 * p->vy;
-
-                  double bypass_x = (dot1 >= dot2) ? rx1 : rx2;
-                  double bypass_y = (dot1 >= dot2) ? ry1 : ry2;
-
-                  evade_fx = bypass_x * p->vitesse_fuite;
-                  evade_fy = bypass_y * p->vitesse_fuite;
-               }
-               else
-               {
-                  evade_fx = -(dx / dist) * p->vitesse_fuite;
-                  evade_fy = -(dy / dist) * p->vitesse_fuite;
-               }
+               // Flee directly away from the predator for ALL fish (solo or banc).
+               // The split logic in bassin_tick_bancs_behavior already sets diverging
+               // ±45° angles at the moment of the split; the per-tick evasion just
+               // needs to keep each fish moving away from the nearest threat.
+               evade_fx = -(dx / dist) * p->vitesse_fuite;
+               evade_fy = -(dy / dist) * p->vitesse_fuite;
                has_evasion = TRUE;
             }
          }

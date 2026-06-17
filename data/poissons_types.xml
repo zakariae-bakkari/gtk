@@ -13,14 +13,7 @@
         <eats>tuna</eats>
         <eats>Dolphin</eats>
     </species>
-    <species name="Puffer" type="predator" level="3" speed_norm="40.0" speed_escape="70.0" speed_slow="20.0" size="65" detection="100" health="100.0">
-        <frame>resources/images/fishes/puffer/frame1.png</frame>
-        <frame>resources/images/fishes/puffer/frame2.png</frame>
-        <frame>resources/images/fishes/puffer/frame1.png</frame>
-        <eats>Sardine</eats>
-        <eats>seahorse</eats>
-    </species>
-    <species name="Sardine" type="prey" level="1" speed_norm="222.0" speed_escape="500.0" speed_slow="20.0" size="35" detection="190" health="98.0">
+    <species name="Sardine" type="prey" level="1" speed_norm="120.0" speed_escape="366.0" speed_slow="20.0" size="35" detection="333" health="98.0">
         <frame>resources/images/fishes/sardine/frame1.png</frame>
         <frame>resources/images/fishes/sardine/frame2.png</frame>
         <frame>resources/images/fishes/sardine/frame3.png</frame>
@@ -75,7 +68,7 @@
         <eats>Eel</eats>
         <eats>scate</eats>
     </species>
-    <species name="orka" type="predator" level="5" speed_norm="90.0" speed_escape="130.0" speed_slow="40.0" size="100" detection="135" health="100.0">
+    <species name="orka" type="predator" level="5" speed_norm="90.0" speed_escape="130.0" speed_slow="40.0" size="150" detection="411" health="156.0">
         <frame>resources/images/fishes/orka/frame1.png</frame>
         <frame>resources/images/fishes/orka/frame2.png</frame>
         <frame>resources/images/fishes/orka/frame3.png</frame>
@@ -86,13 +79,13 @@
         <eats>tuna</eats>
         <eats>Dolphin</eats>
     </species>
-    <species name="Seal" type="predator" level="3" speed_norm="65.0" speed_escape="95.0" speed_slow="25.0" size="75" detection="100" health="120.0">
+    <species name="Seal" type="predator" level="3" speed_norm="65.0" speed_escape="95.0" speed_slow="25.0" size="88" detection="360" health="120.0">
         <frame>resources/images/fishes/seal/frame1.png</frame>
         <frame>resources/images/fishes/seal/frame2.png</frame>
         <frame>resources/images/fishes/seal/frame3.png</frame>
         <eats>Sardine</eats>
-        <eats>seahorse</eats>
-        <eats>scate</eats>
         <eats>Eel</eats>
+        <eats>scate</eats>
+        <eats>seahorse</eats>
     </species>
 </species_list>
