@@ -373,7 +373,7 @@ void load_settings_from_xml(BassinUI *ui)
    ui->config_fish_size = attr_int(root, "fish_size", ui->config_fish_size);
 
    const char *bg = xml_attr_get(root, "bg_path");
-   if (bg)
+   if (bg && bg[0] && g_file_test(bg, G_FILE_TEST_EXISTS))
    {
       if (ui->config_bg_path)
          free(ui->config_bg_path);

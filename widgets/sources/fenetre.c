@@ -76,7 +76,21 @@ void fenetre_appliquer_position(Fenetre *config)
 }
 
 // ════════════════════════════════════════════════════════════
-// ICÔNE TASKBAR WINDOWS via .ico  ✅ CORRECTION
+// MAXIMIZE WIN32 via signal "realize"
+// ════════════════════════════════════════════════════════════
+#ifdef _WIN32
+static void _win32_maximize_on_realize(GtkWidget *widget, gpointer data)
+{
+    (void)data;
+    GdkSurface *surface = gtk_native_get_surface(GTK_NATIVE(widget));
+    if (!surface) return;
+    HWND hwnd = GDK_SURFACE_HWND(surface);
+    if (hwnd) ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+}
+#endif
+
+// ════════════════════════════════════════════════════════════
+// ICÔNE TASKBAR WINDOWS via .ico
 // ════════════════════════════════════════════════════════════
 void fenetre_appliquer_icone_taskbar(Fenetre *config)
 {
@@ -229,8 +243,13 @@ Widget fenetre_creer(Fenetre *config, void *app)
         config->taille.width, config->taille.height);
     gtk_window_set_resizable(GTK_WINDOW(config->wind), config->resizable);
 
-    if (config->demarrer_maximisee)
+    if (config->demarrer_maximisee) {
         gtk_window_maximize(GTK_WINDOW(config->wind));
+#ifdef _WIN32
+        g_signal_connect(config->wind, "realize",
+                         G_CALLBACK(_win32_maximize_on_realize), NULL);
+#endif
+    }
 
     // --- HEADERBAR ---
     GtkWidget *header_bar = gtk_header_bar_new();

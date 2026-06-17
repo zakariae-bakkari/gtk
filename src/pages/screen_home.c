@@ -48,21 +48,28 @@ Widget screen_accueil_create(void)
    widget_set_hexpand(overlay, true);
    widget_set_vexpand(overlay, true);
 
-   // Background Video (using GtkMediaFile + GtkPicture for NO controls)
+   // Fallback background image (always visible; covers the overlay base layer)
+   Widget w_bg = widget_creer_picture_depuis_fichier("resources/images/fond/background2.png");
+   widget_picture_set_keep_aspect_ratio(w_bg, false);
+   widget_set_hexpand(w_bg, true);
+   widget_set_vexpand(w_bg, true);
+   widget_set_halign_fill(w_bg);
+   widget_set_valign_fill(w_bg);
+   widget_overlay_set_child(overlay, w_bg);
+
+   // Background video on top (transparent if GStreamer is unavailable)
    void* stream = widget_media_stream_new_from_file("resources/images/fond/background.mp4");
    widget_media_stream_set_loop(stream, true);
-   
+
    Widget w_vid = widget_picture_new_for_paintable(stream);
    widget_picture_set_keep_aspect_ratio(w_vid, false);
    widget_set_hexpand(w_vid, true);
    widget_set_vexpand(w_vid, true);
    widget_set_halign_fill(w_vid);
    widget_set_valign_fill(w_vid);
-   
-   // Start playback manually
+
    widget_media_stream_play(stream);
-   
-   widget_overlay_set_child(overlay, w_vid);
+   widget_overlay_add_overlay(overlay, w_vid);
 
    // Content box
    Conteneur c_content;

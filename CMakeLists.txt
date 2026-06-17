@@ -10,12 +10,15 @@ add_executable(gtk
     src/main.c
     src/modele/poisson.c
     src/pages/screen_bassin.c
+    src/pages/screen_bassin_helpers.c
     src/pages/screen_home.c
     src/dialogs/bassin_dialogs.c
+    src/actions/bassin_interactions.c
     src/actions/bassin_menu.c
     src/actions/bassin_sidebar.c
     src/simulation/bassin_simulation.c
     src/simulation/bassin_xml.c
+    src/core/app_runner.c
     src/core/sound.c
 
     widgets/sources/bouton.c
@@ -27,6 +30,8 @@ add_executable(gtk
     widgets/sources/texte.c
     widgets/sources/image.c
     widgets/sources/video.c
+    widgets/sources/barre_progression.c
+    widgets/sources/separateur.c
 
     # Inputs
     widgets/sources/champ_texte.c
@@ -47,4 +52,11 @@ target_include_directories(gtk PRIVATE widgets/headers)
 target_compile_definitions(gtk PRIVATE
     UI_EXEMPLE_PATH="ui_exemple.txt"
     RESOURCES_PATH="resources"
+)
+
+# Copy resources folder next to the built executable so relative paths work
+add_custom_command(TARGET gtk POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources"
+        "$<TARGET_FILE_DIR:gtk>/resources"
 )
