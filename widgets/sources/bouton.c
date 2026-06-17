@@ -160,6 +160,70 @@ void bouton_initialiser(Bouton *config)
     config->est_actif = true;
 }
 
+void bouton_appliquer_preset(Bouton *config, BoutonPresetStyle preset)
+{
+    if (!config)
+        return;
+
+    // Free existing dynamically allocated style strings first
+    if (config->style.bg_normal) free(config->style.bg_normal);
+    if (config->style.bg_hover) free(config->style.bg_hover);
+    if (config->style.fg_normal) free(config->style.fg_normal);
+    if (config->style.fg_hover) free(config->style.fg_hover);
+    if (config->style.couleur_bordure) free(config->style.couleur_bordure);
+
+    config->style.couleur_bordure = strdup("transparent");
+    config->style.epaisseur_bordure = 0;
+    config->style.rayon_arrondi = 6;
+    config->style.gras = false;
+    config->style.italique = false;
+
+    switch (preset)
+    {
+    case BOUTON_STYLE_SUGGESTED:
+        config->style.bg_normal = strdup("#3498DB");
+        config->style.bg_hover = strdup("#2980B9");
+        config->style.fg_normal = strdup("#FFFFFF");
+        config->style.fg_hover = strdup("#FFFFFF");
+        break;
+    case BOUTON_STYLE_DESTRUCTIVE:
+        config->style.bg_normal = strdup("#E74C3C");
+        config->style.bg_hover = strdup("#C0392B");
+        config->style.fg_normal = strdup("#FFFFFF");
+        config->style.fg_hover = strdup("#FFFFFF");
+        break;
+    case BOUTON_STYLE_NEUTRAL:
+        config->style.bg_normal = strdup("#ECEFF1");
+        config->style.bg_hover = strdup("#CFD8DC");
+        config->style.fg_normal = strdup("#37474F");
+        config->style.fg_hover = strdup("#263238");
+        break;
+    case BOUTON_STYLE_TAB_ACTIVE:
+        config->style.bg_normal = strdup("#3498DB");
+        config->style.bg_hover = strdup("#2980B9");
+        config->style.fg_normal = strdup("#FFFFFF");
+        config->style.fg_hover = strdup("#FFFFFF");
+        config->style.rayon_arrondi = 4;
+        config->style.gras = true;
+        break;
+    case BOUTON_STYLE_TAB_INACTIVE:
+        config->style.bg_normal = strdup("#ECEFF1");
+        config->style.bg_hover = strdup("#CFD8DC");
+        config->style.fg_normal = strdup("#37474F");
+        config->style.fg_hover = strdup("#263238");
+        config->style.rayon_arrondi = 4;
+        break;
+    case BOUTON_STYLE_DEFAUT:
+    default:
+        config->style.bg_normal = strdup("#E0E0E0");
+        config->style.bg_hover = strdup("#D5D5D5");
+        config->style.fg_normal = strdup("#1E1E1E");
+        config->style.fg_hover = strdup("#000000");
+        break;
+    }
+}
+
+
 GtkWidget *bouton_creer(Bouton *config)
 {
     if (!config)

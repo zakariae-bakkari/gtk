@@ -124,11 +124,22 @@ typedef struct
 
 } Bouton;
 
+typedef enum
+{
+    BOUTON_STYLE_DEFAUT,
+    BOUTON_STYLE_SUGGESTED,
+    BOUTON_STYLE_DESTRUCTIVE,
+    BOUTON_STYLE_NEUTRAL,
+    BOUTON_STYLE_TAB_ACTIVE,
+    BOUTON_STYLE_TAB_INACTIVE
+} BoutonPresetStyle;
+
 /* -------------------------------------------------------------------------
  * Prototypes
  * ------------------------------------------------------------------------- */
 
 void bouton_initialiser(Bouton *config);
+void bouton_appliquer_preset(Bouton *config, BoutonPresetStyle preset);
 GtkWidget *bouton_creer(Bouton *config);
 
 // Fonction helper pour changer le texte dynamiquement après création

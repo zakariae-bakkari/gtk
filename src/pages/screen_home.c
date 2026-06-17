@@ -2,6 +2,25 @@
 #include "../../widgets/headers/image.h"
 #include "../../widgets/headers/video.h"
 #include "../../widgets/headers/fenetre.h"
+#include "../../widgets/headers/bouton.h"
+
+static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+{
+   (void)widget;
+   Bouton *b = data;
+   if (b) {
+      if (b->texte) free(b->texte);
+      if (b->id_css) free(b->id_css);
+      if (b->nom_icone) free(b->nom_icone);
+      if (b->tooltip) free(b->tooltip);
+      if (b->style.bg_normal) free(b->style.bg_normal);
+      if (b->style.bg_hover) free(b->style.bg_hover);
+      if (b->style.fg_normal) free(b->style.fg_normal);
+      if (b->style.fg_hover) free(b->style.fg_hover);
+      if (b->style.couleur_bordure) free(b->style.couleur_bordure);
+      free(b);
+   }
+}
 
 static GtkWidget *placeholder_with_label(const char *text)
 {
@@ -11,7 +30,7 @@ static GtkWidget *placeholder_with_label(const char *text)
    return box;
 }
 
-static void on_start_clicked(GtkButton *btn, gpointer user_data)
+static void on_start_clicked(GtkWidget *btn, gpointer user_data)
 {
    (void)btn;
    (void)user_data;
@@ -69,17 +88,35 @@ GtkWidget *screen_accueil_create(void)
    gtk_box_append(GTK_BOX(content), btn_box);
 
    // Start Button
-   GtkWidget *btn_start = gtk_button_new_with_label("🚀 DEMARRER LA SIMULATION");
-   gtk_widget_add_css_class(btn_start, "principal");
-   gtk_widget_set_size_request(btn_start, 300, 60);
-   g_signal_connect(btn_start, "clicked", G_CALLBACK(on_start_clicked), NULL);
+   Bouton *b_start = g_new0(Bouton, 1);
+   bouton_initialiser(b_start);
+   g_free(b_start->texte);
+   b_start->texte = strdup("🚀 DEMARRER LA SIMULATION");
+   g_free(b_start->id_css);
+   b_start->id_css = strdup("home_btn_start");
+   bouton_appliquer_preset(b_start, BOUTON_STYLE_SUGGESTED);
+   b_start->taille.mode = TAILLE_FIXE;
+   b_start->taille.largeur = 300;
+   b_start->taille.hauteur = 60;
+   b_start->on_clic = (BoutonAction)on_start_clicked;
+   GtkWidget *btn_start = bouton_creer(b_start);
+   g_signal_connect(btn_start, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_start);
    gtk_box_append(GTK_BOX(btn_box), btn_start);
 
    // Quit Button
-   GtkWidget *btn_quit = gtk_button_new_with_label("❌ QUITTER");
-   gtk_widget_add_css_class(btn_quit, "danger");
-   gtk_widget_set_size_request(btn_quit, 300, 50);
-   g_signal_connect(btn_quit, "clicked", G_CALLBACK(action_quitter), NULL);
+   Bouton *b_quit = g_new0(Bouton, 1);
+   bouton_initialiser(b_quit);
+   g_free(b_quit->texte);
+   b_quit->texte = strdup("❌ QUITTER");
+   g_free(b_quit->id_css);
+   b_quit->id_css = strdup("home_btn_quit");
+   bouton_appliquer_preset(b_quit, BOUTON_STYLE_DESTRUCTIVE);
+   b_quit->taille.mode = TAILLE_FIXE;
+   b_quit->taille.largeur = 300;
+   b_quit->taille.hauteur = 50;
+   b_quit->on_clic = (BoutonAction)action_quitter;
+   GtkWidget *btn_quit = bouton_creer(b_quit);
+   g_signal_connect(btn_quit, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_quit);
    gtk_box_append(GTK_BOX(btn_box), btn_quit);
 
    return overlay;

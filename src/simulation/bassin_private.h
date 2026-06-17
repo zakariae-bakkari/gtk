@@ -44,11 +44,20 @@ typedef struct
    int ticks_at_bottom;
 } Food;
 
+typedef struct _Banc
+{
+   int id;
+   char *nom_espece;
+   GList *poissons;  /* list of Poisson* */
+   Poisson *leader;  /* pointer to Poisson */
+} Banc;
+
 typedef struct
 {
    GtkWidget *root;
    GtkWidget *canvas;
-   GList *poissons; /* list of Poisson* */
+   GList *poissons; /* list of Poisson* (autonomous only) */
+   GList *bancs;    /* list of Banc* */
    GList *foods;    /* list of Food* */
    int next_id;
    int next_food_id;
@@ -174,6 +183,15 @@ void spawn_food(BassinUI *ui, double x, double y);
 void on_throw_food_clicked(GtkWidget *widget, gpointer user_data);
 Poisson *find_nearest_prey(BassinUI *ui, Poisson *predator);
 Poisson *find_nearest_predator(BassinUI *ui, Poisson *fish);
+
+// Shoal helpers
+GList *bassin_get_all_poissons(BassinUI *ui);
+Banc *bassin_find_banc(BassinUI *ui, int banc_id);
+Banc *bassin_get_or_create_banc(BassinUI *ui, int banc_id, const char *species_name);
+void bassin_remove_poisson_from_banc(BassinUI *ui, Poisson *p);
+void bassin_add_poisson_to_banc(BassinUI *ui, Poisson *p, int banc_id);
+void bassin_add_poisson(BassinUI *ui, Poisson *p);
+void bassin_tick_bancs_behavior(BassinUI *ui, double dt);
 
 // Module: Menu & Actions
 void bassin_menu_init(BassinUI *ui, GtkWidget *header_box);

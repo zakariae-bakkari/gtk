@@ -5,6 +5,54 @@
 #include "../../widgets/headers/champ_texte.h"
 #include "../../widgets/headers/champ_nombre.h"
 #include "../../widgets/headers/bouton_checklist.h"
+#include "../../widgets/headers/bouton.h"
+
+void show_shortcuts_help_dialog(BassinUI *ui);
+
+static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+{
+   (void)widget;
+   Bouton *b = data;
+   if (b) {
+      if (b->texte) free(b->texte);
+      if (b->id_css) free(b->id_css);
+      if (b->nom_icone) free(b->nom_icone);
+      if (b->tooltip) free(b->tooltip);
+      if (b->style.bg_normal) free(b->style.bg_normal);
+      if (b->style.bg_hover) free(b->style.bg_hover);
+      if (b->style.fg_normal) free(b->style.fg_normal);
+      if (b->style.fg_hover) free(b->style.fg_hover);
+      if (b->style.couleur_bordure) free(b->style.couleur_bordure);
+      free(b);
+   }
+}
+
+static GtkWidget *creer_bouton_custom(const char *texte, const char *nom_icone, BoutonIconePos pos_icone, const char *id_css, BoutonPresetStyle preset, BoutonAction on_clic, gpointer user_data)
+{
+   Bouton *b = g_new0(Bouton, 1);
+   bouton_initialiser(b);
+   g_free(b->texte);
+   b->texte = texte ? strdup(texte) : strdup("");
+   g_free(b->id_css);
+   b->id_css = strdup(id_css);
+   if (nom_icone)
+   {
+      b->nom_icone = strdup(nom_icone);
+      b->pos_icone = pos_icone;
+   }
+   bouton_appliquer_preset(b, preset);
+   b->on_clic = on_clic;
+   b->user_data = user_data;
+   GtkWidget *w = bouton_creer(b);
+   g_signal_connect(w, "destroy", G_CALLBACK(on_custom_bouton_destroy), b);
+   return w;
+}
+
+static void on_btn_shortcuts_clicked(GtkWidget *widget, gpointer data)
+{
+   (void)widget;
+   show_shortcuts_help_dialog((BassinUI *)data);
+}
 
 void on_insertion_mode_changed(GtkCheckButton *widget, gpointer user_data)
 {
@@ -49,14 +97,10 @@ void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, 
          if (in_banc)
          {
             gboolean has_leader = FALSE;
-            for (GList *l = ui->poissons; l; l = l->next)
+            Banc *b = bassin_find_banc(ui, target_banc_id);
+            if (b && b->leader)
             {
-               Poisson *other = l->data;
-               if (other->id_banc == target_banc_id && other->est_leader)
-               {
-                  has_leader = TRUE;
-                  break;
-               }
+               has_leader = TRUE;
             }
             p->est_leader = !has_leader;
          }
@@ -81,18 +125,22 @@ void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, 
 
    if (p->id_banc >= 0)
    {
-      for (GList *l = ui->poissons; l; l = l->next)
+      Banc *b = bassin_find_banc(ui, p->id_banc);
+      if (b && b->poissons)
       {
-         Poisson *other = l->data;
-         if (other->id_banc == p->id_banc && other != p)
+         for (GList *l = b->poissons; l; l = l->next)
          {
-            rx = other->x + (rand() % 60 - 30);
-            ry = other->y + (rand() % 60 - 30);
-            if (rx < 50) rx = 50;
-            if (ry < 50) ry = 50;
-            if (rx > ui->config_canvas_width - 50) rx = ui->config_canvas_width - 50;
-            if (ry > ui->config_canvas_height - 50) ry = ui->config_canvas_height - 50;
-            break;
+            Poisson *other = l->data;
+            if (other != p)
+            {
+               rx = other->x + (rand() % 60 - 30);
+               ry = other->y + (rand() % 60 - 30);
+               if (rx < 50) rx = 50;
+               if (ry < 50) ry = 50;
+               if (rx > ui->config_canvas_width - 50) rx = ui->config_canvas_width - 50;
+               if (ry > ui->config_canvas_height - 50) ry = ui->config_canvas_height - 50;
+               break;
+            }
          }
       }
    }
@@ -113,7 +161,7 @@ void add_fish_programmatic(BassinUI *ui, const char *species, gboolean in_banc, 
    // Create the widget representation using the coordinator helper
    create_poisson_widget(ui, p);
 
-   ui->poissons = g_list_prepend(ui->poissons, p);
+   bassin_add_poisson(ui, p);
 }
 
 void on_dialog_reponse(int reponse, gpointer user_data)
@@ -135,20 +183,15 @@ void on_dialog_reponse(int reponse, gpointer user_data)
          else // Map to an existing active school
          {
             int current_idx = 1;
-            for (int b_id = 1; b_id <= ui->num_bancs; b_id++)
+            for (GList *l = ui->bancs; l; l = l->next)
             {
-               int count = 0;
-               for (GList *l = ui->poissons; l; l = l->next)
-               {
-                  Poisson *p = l->data;
-                  if (p->id_banc == b_id)
-                     count++;
-               }
+               Banc *b = l->data;
+               int count = g_list_length(b->poissons);
                if (count > 0)
                {
                   if (current_idx == idx)
                   {
-                     target_banc_id = b_id;
+                     target_banc_id = b->id;
                      break;
                   }
                   current_idx++;
@@ -247,23 +290,14 @@ static void open_add_dialog(BassinUI *ui, const char *species)
    champ_select_initialiser(&ui->dialog_sel_banc);
    champ_select_add_item(&ui->dialog_sel_banc, "Créer un nouveau banc...");
 
-   for (int b_id = 1; b_id <= ui->num_bancs; b_id++)
+   for (GList *l = ui->bancs; l; l = l->next)
    {
-      int count = 0;
-      char sp_name[64] = "poissons";
-      for (GList *l = ui->poissons; l; l = l->next)
-      {
-         Poisson *p = l->data;
-         if (p->id_banc == b_id)
-         {
-            count++;
-            strcpy(sp_name, p->nom);
-         }
-      }
+      Banc *b = l->data;
+      int count = g_list_length(b->poissons);
       if (count > 0)
       {
          char name_buf[128];
-         sprintf(name_buf, "Banc %ss (%d membres)", sp_name, count);
+         sprintf(name_buf, "Banc %ss (%d membres)", b->nom_espece ? b->nom_espece : "poissons", count);
          champ_select_add_item(&ui->dialog_sel_banc, name_buf);
       }
    }
@@ -676,10 +710,9 @@ static GtkWidget *create_frame_selector(ChampTexte *champ, const char *default_v
    gtk_box_append(GTK_BOX(hbox), w_entry_container);
    gtk_widget_set_hexpand(w_entry_container, TRUE);
 
-   GtkWidget *btn_browse = gtk_button_new_from_icon_name("folder-open-symbolic");
+   GtkWidget *btn_browse = creer_bouton_custom(NULL, "folder-open-symbolic", ICONE_SEULE, "btn_browse_frame", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_browse_frame_clicked, champ);
    gtk_widget_set_tooltip_text(btn_browse, "Parcourir...");
    g_object_set_data(G_OBJECT(btn_browse), "parent_win", parent_win);
-   g_signal_connect(btn_browse, "clicked", G_CALLBACK(on_browse_frame_clicked), champ);
    gtk_box_append(GTK_BOX(hbox), btn_browse);
 
    return hbox;
@@ -971,19 +1004,17 @@ void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
          
          GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
          
-         GtkWidget *btn_sp = gtk_button_new_with_label(label_buf);
+         GtkWidget *btn_sp = creer_bouton_custom(label_buf, NULL, ICONE_GAUCHE, "btn_popover_sp", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_popover_species_selected, (gpointer)cfg->nom);
          gtk_widget_set_hexpand(btn_sp, TRUE);
+         gtk_widget_set_halign(btn_sp, GTK_ALIGN_FILL);
          g_object_set_data(G_OBJECT(btn_sp), "ui", ui);
          g_object_set_data(G_OBJECT(btn_sp), "popover", popover);
-         g_signal_connect(btn_sp, "clicked", G_CALLBACK(on_popover_species_selected), (gpointer)cfg->nom);
          gtk_box_append(GTK_BOX(row), btn_sp);
 
-         GtkWidget *btn_info = gtk_button_new_from_icon_name("help-about-symbolic");
-         gtk_widget_add_css_class(btn_info, "flat");
+         GtkWidget *btn_info = creer_bouton_custom(NULL, "help-about-symbolic", ICONE_SEULE, "btn_popover_info", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_popover_details_clicked, (gpointer)cfg->nom);
          gtk_widget_set_tooltip_text(btn_info, "Détails de l'espèce");
          g_object_set_data(G_OBJECT(btn_info), "ui", ui);
          g_object_set_data(G_OBJECT(btn_info), "popover", popover);
-         g_signal_connect(btn_info, "clicked", G_CALLBACK(on_popover_details_clicked), (gpointer)cfg->nom);
          gtk_box_append(GTK_BOX(row), btn_info);
 
          gtk_box_append(GTK_BOX(box), row);
@@ -1006,19 +1037,17 @@ void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
          
          GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
          
-         GtkWidget *btn_sp = gtk_button_new_with_label(label_buf);
+         GtkWidget *btn_sp = creer_bouton_custom(label_buf, NULL, ICONE_GAUCHE, "btn_popover_sp", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_popover_species_selected, (gpointer)cfg->nom);
          gtk_widget_set_hexpand(btn_sp, TRUE);
+         gtk_widget_set_halign(btn_sp, GTK_ALIGN_FILL);
          g_object_set_data(G_OBJECT(btn_sp), "ui", ui);
          g_object_set_data(G_OBJECT(btn_sp), "popover", popover);
-         g_signal_connect(btn_sp, "clicked", G_CALLBACK(on_popover_species_selected), (gpointer)cfg->nom);
          gtk_box_append(GTK_BOX(row), btn_sp);
 
-         GtkWidget *btn_info = gtk_button_new_from_icon_name("help-about-symbolic");
-         gtk_widget_add_css_class(btn_info, "flat");
+         GtkWidget *btn_info = creer_bouton_custom(NULL, "help-about-symbolic", ICONE_SEULE, "btn_popover_info", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_popover_details_clicked, (gpointer)cfg->nom);
          gtk_widget_set_tooltip_text(btn_info, "Détails de l'espèce");
          g_object_set_data(G_OBJECT(btn_info), "ui", ui);
          g_object_set_data(G_OBJECT(btn_info), "popover", popover);
-         g_signal_connect(btn_info, "clicked", G_CALLBACK(on_popover_details_clicked), (gpointer)cfg->nom);
          gtk_box_append(GTK_BOX(row), btn_info);
 
          gtk_box_append(GTK_BOX(box), row);
@@ -1032,10 +1061,8 @@ void on_add_poisson_btn_clicked(GtkWidget *widget, gpointer user_data)
    gtk_box_append(GTK_BOX(box), sep);
 
    // Create new one button
-   GtkWidget *btn_create_new = gtk_button_new_with_label("✨ Create new one");
-   gtk_widget_add_css_class(btn_create_new, "principal");
+   GtkWidget *btn_create_new = creer_bouton_custom("✨ Create new one", NULL, ICONE_GAUCHE, "btn_popover_new", BOUTON_STYLE_SUGGESTED, (BoutonAction)on_create_new_species_clicked, ui);
    g_object_set_data(G_OBJECT(btn_create_new), "popover", popover);
-   g_signal_connect(btn_create_new, "clicked", G_CALLBACK(on_create_new_species_clicked), ui);
    gtk_box_append(GTK_BOX(box), btn_create_new);
 
    gtk_popover_set_child(GTK_POPOVER(popover), box);
@@ -1288,10 +1315,9 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    gtk_box_append(GTK_BOX(hbox_bg), w_txt_bg);
    gtk_widget_set_hexpand(w_txt_bg, TRUE);
    
-   GtkWidget *btn_browse_bg = gtk_button_new_from_icon_name("folder-open-symbolic");
+   GtkWidget *btn_browse_bg = creer_bouton_custom(NULL, "folder-open-symbolic", ICONE_SEULE, "btn_browse_bg", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_browse_bg_clicked, &ui->settings_txt_bg);
    gtk_widget_set_tooltip_text(btn_browse_bg, "Parcourir...");
    g_object_set_data(G_OBJECT(btn_browse_bg), "parent_win", (gpointer)(toplevel ? GTK_WINDOW(toplevel) : NULL));
-   g_signal_connect(btn_browse_bg, "clicked", G_CALLBACK(on_browse_bg_clicked), &ui->settings_txt_bg);
    gtk_box_append(GTK_BOX(hbox_bg), btn_browse_bg);
 
    gtk_box_append(GTK_BOX(box), hbox_bg);
@@ -1378,10 +1404,7 @@ void on_settings_clicked(GtkWidget *widget, gpointer user_data)
    gtk_widget_set_margin_bottom(sep_help, 8);
    gtk_box_append(GTK_BOX(box), sep_help);
 
-   // Keyboard Shortcuts Button
-   GtkWidget *btn_shortcuts = gtk_button_new_with_label("⌨️ Raccourcis Clavier");
-   gtk_widget_add_css_class(btn_shortcuts, "secondaire");
-   g_signal_connect_swapped(btn_shortcuts, "clicked", G_CALLBACK(show_shortcuts_help_dialog), ui);
+   GtkWidget *btn_shortcuts = creer_bouton_custom("⌨️ Raccourcis Clavier", NULL, ICONE_GAUCHE, "btn_shortcuts_help", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_btn_shortcuts_clicked, ui);
    gtk_box_append(GTK_BOX(box), btn_shortcuts);
 
    // Raccourcis Clavier Section
@@ -2160,10 +2183,8 @@ void show_fish_details_dialog(BassinUI *ui, Poisson *p)
          gtk_grid_attach(GTK_GRID(grid), kills_box, 2, r, 1, 1);
 
          // Details button
-         GtkWidget *btn_prey_detail = gtk_button_new_with_label("🔍 Détails");
-         gtk_widget_add_css_class(btn_prey_detail, "secondaire");
+         GtkWidget *btn_prey_detail = creer_bouton_custom("🔍 Détails", NULL, ICONE_GAUCHE, "btn_prey_details", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_prey_details_clicked, ui);
          g_object_set_data(G_OBJECT(btn_prey_detail), "species_name", (gpointer)prey_name);
-         g_signal_connect(btn_prey_detail, "clicked", G_CALLBACK(on_prey_details_clicked), ui);
          gtk_grid_attach(GTK_GRID(grid), btn_prey_detail, 3, r, 1, 1);
       }
 
@@ -2171,23 +2192,19 @@ void show_fish_details_dialog(BassinUI *ui, Poisson *p)
    }
 
    // Control button
-   GtkWidget *btn_control = gtk_button_new_with_label("🕹️ Prendre le contrôle");
-   gtk_widget_add_css_class(btn_control, "suggested-action");
+   GtkWidget *btn_control = creer_bouton_custom("🕹️ Prendre le contrôle", NULL, ICONE_GAUCHE, "btn_control_fish", BOUTON_STYLE_SUGGESTED, (BoutonAction)on_control_fish_clicked, NULL);
    gtk_widget_set_margin_top(btn_control, 10);
    g_object_set_data(G_OBJECT(btn_control), "ui", ui);
    g_object_set_data(G_OBJECT(btn_control), "poisson", p);
    g_object_set_data(G_OBJECT(btn_control), "dialog", details);
-   g_signal_connect(btn_control, "clicked", G_CALLBACK(on_control_fish_clicked), NULL);
    gtk_box_append(GTK_BOX(box), btn_control);
 
    // Modify species button
-   GtkWidget *btn_modify = gtk_button_new_with_label("⚙️ Modifier l'espèce");
-   gtk_widget_add_css_class(btn_modify, "secondaire");
+   GtkWidget *btn_modify = creer_bouton_custom("⚙️ Modifier l'espèce", NULL, ICONE_GAUCHE, "btn_modify_species", BOUTON_STYLE_NEUTRAL, (BoutonAction)on_modify_fish_species_clicked, NULL);
    gtk_widget_set_margin_top(btn_modify, 5);
    g_object_set_data(G_OBJECT(btn_modify), "ui", ui);
    g_object_set_data(G_OBJECT(btn_modify), "poisson", p);
    g_object_set_data(G_OBJECT(btn_modify), "dialog", details);
-   g_signal_connect(btn_modify, "clicked", G_CALLBACK(on_modify_fish_species_clicked), NULL);
    gtk_box_append(GTK_BOX(box), btn_modify);
 
    GtkWidget *scroll = gtk_scrolled_window_new();

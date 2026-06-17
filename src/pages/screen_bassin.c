@@ -1,7 +1,26 @@
 #include "screen_bassin.h"
 #include "../simulation/bassin_private.h"
+#include "../../widgets/headers/bouton.h"
 #include <stdlib.h>
 #include <string.h>
+
+static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+{
+   (void)widget;
+   Bouton *b = data;
+   if (b) {
+      if (b->texte) free(b->texte);
+      if (b->id_css) free(b->id_css);
+      if (b->nom_icone) free(b->nom_icone);
+      if (b->tooltip) free(b->tooltip);
+      if (b->style.bg_normal) free(b->style.bg_normal);
+      if (b->style.bg_hover) free(b->style.bg_hover);
+      if (b->style.fg_normal) free(b->style.fg_normal);
+      if (b->style.fg_hover) free(b->style.fg_hover);
+      if (b->style.couleur_bordure) free(b->style.couleur_bordure);
+      free(b);
+   }
+}
 
 static void on_root_destroy(GtkWidget *widget, gpointer user_data)
 {
@@ -140,16 +159,32 @@ GtkWidget *screen_bassin_create(void)
    // Tab Headers
    GtkWidget *box_tabs = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 
-   ui->btn_tab_entites = gtk_button_new_with_label("Entités");
+   Bouton *b_ent = g_new0(Bouton, 1);
+   bouton_initialiser(b_ent);
+   g_free(b_ent->texte);
+   b_ent->texte = strdup("Entités");
+   g_free(b_ent->id_css);
+   b_ent->id_css = strdup("btn_tab_entites");
+   bouton_appliquer_preset(b_ent, BOUTON_STYLE_TAB_ACTIVE);
+   b_ent->on_clic = (BoutonAction)on_tab_entites_clicked;
+   b_ent->user_data = ui;
+   ui->btn_tab_entites = bouton_creer(b_ent);
+   g_signal_connect(ui->btn_tab_entites, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_ent);
    gtk_widget_set_hexpand(ui->btn_tab_entites, TRUE);
-   gtk_widget_add_css_class(ui->btn_tab_entites, "tab-active");
-   g_signal_connect(ui->btn_tab_entites, "clicked", G_CALLBACK(on_tab_entites_clicked), ui);
    gtk_box_append(GTK_BOX(box_tabs), ui->btn_tab_entites);
 
-   ui->btn_tab_bancs = gtk_button_new_with_label("Bancs");
+   Bouton *b_banc = g_new0(Bouton, 1);
+   bouton_initialiser(b_banc);
+   g_free(b_banc->texte);
+   b_banc->texte = strdup("Bancs");
+   g_free(b_banc->id_css);
+   b_banc->id_css = strdup("btn_tab_bancs");
+   bouton_appliquer_preset(b_banc, BOUTON_STYLE_TAB_INACTIVE);
+   b_banc->on_clic = (BoutonAction)on_tab_bancs_clicked;
+   b_banc->user_data = ui;
+   ui->btn_tab_bancs = bouton_creer(b_banc);
+   g_signal_connect(ui->btn_tab_bancs, "destroy", G_CALLBACK(on_custom_bouton_destroy), b_banc);
    gtk_widget_set_hexpand(ui->btn_tab_bancs, TRUE);
-   gtk_widget_add_css_class(ui->btn_tab_bancs, "tab-inactive");
-   g_signal_connect(ui->btn_tab_bancs, "clicked", G_CALLBACK(on_tab_bancs_clicked), ui);
    gtk_box_append(GTK_BOX(box_tabs), ui->btn_tab_bancs);
 
    gtk_box_append(GTK_BOX(sidebar), box_tabs);

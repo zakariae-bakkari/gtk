@@ -144,12 +144,14 @@ void bassin_save_to_xml(BassinUI *ui, const char *filename)
            ui->config_canvas_width, ui->config_canvas_height, ui->config_fish_size, ui->config_bg_path, ui->elapsed_time, ui->num_bancs);
    fprintf(f, "  <poissons>\n");
 
-   for (GList *l = ui->poissons; l; l = l->next)
+   GList *all_poissons = bassin_get_all_poissons(ui);
+   for (GList *l = all_poissons; l; l = l->next)
    {
       Poisson *p = l->data;
       fprintf(f, "    <poisson id=\"%d\" nom=\"%s\" x=\"%f\" y=\"%f\" vx=\"%f\" vy=\"%f\" id_banc=\"%d\" est_leader=\"%s\" sante=\"%f\"/>\n",
               p->id, p->nom, p->x, p->y, p->vx, p->vy, p->id_banc, p->est_leader ? "true" : "false", p->sante);
    }
+   g_list_free(all_poissons);
 
    fprintf(f, "  </poissons>\n");
    fprintf(f, "</bassin>\n");
@@ -171,7 +173,7 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
       return;
    }
 
-   // 1. Clear current poissons
+   // 1. Clear current poissons & bancs
    while (ui->poissons)
    {
       GList *node = ui->poissons;
@@ -182,6 +184,26 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
       }
       poisson_free(p);
       ui->poissons = g_list_delete_link(ui->poissons, node);
+   }
+
+   while (ui->bancs)
+   {
+      GList *node = ui->bancs;
+      Banc *b = node->data;
+      while (b->poissons)
+      {
+         GList *p_node = b->poissons;
+         Poisson *p = p_node->data;
+         if (p->widget_image)
+         {
+            gtk_widget_unparent(p->widget_image);
+         }
+         poisson_free(p);
+         b->poissons = g_list_delete_link(b->poissons, p_node);
+      }
+      free(b->nom_espece);
+      free(b);
+      ui->bancs = g_list_delete_link(ui->bancs, node);
    }
 
    ui->next_id = 1;
@@ -265,7 +287,7 @@ void bassin_load_from_xml(BassinUI *ui, const char *filename)
                // Build widget using the helper
                create_poisson_widget(ui, p);
 
-               ui->poissons = g_list_prepend(ui->poissons, p);
+               bassin_add_poisson(ui, p);
             }
          }
       }

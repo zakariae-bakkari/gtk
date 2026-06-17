@@ -3,6 +3,7 @@
 #include "pages/screen_bassin.h"
 #include "pages/screen_home.h"
 #include "fenetre.h"
+#include "core/app_runner.h"
 
 Fenetre g_app_window;
 
@@ -67,12 +68,5 @@ static void activate(GtkApplication *app, gpointer user_data)
 
 int main(int argc, char *argv[])
 {
-    GtkApplication *app = gtk_application_new("fr.banc_poisson.app",
-                                              G_APPLICATION_DEFAULT_FLAGS);
-
-    g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-
-    int status = g_application_run(G_APPLICATION(app), argc, argv);
-    g_object_unref(app);
-    return status;
+    return runner("fr.banc_poisson.app", G_CALLBACK(activate), NULL, argc, argv);
 }

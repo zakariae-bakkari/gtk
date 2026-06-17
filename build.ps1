@@ -203,12 +203,11 @@ if ($totalFiles -gt 0) {
         $processStartInfo.Arguments = $argsList -join " "
         
         $processStartInfo.RedirectStandardError = $true
-        $processStartInfo.RedirectStandardOutput = $true
+        $processStartInfo.RedirectStandardOutput = $false
         $processStartInfo.UseShellExecute = $false
         $processStartInfo.CreateNoWindow = $true
         
         $process = [System.Diagnostics.Process]::Start($processStartInfo)
-        $stdout = $process.StandardOutput.ReadToEnd()
         $stderr = $process.StandardError.ReadToEnd()
         $process.WaitForExit()
         
@@ -217,7 +216,6 @@ if ($totalFiles -gt 0) {
             
             # Log compile failure details
             "`n[ERROR] Failed to compile: $($item.Source)" | Out-File "compile.log" -Encoding utf8 -Append
-            if ($stdout) { $stdout | Out-File "compile.log" -Encoding utf8 -Append }
             if ($stderr) { $stderr | Out-File "compile.log" -Encoding utf8 -Append }
             break
         }
@@ -247,19 +245,17 @@ if ($success -and $needsLink) {
     $processStartInfo.Arguments = $argsList -join " "
     
     $processStartInfo.RedirectStandardError = $true
-    $processStartInfo.RedirectStandardOutput = $true
+    $processStartInfo.RedirectStandardOutput = $false
     $processStartInfo.UseShellExecute = $false
     $processStartInfo.CreateNoWindow = $true
     
     $process = [System.Diagnostics.Process]::Start($processStartInfo)
-    $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
     $process.WaitForExit()
     
     if ($process.ExitCode -ne 0) {
         $success = $false
         "`n[ERROR] Failed to link: $OutFile" | Out-File "compile.log" -Encoding utf8 -Append
-        if ($stdout) { $stdout | Out-File "compile.log" -Encoding utf8 -Append }
         if ($stderr) { $stderr | Out-File "compile.log" -Append }
     }
 }

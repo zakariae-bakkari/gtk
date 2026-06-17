@@ -1,6 +1,26 @@
 #include "../headers/dialog.h"
+#include "../headers/bouton.h"
 #include <string.h>
 #include <stdlib.h>
+
+static void on_custom_bouton_destroy(GtkWidget *widget, gpointer data)
+{
+   (void)widget;
+   Bouton *b = data;
+   if (b) {
+      if (b->texte) free(b->texte);
+      if (b->id_css) free(b->id_css);
+      if (b->nom_icone) free(b->nom_icone);
+      if (b->tooltip) free(b->tooltip);
+      if (b->style.bg_normal) free(b->style.bg_normal);
+      if (b->style.bg_hover) free(b->style.bg_hover);
+      if (b->style.fg_normal) free(b->style.fg_normal);
+      if (b->style.fg_hover) free(b->style.fg_hover);
+      if (b->style.couleur_bordure) free(b->style.couleur_bordure);
+      free(b);
+   }
+}
+
 
 // ====================== FORWARD DECLARATIONS ======================
 
@@ -296,13 +316,54 @@ static void dialog_construire_footer(Dialog *cfg)
 
       for (int i = 0; i < count; i++)
       {
-         GtkWidget *btn = gtk_button_new_with_label(defs[i].texte);
-         gtk_widget_add_css_class(btn, defs[i].principal ? "principal" : "secondaire");
+         Bouton *b = g_new0(Bouton, 1);
+         bouton_initialiser(b);
+         g_free(b->texte);
+         b->texte = strdup(defs[i].texte);
+         g_free(b->id_css);
+         b->id_css = g_strdup_printf("dlg_btn_%d_%d", cfg->type, i);
+
+         if (defs[i].principal)
+         {
+            bouton_appliquer_preset(b, BOUTON_STYLE_SUGGESTED);
+            if (cfg->style.bg_bouton_principal) {
+               g_free(b->style.bg_normal);
+               b->style.bg_normal = strdup(cfg->style.bg_bouton_principal);
+               g_free(b->style.bg_hover);
+               b->style.bg_hover = strdup(cfg->style.bg_bouton_principal);
+            }
+            if (cfg->style.fg_bouton_principal) {
+               g_free(b->style.fg_normal);
+               b->style.fg_normal = strdup(cfg->style.fg_bouton_principal);
+               g_free(b->style.fg_hover);
+               b->style.fg_hover = strdup(cfg->style.fg_bouton_principal);
+            }
+         }
+         else
+         {
+            bouton_appliquer_preset(b, BOUTON_STYLE_NEUTRAL);
+            if (cfg->style.bg_bouton_secondaire) {
+               g_free(b->style.bg_normal);
+               b->style.bg_normal = strdup(cfg->style.bg_bouton_secondaire);
+               g_free(b->style.bg_hover);
+               b->style.bg_hover = strdup(cfg->style.bg_bouton_secondaire);
+            }
+            if (cfg->style.fg_bouton_secondaire) {
+               g_free(b->style.fg_normal);
+               b->style.fg_normal = strdup(cfg->style.fg_bouton_secondaire);
+               g_free(b->style.fg_hover);
+               b->style.fg_hover = strdup(cfg->style.fg_bouton_secondaire);
+            }
+         }
 
          DialogClickData *d = g_new0(DialogClickData, 1);
          d->dialog = cfg;
          d->reponse_id = defs[i].id;
-         g_signal_connect(btn, "clicked", G_CALLBACK(on_bouton_clicked), d);
+         b->on_clic = (BoutonAction)on_bouton_clicked;
+         b->user_data = d;
+
+         GtkWidget *btn = bouton_creer(b);
+         g_signal_connect(btn, "destroy", G_CALLBACK(on_custom_bouton_destroy), b);
          g_signal_connect_swapped(btn, "destroy", G_CALLBACK(g_free), d);
 
          gtk_box_append(GTK_BOX(cfg->box_footer), btn);
@@ -314,27 +375,57 @@ static void dialog_construire_footer(Dialog *cfg)
       for (int i = 0; i < cfg->nb_boutons; i++)
       {
          DialogBoutonConfig *bc = cfg->boutons[i];
-         GtkWidget *btn;
+         Bouton *b = g_new0(Bouton, 1);
+         bouton_initialiser(b);
+         g_free(b->texte);
+         b->texte = strdup(bc->texte);
+         if (bc->nom_icone) {
+            b->nom_icone = strdup(bc->nom_icone);
+         }
+         g_free(b->id_css);
+         b->id_css = g_strdup_printf("dlg_cust_btn_%d", i);
 
-         if (bc->nom_icone)
+         if (bc->principal)
          {
-            btn = gtk_button_new();
-            GtkWidget *inner = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-            gtk_box_append(GTK_BOX(inner), gtk_image_new_from_icon_name(bc->nom_icone));
-            gtk_box_append(GTK_BOX(inner), gtk_label_new(bc->texte));
-            gtk_button_set_child(GTK_BUTTON(btn), inner);
+            bouton_appliquer_preset(b, BOUTON_STYLE_SUGGESTED);
+            if (cfg->style.bg_bouton_principal) {
+               g_free(b->style.bg_normal);
+               b->style.bg_normal = strdup(cfg->style.bg_bouton_principal);
+               g_free(b->style.bg_hover);
+               b->style.bg_hover = strdup(cfg->style.bg_bouton_principal);
+            }
+            if (cfg->style.fg_bouton_principal) {
+               g_free(b->style.fg_normal);
+               b->style.fg_normal = strdup(cfg->style.fg_bouton_principal);
+               g_free(b->style.fg_hover);
+               b->style.fg_hover = strdup(cfg->style.fg_bouton_principal);
+            }
          }
          else
          {
-            btn = gtk_button_new_with_label(bc->texte);
+            bouton_appliquer_preset(b, BOUTON_STYLE_NEUTRAL);
+            if (cfg->style.bg_bouton_secondaire) {
+               g_free(b->style.bg_normal);
+               b->style.bg_normal = strdup(cfg->style.bg_bouton_secondaire);
+               g_free(b->style.bg_hover);
+               b->style.bg_hover = strdup(cfg->style.bg_bouton_secondaire);
+            }
+            if (cfg->style.fg_bouton_secondaire) {
+               g_free(b->style.fg_normal);
+               b->style.fg_normal = strdup(cfg->style.fg_bouton_secondaire);
+               g_free(b->style.fg_hover);
+               b->style.fg_hover = strdup(cfg->style.fg_bouton_secondaire);
+            }
          }
-
-         gtk_widget_add_css_class(btn, bc->principal ? "principal" : "secondaire");
 
          DialogClickData *d = g_new0(DialogClickData, 1);
          d->dialog = cfg;
          d->reponse_id = bc->reponse_id;
-         g_signal_connect(btn, "clicked", G_CALLBACK(on_bouton_clicked), d);
+         b->on_clic = (BoutonAction)on_bouton_clicked;
+         b->user_data = d;
+
+         GtkWidget *btn = bouton_creer(b);
+         g_signal_connect(btn, "destroy", G_CALLBACK(on_custom_bouton_destroy), b);
          g_signal_connect_swapped(btn, "destroy", G_CALLBACK(g_free), d);
 
          gtk_box_append(GTK_BOX(cfg->box_footer), btn);
