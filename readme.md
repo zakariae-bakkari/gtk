@@ -29,7 +29,7 @@
 | ![lead](https://img.shields.io/badge/Lead-Zakariae-blue?style=flat-square) BAKKARI Zakariae   | Project Lead / Developer |
 | ![dev](https://img.shields.io/badge/Dev-Meriem-green?style=flat-square) Hamri Meriem       | Developer               |
 | ![dev](https://img.shields.io/badge/Dev-Rafaa-green?style=flat-square) Bennour Rafaa      | Developer               |
-| ![fun](https://img.shields.io/badge/Fun-Noureddine-yellow?style=flat-square) Oubraim Noureddine | Clown                   |
+| ![dev](https://img.shields.io/badge/Dev-Noureddine-green?style=flat-square) Oubraim Noureddine | Developer                 |
 
 ---
 
